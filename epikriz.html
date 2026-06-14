@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acil Epikriz — Hızlı Notlandırma</title>
+<style>
+  :root{
+    --face:#c0c0c0; --light:#ffffff; --hl:#dfdfdf; --shadow:#808080; --dark:#000000;
+    --navy:#000080; --navy2:#1084d0; --ink:#000000; --teal:#000080;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:Arial,"Helvetica Neue",Helvetica,sans-serif;background:#c0c0c0;color:#000;font-size:13px;text-transform:uppercase;}
+
+  /* raised + sunken bevels */
+  .raise{border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
+    box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);background:var(--face);}
+  .sink{border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);
+    box-shadow:inset 1px 1px 0 #0a0a0a;background:#fff;}
+
+  .topbar{position:sticky;top:0;z-index:50;background:#c0c0c0;
+    border-bottom:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
+    box-shadow:inset 0 1px 0 var(--hl);
+    display:flex;align-items:center;gap:10px;padding:6px 10px;}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;
+    background:linear-gradient(90deg,var(--navy),var(--navy2));color:#fff;padding:4px 10px;}
+  .brand .dot{width:12px;height:12px;background:#fff;border:1px solid #000;}
+  .kvkk{font-size:11px;color:#000;background:#c0c0c0;padding:3px 8px;white-space:nowrap;
+    border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);}
+  .spacer{flex:1;}
+  .btn{border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
+    box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
+    background:#c0c0c0;color:#000;font:inherit;font-size:12.5px;font-weight:400;
+    padding:5px 14px;cursor:pointer;border-radius:0;}
+  .btn:active{border-color:var(--dark) var(--light) var(--light) var(--dark);
+    box-shadow:inset 1px 1px 0 var(--shadow),inset -1px -1px 0 var(--hl);}
+  .btn.primary{font-weight:700;}
+
+  .app-body{display:flex;align-items:flex-start;}
+  .wrap{display:grid;grid-template-columns:1fr 1fr;gap:0;max-width:1400px;margin:0 auto;align-items:start;flex:1;min-width:0;}
+  .panel{padding:14px 14px 80px;}
+  .panel.form{border-right:2px solid var(--shadow);}
+  .doc-col{position:sticky;top:46px;height:calc(100vh - 46px);overflow:auto;padding:14px 16px 40px;}
+
+  /* hasta gecmisi (oturum bellegi) sekmeleri */
+  .patient-tabs{flex:none;display:flex;flex-direction:column;gap:4px;padding:14px 6px;
+    position:sticky;top:46px;}
+  .patient-tab{width:28px;min-height:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
+    box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
+    background:#c0c0c0;color:#000;font:inherit;font-size:12px;font-weight:700;
+    cursor:pointer;border-radius:0;padding:2px 0;line-height:1.05;}
+  .patient-tab .time{font-size:8px;font-weight:400;}
+  .patient-tab:active{border-color:var(--dark) var(--light) var(--light) var(--dark);
+    box-shadow:inset 1px 1px 0 var(--shadow),inset -1px -1px 0 var(--hl);}
+  .patient-tab.active{border-color:var(--dark) var(--light) var(--light) var(--dark);
+    box-shadow:inset 1px 1px 0 var(--shadow),inset -1px -1px 0 var(--hl);
+    background:#b8b8b8;}
+
+  .section{background:var(--face);border:2px solid;
+    border-color:var(--light) var(--dark) var(--dark) var(--light);
+    box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
+    border-radius:0;padding:0 11px 12px;margin-bottom:12px;}
+  .sec-label{background:linear-gradient(90deg,var(--navy),var(--navy2));color:#fff;
+    font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;
+    margin:0 -11px 11px;padding:3px 8px;display:flex;align-items:center;gap:8px;}
+  .sec-label .num{color:#fff;font-variant-numeric:tabular-nums;opacity:.85;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
+    box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
+    background:#c0c0c0;color:#000;font:inherit;font-size:12px;font-weight:400;
+    padding:3px 9px;cursor:pointer;border-radius:0;user-select:none;line-height:1.25;}
+  .chip:active{border-color:var(--dark) var(--light) var(--light) var(--dark);
+    box-shadow:inset 1px 1px 0 var(--shadow),inset -1px -1px 0 var(--hl);}
+  .chip.active{border-color:var(--dark) var(--light) var(--light) var(--dark);
+    box-shadow:inset 1px 1px 0 var(--shadow),inset -1px -1px 0 var(--hl);
+    background:#b8b8b8;font-weight:700;}
+  .chip.active::before{content:"\2713 ";}
+
+  .durat-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px;}
+  .durat-row .durat-lbl{font-size:11px;font-weight:700;color:#000;}
+  .durat-row .txt{width:64px;flex:none;}
+
+  .mini-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px;font-size:11px;font-weight:700;color:#000;}
+  .mini-row .txt{width:48px;flex:none;font-weight:400;}
+
+  .extra,.txt{font-family:Arial,sans-serif;font-size:12.5px;color:#000;background:#fff;
+    border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);
+    box-shadow:inset 1px 1px 0 #0a0a0a;border-radius:0;padding:4px 6px;width:100%;}
+  .extra{margin-top:9px;resize:vertical;}
+  textarea.extra{min-height:46px;}
+  .extra:focus,.txt:focus{outline:1px dotted #000;outline-offset:-4px;}
+
+  .grid{display:grid;gap:9px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:repeat(3,1fr);}
+  .field label{display:block;font-size:11px;font-weight:700;color:#000;margin-bottom:3px;}
+  .field .txt{padding:3px 5px;}
+  .subhead{font-size:11.5px;font-weight:700;color:#000;margin:13px 0 6px;}
+
+  .detay-panel{background:#c0c0c0;border:2px solid;
+    border-color:var(--shadow) var(--light) var(--light) var(--shadow);
+    box-shadow:inset 1px 1px 0 #0a0a0a;border-radius:0;padding:0 10px 10px;margin-bottom:10px;}
+  .detay-panel .sec-label{background:linear-gradient(90deg,#3a3a8c,#5a78c0);margin:0 -10px 9px;}
+  .detay-panel .sub{font-size:11px;font-weight:700;color:#000;margin:10px 0 5px;}
+  .detay-panel .sub:first-of-type{margin-top:2px;}
+
+  .paper{background:#fff;border:2px solid;
+    border-color:var(--shadow) var(--light) var(--light) var(--shadow);
+    box-shadow:inset 1px 1px 0 #0a0a0a;border-radius:0;padding:26px 30px;
+    font-family:Arial,sans-serif;color:#000;line-height:1.5;font-size:13px;min-height:100%;}
+  .paper .title{text-align:center;font-weight:700;font-size:15px;letter-spacing:.02em;
+    margin:0 0 4px;padding-bottom:10px;border-bottom:2px solid #000;}
+  .paper .meta{font-size:12px;color:#000;margin:11px 0 4px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .doc-row{margin:8px 0;}
+  .doc-row .k{font-weight:700;}
+  .doc-row.empty{display:none;}
+  .placeholder-doc{color:#808080;font-style:italic;}
+  .doc-hint{font-size:11px;color:#000;margin:0 0 9px;padding:3px 8px;display:inline-flex;align-items:center;gap:6px;
+    background:#c0c0c0;border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#c0c0c0;color:#000;padding:8px 16px;font-size:12.5px;font-weight:700;
+    border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
+    box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
+    opacity:0;pointer-events:none;transition:opacity .15s;z-index:100;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* katlanabilir muayene modülü */
+  .exam-tools{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px;}
+  .exam-sys{margin-bottom:6px;}
+  .exam-head{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+    border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
+    box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
+    background:#c0c0c0;color:#000;font:inherit;font-size:12px;font-weight:700;
+    padding:4px 8px;cursor:pointer;border-radius:0;}
+  .exam-head:active{border-color:var(--dark) var(--light) var(--light) var(--dark);
+    box-shadow:inset 1px 1px 0 var(--shadow),inset -1px -1px 0 var(--hl);}
+  .exam-head .tog{flex:none;width:15px;height:15px;display:inline-flex;align-items:center;
+    justify-content:center;border:1px solid var(--dark);background:#fff;
+    font-weight:700;font-size:11px;line-height:1;}
+  .exam-head .nm{flex:1;}
+  .exam-head .badge{flex:none;font-size:10px;font-weight:700;background:var(--navy);color:#fff;
+    padding:1px 6px;min-width:18px;text-align:center;}
+  .exam-head .badge.zero{display:none;}
+  .exam-body{display:none;margin-top:-2px;padding:8px 9px 9px;
+    border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);
+    box-shadow:inset 1px 1px 0 #0a0a0a;background:#c0c0c0;}
+  .exam-sys.open .exam-body{display:block;}
+  .exam-body .sub{font-size:11px;font-weight:700;color:#000;margin:9px 0 5px;}
+  .exam-body .sub:first-child{margin-top:0;}
+  .allnorm-btn{border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
+    box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
+    background:#c0c0c0;color:#000;font:inherit;font-size:11.5px;font-weight:700;
+    padding:3px 9px;cursor:pointer;border-radius:0;}
+  .allnorm-btn:active{border-color:var(--dark) var(--light) var(--light) var(--dark);
+    box-shadow:inset 1px 1px 0 var(--shadow),inset -1px -1px 0 var(--hl);}
+
+  /* retro scrollbar */
+  *::-webkit-scrollbar{width:16px;height:16px;}
+  *::-webkit-scrollbar-track{background:#dfdfdf;}
+  *::-webkit-scrollbar-thumb{background:#c0c0c0;border:2px solid;
+    border-color:var(--light) var(--dark) var(--dark) var(--light);}
+
+  @media(max-width:900px){
+    .wrap{grid-template-columns:1fr;}
+    .panel.form{border-right:none;border-bottom:2px solid var(--shadow);}
+    .doc-col{position:static;height:auto;overflow:visible;}
+    .kvkk{display:none;}
+    .app-body{flex-direction:column;}
+    .patient-tabs{flex-direction:row;position:static;width:100%;padding:8px 14px 0;}
+  }
+  @media print{
+    .topbar,.panel.form,.doc-hint,.patient-tabs{display:none !important;}
+    .wrap{display:block;} .doc-col{position:static;height:auto;overflow:visible;padding:0;}
+    .paper{border:none;box-shadow:none;padding:0;} body{background:#fff;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> Acil Epikriz</div>
+  <span class="kvkk">Veriler cihazinizdan cikmaz</span>
+  <div class="spacer"></div>
+  <button class="btn" onclick="resetAll()">Yeni Hasta</button>
+  <button class="btn" onclick="window.print()">Yazdir</button>
+  <button class="btn primary" onclick="copyText()">Kopyala</button>
+</div>
+
+<div class="app-body">
+<div class="patient-tabs" id="patientTabs"></div>
+<div class="wrap">
+  <div class="panel form" id="form">
+
+    <!-- 01 Hasta -->
+    <div class="section" data-field="hasta">
+      <div class="sec-label"><span class="num">01</span> Hasta</div>
+      <div class="grid g2">
+        <div class="field"><label>Yaş</label><input class="txt" id="f_age" placeholder="ör. 54"></div>
+        <div class="field">
+          <label>Cinsiyet</label>
+          <div class="chips" data-single="true" id="f_sex">
+            <button class="chip">Kadın</button><button class="chip">Erkek</button>
+          </div>
+        </div>
+      </div>
+      <div class="chips" style="margin-top:9px" id="f_arrival" data-single="true">
+        <button class="chip">Yürüyerek başvurdu</button>
+        <button class="chip">112 ile getirildi</button>
+        <button class="chip">Sevk ile geldi</button>
+      </div>
+    </div>
+
+    <!-- 02 Başvuru Şikayeti -->
+    <div class="section" data-field="sikayet">
+      <div class="sec-label"><span class="num">02</span> Başvuru Şikayeti</div>
+      <div class="chips">
+        <button class="chip">göğüs ağrısı</button>
+        <button class="chip">nefes darlığı</button>
+        <button class="chip">çarpıntı</button>
+        <button class="chip">karın ağrısı</button>
+        <button class="chip">bulantı-kusma</button>
+        <button class="chip">ishal</button>
+        <button class="chip">kabızlık</button>
+        <button class="chip">GİS kanama</button>
+        <button class="chip">baş ağrısı</button>
+        <button class="chip">baş dönmesi</button>
+        <button class="chip">senkop</button>
+        <button class="chip">konuşma bozukluğu</button>
+        <button class="chip">bilinç bulanıklığı</button>
+        <button class="chip">ateş</button>
+        <button class="chip">öksürük</button>
+        <button class="chip">boğaz ağrısı</button>
+        <button class="chip">kulak ağrısı</button>
+        <button class="chip">halsizlik</button>
+        <button class="chip">sırt ağrısı</button>
+        <button class="chip">bel ağrısı</button>
+        <button class="chip">böğür ağrısı</button>
+        <button class="chip">eklem ağrısı/şişlik</button>
+        <button class="chip">dizüri</button>
+        <button class="chip">idrar yapamama</button>
+        <button class="chip">hematüri</button>
+        <button class="chip">döküntü/alerji</button>
+        <button class="chip">burun kanaması</button>
+        <button class="chip">yüksek tansiyon</button>
+        <button class="chip">hipoglisemi</button>
+        <button class="chip">ilaç/madde alımı</button>
+        <button class="chip">travma</button>
+        <button class="chip">düşme</button>
+        <button class="chip">trafik kazası</button>
+        <button class="chip">kesik/laserasyon</button>
+        <button class="chip">yanık</button>
+        <button class="chip">hayvan ısırığı</button>
+      </div>
+      <div class="durat-row">
+        <span class="durat-lbl">Şikayet süresi:</span>
+        <input class="txt" id="f_sikayet_sure" type="number" min="0" step="any" placeholder="—">
+        <div class="chips" data-single="true" id="f_sikayet_birim">
+          <button class="chip">dakika</button>
+          <button class="chip">saat</button>
+          <button class="chip">gün</button>
+          <button class="chip">ay</button>
+          <button class="chip">yıl</button>
+        </div>
+      </div>
+      <input class="extra" data-extra placeholder="Diğer şikayet (serbest metin)">
+      <div class="detay-wrap" id="detay"></div>
+    </div>
+
+    <!-- 03 Hikaye -->
+    <div class="section" data-field="hikaye">
+      <div class="sec-label"><span class="num">03</span> Hikaye / Anamnez</div>
+      <textarea class="extra" data-extra placeholder="Kısa öykü (opsiyonel)"></textarea>
+    </div>
+
+    <!-- 04 Bilinen Hastalıklar -->
+    <div class="section" data-field="ozgecmis">
+      <div class="sec-label"><span class="num">04</span> Bilinen Hastalıklar</div>
+      <div class="chips">
+        <button class="chip neg" data-clears="true">ek hastalığı yok</button>
+        <button class="chip">HT</button>
+        <button class="chip">DM</button>
+        <button class="chip" data-full="Hiperlipidemi">HL</button>
+        <button class="chip">KAH</button>
+        <button class="chip">Geçirilmiş MI</button>
+        <button class="chip" id="chipStent">Stent</button>
+        <button class="chip" id="chipBypass">Bypass</button>
+        <button class="chip">KKY</button>
+        <button class="chip" data-full="Atriyal fibrilasyon">AF</button>
+        <button class="chip">KOAH</button>
+        <button class="chip">Astım</button>
+        <button class="chip">KBY</button>
+        <button class="chip" id="chipDiyaliz">Diyaliz alıyor</button>
+        <button class="chip" id="chipSvo">SVO öyküsü</button>
+        <button class="chip" id="chipPedvt">Geçirilmiş PE/DVT</button>
+        <button class="chip">Malignite</button>
+        <button class="chip">Tiroid hastalığı</button>
+        <button class="chip">Epilepsi</button>
+        <button class="chip">Demans</button>
+        <button class="chip">Parkinson</button>
+        <button class="chip" id="chipPsik">Psikiyatrik hastalık</button>
+        <button class="chip">Romatolojik hastalık</button>
+        <button class="chip">KC hastalığı/siroz</button>
+        <button class="chip">Peptik ülser</button>
+        <button class="chip">Anemi</button>
+        <button class="chip">Geçirilmiş operasyon</button>
+        <button class="chip" id="chipGebelik">Gebelik</button>
+      </div>
+      <div class="mini-row" id="stentBox" style="display:none">
+        Stent sayısı: <input class="txt" id="f_stent_sayi" type="number" min="1" step="1" placeholder="adet">
+      </div>
+      <div class="mini-row" id="diyalizBox" style="display:none">
+        Haftalık diyaliz: <input class="txt" id="f_diyaliz_gun" type="number" min="1" max="7" step="1" placeholder="gün"> / 7
+      </div>
+      <div class="mini-row" id="bypassYearBox" style="display:none">
+        Kaç yıl önce?: <input class="txt" id="f_bypass_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
+      </div>
+      <div class="mini-row" id="svoYearBox" style="display:none">
+        Kaç yıl önce?: <input class="txt" id="f_svo_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
+      </div>
+      <div class="mini-row" id="pedvtYearBox" style="display:none">
+        Kaç yıl önce?: <input class="txt" id="f_pedvt_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
+      </div>
+      <div class="mini-row" id="gebelikBox" style="display:none">
+        Kaç hafta?: <input class="txt" id="f_gebelik_hafta" type="number" min="1" max="42" step="1" placeholder="hafta">
+      </div>
+      <div class="chips" id="psikSub" style="display:none;margin-top:7px;">
+        <button class="chip">Depresyon</button>
+        <button class="chip">Bipolar bozukluk</button>
+        <button class="chip">Şizofreni</button>
+        <button class="chip">Anksiyete bozukluğu</button>
+        <button class="chip">Diğer</button>
+      </div>
+      <input class="extra" data-extra placeholder="Diğer / ek bilgi">
+    </div>
+
+    <!-- 05 Alerji -->
+    <div class="section" data-field="alerji">
+      <div class="sec-label"><span class="num">05</span> Alerji</div>
+      <div class="chips">
+        <button class="chip neg" data-clears="true">bilinen alerjisi yok</button>
+        <button class="chip">Penisilin</button>
+        <button class="chip">Aspirin/NSAİİ</button>
+        <button class="chip">Kontrast madde</button>
+        <button class="chip">Sülfonamid</button>
+        <button class="chip">Sefalosporin</button>
+      </div>
+      <input class="extra" data-extra placeholder="Alerji (ilaç/gıda)">
+    </div>
+
+    <!-- 06 Vital Bulgular + EKG -->
+    <div class="section">
+      <div class="sec-label"><span class="num">06</span> Vital Bulgular</div>
+      <div class="grid g3">
+        <div class="field"><label>TA (mmHg)</label><input class="txt vit" data-vit="TA" data-unit=" mmHg" placeholder="120/80"></div>
+        <div class="field"><label>Nabız</label><input class="txt vit" data-vit="Nabız" data-unit="/dk" placeholder="78"></div>
+        <div class="field"><label>Ateş (°C)</label><input class="txt vit" data-vit="Ateş" data-unit="°C" placeholder="36.8"></div>
+        <div class="field"><label>SpO₂ (%)</label><input class="txt vit" data-vit="SpO₂" data-pre="%" placeholder="98"></div>
+        <div class="field"><label>Solunum</label><input class="txt vit" data-vit="Solunum" data-unit="/dk" placeholder="16"></div>
+        <div class="field"><label>Kan şekeri</label><input class="txt vit" data-vit="KŞ" data-unit=" mg/dL" placeholder="—"></div>
+      </div>
+      <div class="subhead">EKG</div>
+      <div class="section" data-field="ekg" style="padding:0;border:none;margin:0;box-shadow:none;background:transparent;">
+        <div class="chips">
+          <button class="chip">Normal sinüs ritmi</button>
+          <button class="chip">Sinüs taşikardisi</button>
+          <button class="chip">Sinüs bradikardisi</button>
+          <button class="chip">Atriyal fibrilasyon</button>
+          <button class="chip">ST elevasyonu</button>
+          <button class="chip">ST depresyonu</button>
+          <button class="chip">T negatifliği</button>
+          <button class="chip">Dal bloğu</button>
+          <button class="chip">Patolojik özellik yok</button>
+        </div>
+        <input class="extra" data-extra placeholder="EKG notu (derivasyon vb.)">
+      </div>
+    </div>
+
+    <!-- 07 Fizik Muayene (sistem-bazlı, katlanabilir) -->
+    <div class="section" data-field="muayene">
+      <div class="sec-label"><span class="num">07</span> Fizik Muayene <span class="num">(sisteme göre)</span></div>
+      <div class="exam-tools">
+        <button class="allnorm-btn" id="examAllNormal">✓ Tüm sistemler doğal</button>
+        <button class="allnorm-btn" id="examCollapse">Hepsini kapat</button>
+      </div>
+      <div id="examWrap"></div>
+      <input class="extra" data-extra placeholder="Ek bulgu / serbest metin">
+    </div>
+
+    <!-- 08 Tedavi -->
+    <div class="section" data-field="tedavi">
+      <div class="sec-label"><span class="num">08</span> Acilde Uygulanan Tedavi</div>
+      <div class="chips">
+        <button class="chip">İV sıvı</button>
+        <button class="chip">Analjezik</button>
+        <button class="chip">Antiemetik</button>
+        <button class="chip">Antibiyotik</button>
+        <button class="chip">Nebülizatör</button>
+        <button class="chip">O₂ desteği</button>
+        <button class="chip">Antiagregan/antikoagülan</button>
+        <button class="chip">Antihipertansif</button>
+        <button class="chip">Yara bakımı</button>
+        <button class="chip">Sütür</button>
+        <button class="chip">Tetanos aşısı</button>
+        <button class="chip">Pansuman</button>
+      </div>
+      <input class="extra" data-extra placeholder="İlaç adı-doz / diğer işlemler">
+    </div>
+
+    <!-- 09 Karar -->
+    <div class="section" data-field="karar">
+      <div class="sec-label"><span class="num">09</span> Karar</div>
+      <div class="chips" data-single="true">
+        <button class="chip">Taburcu</button>
+        <button class="chip">Servise yatış</button>
+        <button class="chip">Yoğun bakıma yatış</button>
+        <button class="chip">Sevk</button>
+        <button class="chip">Konsültasyon</button>
+      </div>
+      <input class="extra" data-extra placeholder="Branş / hedef klinik (ör. Dahiliye)">
+    </div>
+
+    <!-- 10 Öneriler -->
+    <div class="section" data-field="oneri">
+      <div class="sec-label"><span class="num">10</span> Öneriler</div>
+      <div class="chips">
+        <button class="chip">Bol sıvı tüketimi</button>
+        <button class="chip">İstirahat</button>
+        <button class="chip">İlaçları düzenli kullanma</button>
+        <button class="chip">Reçete edilen ilaçların kullanımı</button>
+        <button class="chip">Şikayet artarsa tekrar başvuru</button>
+        <button class="chip">Poliklinik kontrolü</button>
+        <button class="chip">İlgili branş polikliniğine başvuru</button>
+        <button class="chip">Diyet düzenlemesi</button>
+        <button class="chip">Ateş takibi</button>
+        <button class="chip">Tansiyon takibi</button>
+        <button class="chip">Kan şekeri takibi</button>
+        <button class="chip">Antibiyotik tedavisini tamamlama</button>
+        <button class="chip">Yara bakımı/pansuman</button>
+        <button class="chip">Dikişlerin alınması (kontrol)</button>
+        <button class="chip">Soğuk/sıcak uygulama</button>
+        <button class="chip">Sigara/alkolden uzak durma</button>
+        <button class="chip">Alarm semptomları ve acil başvuru kriterleri hastaya anlatıldı</button>
+      </div>
+      <input class="extra" data-extra placeholder="Reçete / ek öneri">
+    </div>
+
+  </div>
+
+  <div class="doc-col">
+    <p class="doc-hint">Canlı önizleme — işaretledikçe oluşur. Kopyala ile HBYS'ye yapıştırın.</p>
+    <div class="paper" id="paper"></div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast">Kopyalandı</div>
+
+<script>
+(function(){
+  const form=document.getElementById('form');
+  const pad=n=>String(n).padStart(2,'0');
+  const now=new Date();
+  const dateStr=`${pad(now.getDate())}.${pad(now.getMonth()+1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+  const followups={
+    "göğüs ağrısı":[
+      {label:"Süre",single:true,opts:["<1 saat","1-6 saat",">6 saat","birkaç gündür"]},
+      {label:"Nitelik",opts:["baskı tarzı","batıcı","yanıcı","nefesle artan"]},
+      {label:"Efor ilişkisi",single:true,opts:["eforla artıyor","istirahatte de var","eforla ilişkisiz"]},
+      {label:"Yayılım",opts:["sol kola","çeneye","sırta","yayılım yok"]},
+      {label:"Eşlik eden",opts:["nefes darlığı","terleme","bulantı","çarpıntı"]},
+    ],
+    "nefes darlığı":[
+      {label:"Başlangıç",single:true,opts:["ani","saatlerdir","günlerdir"]},
+      {label:"Tip",opts:["eforla","istirahatte","ortopne","PND"]},
+      {label:"Eşlik eden",opts:["öksürük","balgam","göğüs ağrısı","ateş","hırıltı","bacakta şişlik"]},
+    ],
+    "karın ağrısı":[
+      {label:"Lokalizasyon",opts:["epigastrik","sağ üst kadran","sol üst kadran","sağ alt kadran","sol alt kadran","periumbilikal","suprapubik","yaygın"]},
+      {label:"Nitelik",single:true,opts:["kramp tarzı","sürekli","kolik tarzı"]},
+      {label:"Süre",single:true,opts:["<24 saat","1-3 gün",">3 gün"]},
+      {label:"Eşlik eden",opts:["bulantı-kusma","ishal","kabızlık","ateş","idrar şikayeti","GİS kanama"]},
+    ],
+    "baş ağrısı":[
+      {label:"Başlangıç",single:true,opts:["ani/gürültülü","kademeli"]},
+      {label:"Süre",single:true,opts:["bugün başladı","birkaç gündür","kronik"]},
+      {label:"Eşlik eden",opts:["bulantı-kusma","fotofobi","görme bozukluğu","ense sertliği","nörolojik defisit","travma öyküsü"]},
+    ],
+    "baş dönmesi":[
+      {label:"Tip",single:true,opts:["dönme (vertijo)","göz kararması","dengesizlik"]},
+      {label:"Eşlik eden",opts:["bulantı-kusma","işitme kaybı","kulak çınlaması","nörolojik bulgu"]},
+    ],
+    "senkop":[
+      {label:"Durum",single:true,opts:["efor sırasında","ayağa kalkınca","istirahatte"]},
+      {label:"Eşlik eden",opts:["öncesinde aura","çarpıntı","inkontinans","dil ısırma","travma"]},
+    ],
+    "ateş":[
+      {label:"Süre",single:true,opts:["<24 saat","1-3 gün",">3 gün"]},
+      {label:"Derece",single:true,opts:["<38°C","38-39°C",">39°C"]},
+      {label:"Eşlik eden",opts:["öksürük","boğaz ağrısı","dizüri","ishal","döküntü"]},
+    ],
+    "bel ağrısı":[
+      {label:"Yayılım",single:true,opts:["bacağa yayılan","yayılım yok"]},
+      {label:"Kırmızı bayrak",opts:["inkontinans","alt ekstremite güçsüzlüğü","ateş","travma","eyer tarzı uyuşma","yok"]},
+    ],
+    "böğür ağrısı":[
+      {label:"Taraf",single:true,opts:["sağ","sol","bilateral"]},
+      {label:"Eşlik eden",opts:["bulantı-kusma","hematüri","dizüri","ateş"]},
+    ],
+    "travma":[
+      {label:"Mekanizma",opts:["düşme","trafik kazası","darp","kesici alet","künt travma"]},
+      {label:"Bölge",opts:["baş-boyun","toraks","batın","ekstremite","pelvis"]},
+      {label:"Bilinç kaybı",single:true,opts:["var","yok"]},
+    ],
+  };
+
+  // ---- Fizik Muayene: sistem bazlı, Bates' Guide terminolojisine uygun ----
+  const examSystems=[
+    {id:'genel',name:'Genel Görünüm',groups:[
+      {label:'Normal',normal:true,opts:[
+        'Genel durumu iyi, akut distres yok',
+        'Bilinç açık, oryante, koopere',
+        'Cilt rengi ve turgoru normal',
+        'Beslenme ve hidrasyon normal görünümde',
+      ]},
+      {label:'Patolojik bulgular',opts:[
+        'Akut/toksik görünüm',
+        'Letarjik / uykuya eğilimli',
+        'Ajite / huzursuz',
+        'Solukluk',
+        'Siyanoz (santral/periferik)',
+        'İkter',
+        'Dehidratasyon bulguları',
+        'Kaşektik görünüm',
+        'Travma / künt darbe izi',
+      ]},
+    ]},
+    {id:'basboyun',name:'Baş - Boyun (HEENT)',groups:[
+      {label:'Normal',normal:true,opts:[
+        'Kafa travma bulgusu yok (NC/AT)',
+        'Pupiller izokorik, ışığa reaktif (PERLA)',
+        'Skleralar ikterik değil, konjonktivalar normal',
+        'Kulak zarları (TM) normal, dış kulak yolu açık',
+        'Burun akıntısı/tıkanıklık yok',
+        'Orofarenks ve dentisyon normal, eksüda yok',
+        'Boyun yumuşak, kitle/LAP yok, trakea orta hatta',
+        'Tiroid palpabl değil, guatr yok',
+        'Ense sertliği yok',
+      ]},
+      {label:'Patolojik bulgular',opts:[
+        'Kafa travma bulgusu (hematom/laserasyon/krepitasyon)',
+        'Pupil anizokorisi',
+        'Pupil ışık reaksiyonu azalmış/yok',
+        'Konjonktival hiperemi / subkonjonktival kanama',
+        'Periorbital ödem / ekimoz',
+        'Skleral ikter',
+        'Kulak zarı hiperemik / bombe',
+        'Dış kulak yolunda akıntı / yabancı cisim',
+        'Burun kanaması / septal hematom',
+        'Farenkste hiperemi / eksüda (tonsillit)',
+        'Peritonsiller şişlik / asimetri',
+        'Boyunda LAP (lokalizasyon belirtin)',
+        'Tiroid büyümüş / nodüler / hassas',
+        'JVD (juguler venöz dolgunluk)',
+        'Trakea deviasyonu',
+        'Ense sertliği (meningeal irritasyon)',
+        'Stridor',
+      ]},
+    ]},
+    {id:'kvs',name:'Kardiyovasküler',groups:[
+      {label:'Normal',normal:true,opts:[
+        'S1-S2 normal, ek ses/üfürüm yok',
+        'Ritim düzenli',
+        'PMI normal lokalizasyonda, taşma yok',
+        'JVD yok',
+        'Periferik nabızlar simetrik ve dolgun (2+)',
+        'Pretibial ödem yok',
+        'Kapiller dolum normal (<2 sn)',
+      ]},
+      {label:'Patolojik bulgular',opts:[
+        'Taşikardi',
+        'Bradikardi',
+        'Düzensiz ritim (aritmi)',
+        'Sistolik üfürüm',
+        'Diyastolik üfürüm',
+        'S3 gallop',
+        'S4 gallop',
+        'Perikardiyal frotman',
+        'PMI deplase / diffüz',
+        'JVD artmış',
+        'Pretibial ödem (sağ/sol/bilateral, derece belirtin)',
+        'Periferik nabız azalmış / alınamıyor',
+        'Kapiller dolum gecikmiş',
+        'Periferik siyanoz',
+        'Soğuk, nemli ekstremiteler (şok bulgusu)',
+      ]},
+    ]},
+    {id:'solunum',name:'Solunum / Toraks',groups:[
+      {label:'Normal',normal:true,opts:[
+        'Toraks simetrik, solunum eforu normal',
+        'Yardımcı solunum kası kullanımı yok',
+        'Bilateral solunum sesleri normal (vesiküler)',
+        'Ral / ronküs / wheezing yok',
+        'Perküsyonda rezonans normal',
+      ]},
+      {label:'Patolojik bulgular',opts:[
+        'Takipne / solunum sıkıntısı',
+        'Yardımcı solunum kası kullanımı / interkostal çekilme',
+        'İnce raller (krepitasyon)',
+        'Kaba raller',
+        'Ronküs',
+        'Wheezing (hışıltı)',
+        'Solunum sesleri azalmış / yok (sağ/sol/bilateral)',
+        'Stridor',
+        'Hiperrezonans (perküsyonda)',
+        'Matite (perküsyonda)',
+        'Plevral frotman',
+        'Asimetrik göğüs hareketi / paradoks solunum',
+        'Subkutan amfizem',
+        'Siyanoz',
+      ]},
+    ]},
+    {id:'batin',name:'Batın',groups:[
+      {label:'Normal',normal:true,opts:[
+        'Batın yumuşak, distansiyon yok',
+        'Bağırsak sesleri normoaktif',
+        'Hassasiyet / defans / rebound yok',
+        'Organomegali / palpabl kitle yok',
+        'KVA hassasiyeti yok',
+        'Herni yok',
+      ]},
+      {label:'Patolojik bulgular',opts:[
+        'Distansiyon',
+        'Yaygın hassasiyet',
+        'Lokalize hassasiyet (kadran belirtin)',
+        'Defans (kas koruması)',
+        'Rebound hassasiyet',
+        'Rijit / tahta gibi batın (peritonit bulgusu)',
+        'Bağırsak sesleri azalmış / yok',
+        'Bağırsak sesleri artmış (hiperaktif)',
+        'Hepatomegali',
+        'Splenomegali',
+        'Palpabl kitle',
+        'Murphy belirtisi (+)',
+        'McBurney noktası hassasiyeti (+)',
+        'Rovsing belirtisi (+)',
+        'Psoas / obturator belirtisi (+)',
+        'Pulsatil kitle (AAA şüphesi)',
+        'KVA hassasiyeti (+, sağ/sol)',
+        'Herni (redükte / redükte değil)',
+        'Asit bulguları',
+      ]},
+    ]},
+    {id:'noro',name:'Nörolojik',groups:[
+      {label:'Normal',normal:true,opts:[
+        'Bilinç açık, GKS 15, oryante',
+        'Kranial sinirler (II-XII) intakt',
+        'Kas gücü 4 ekstremitede 5/5, tonus normal',
+        'DTR 2+ ve simetrik, plantar yanıt downgoing',
+        'Duyu intakt',
+        'Koordinasyon (FNF, topuk-diz) ve yürüyüş normal',
+        'Romberg negatif',
+      ]},
+      {label:'Patolojik bulgular',opts:[
+        'GKS düşük (belirtin)',
+        'Bilinç bulanıklığı / konfüzyon',
+        'Kranial sinir defisiti (belirtin)',
+        'Fasiyal asimetri / paralizi',
+        'Dizartri / afazi',
+        'Ekstremite güçsüzlüğü (lokalizasyon ve derece belirtin)',
+        'Hemiparezi / hemipleji',
+        'Tonus artışı (spastisite) / azalması (hipotoni)',
+        'DTR azalmış / artmış / asimetrik',
+        'Babinski pozitif (plantar yanıt up-going)',
+        'Duyu kaybı (dağılım belirtin)',
+        'Ataksi / dismetri',
+        'Romberg pozitif',
+        'Nistagmus',
+        'Ense sertliği (meningeal irritasyon)',
+        'Tremor',
+        'Nöbet aktivitesi gözlendi',
+      ]},
+    ]},
+    {id:'msk',name:'Kas-İskelet',groups:[
+      {label:'Normal',normal:true,opts:[
+        'Tüm eklemlerde hareket açıklığı tam',
+        'Deformite / şişlik yok',
+        'Kas gücü normal, nörovasküler muayene normal',
+        'Palpasyonla kemik hassasiyeti yok',
+      ]},
+      {label:'Patolojik bulgular',opts:[
+        'Eklem şişliği / efüzyon',
+        'Eklem hassasiyeti / hareketle ağrı',
+        'Eritem ve sıcaklık artışı (artrit/enfeksiyon bulgusu)',
+        'Hareket kısıtlılığı',
+        'Deformite / anormal pozisyon',
+        'Krepitasyon',
+        'Lokalize kemik hassasiyeti (kırık şüphesi)',
+        'Açık yara / kemikte açıklık',
+        'Distalde nörovasküler defisit (nabız/duyu/motor kaybı)',
+        'Kompartman sendromu bulguları',
+        'Vertebra üzerinde hassasiyet',
+        'Paravertebral kas spazmı',
+        'Düz bacak kaldırma testi (+)',
+      ]},
+    ]},
+    {id:'cilt',name:'Cilt',groups:[
+      {label:'Normal',normal:true,opts:[
+        'Cilt turgoru normal, sıcak ve kuru',
+        'Döküntü, peteşi veya ekimoz yok',
+        'Cilt bütünlüğü korunmuş, basınç yarası yok',
+      ]},
+      {label:'Patolojik bulgular',opts:[
+        'Döküntü (tip/lokalizasyon belirtin)',
+        'Peteşi / purpura',
+        'Ekimoz / hematom',
+        'Siyanoz',
+        'İkter',
+        'Soğuk ve nemli cilt (terleme, şok bulgusu)',
+        'Yanık (derece ve % belirtin)',
+        'Laserasyon / abrazyon',
+        'Selülit bulguları (eritem, sıcaklık, hassasiyet)',
+        'Basınç ülseri',
+        'Ödem (lokalizasyon belirtin)',
+      ]},
+    ]},
+  ];
+
+  const examWrap=document.getElementById('examWrap');
+  examSystems.forEach(sys=>{
+    const box=document.createElement('div');
+    box.className='exam-sys';box.dataset.sys=sys.id;
+    let h=`<button type="button" class="exam-head"><span class="tog">+</span><span class="nm">${sys.name}</span><span class="badge zero">0</span></button>`;
+    h+=`<div class="exam-body">`;
+    sys.groups.forEach(g=>{
+      h+=`<div class="sub">${g.label}</div><div class="chips"${g.single?' data-single="true"':''}>`;
+      g.opts.forEach(o=>h+=`<button class="chip"${g.normal?' data-normal="true"':''}>${o}</button>`);
+      h+=`</div>`;
+    });
+    h+=`</div>`;
+    box.innerHTML=h;
+    examWrap.appendChild(box);
+  });
+
+  examWrap.addEventListener('click',e=>{
+    const head=e.target.closest('.exam-head');
+    if(!head)return;
+    const sysEl=head.closest('.exam-sys');
+    sysEl.classList.toggle('open');
+    head.querySelector('.tog').textContent=sysEl.classList.contains('open')?'−':'+';
+  });
+
+  document.getElementById('examAllNormal').addEventListener('click',()=>{
+    examWrap.querySelectorAll('.chip[data-normal="true"]').forEach(c=>c.classList.add('active'));
+    examWrap.querySelectorAll('.exam-sys').forEach(s=>{
+      s.classList.add('open');
+      s.querySelector('.tog').textContent='−';
+    });
+    render();
+  });
+  document.getElementById('examCollapse').addEventListener('click',()=>{
+    examWrap.querySelectorAll('.exam-sys').forEach(s=>{
+      s.classList.remove('open');
+      s.querySelector('.tog').textContent='+';
+    });
+  });
+
+  function updateExamBadges(){
+    examWrap.querySelectorAll('.exam-sys').forEach(s=>{
+      const n=s.querySelectorAll('.chip.active').length;
+      const b=s.querySelector('.badge');
+      b.textContent=n;
+      b.classList.toggle('zero',n===0);
+    });
+  }
+
+  function examText(){
+    let parts=[];
+    examWrap.querySelectorAll('.exam-sys').forEach(s=>{
+      let vals=[];
+      s.querySelectorAll('.chip.active').forEach(c=>vals.push(c.textContent.trim()));
+      if(vals.length)parts.push(cap(vals.join(', ')));
+    });
+    let txt=parts.join('. ');
+    if(txt && !/[.!?]$/.test(txt))txt+='.';
+    const extra=form.querySelector('[data-field="muayene"] > [data-extra]');
+    if(extra&&extra.value.trim())txt=(txt?txt+' ':'')+extra.value.trim();
+    return txt;
+  }
+  // ---- /Fizik Muayene ----
+
+  const detayBox=document.getElementById('detay');
+  Object.keys(followups).forEach(key=>{
+    const panel=document.createElement('div');
+    panel.className='detay-panel';panel.dataset.complaint=key;panel.style.display='none';
+    let h=`<div class="sec-label">${cap(key)} — detay</div>`;
+    followups[key].forEach(g=>{
+      h+=`<div class="sub">${g.label}</div><div class="chips"${g.single?' data-single="true"':''}>`;
+      g.opts.forEach(o=>h+=`<button class="chip">${o}</button>`);
+      h+=`</div>`;
+    });
+    panel.innerHTML=h;detayBox.appendChild(panel);
+  });
+
+  function refreshDetail(){
+    const active=[...form.querySelectorAll('[data-field="sikayet"] > .chips .chip.active')].map(c=>c.textContent.trim());
+    detayBox.querySelectorAll('.detay-panel').forEach(p=>{
+      p.style.display=active.includes(p.dataset.complaint)?'block':'none';
+    });
+  }
+
+  form.addEventListener('click',e=>{
+    const chip=e.target.closest('.chip');
+    if(!chip)return;
+    const group=chip.closest('.chips');
+    if(group.hasAttribute('data-single')){
+      group.querySelectorAll('.chip').forEach(c=>{if(c!==chip)c.classList.remove('active');});
+      chip.classList.toggle('active');
+    }else{
+      const sec=chip.closest('.section')||chip.closest('.detay-panel');
+      if(chip.dataset.clears&&!chip.classList.contains('active')){
+        sec.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+      }else if(!chip.dataset.clears){
+        sec.querySelectorAll('.chip[data-clears]').forEach(c=>c.classList.remove('active'));
+      }
+      chip.classList.toggle('active');
+    }
+    refreshDetail();render();
+  });
+  form.addEventListener('input',render);
+
+  function secOf(box){
+    if(!box)return '';
+    let parts=[];
+    box.querySelectorAll(':scope > .chips .chip.active, :scope > .chips[data-single] .chip.active').forEach(c=>parts.push(c.dataset.full||c.textContent.trim()));
+    const extra=box.querySelector(':scope > [data-extra]');
+    if(extra&&extra.value.trim())parts.push(extra.value.trim());
+    return parts.join(', ');
+  }
+  function sec(field){return secOf(form.querySelector(`[data-field="${field}"]`));}
+  function val(id){return (document.getElementById(id).value||'').trim();}
+
+  // --- Bilinen Hastalıklar: Stent/Diyaliz sayı kutuları + Psikiyatrik alt seçenekler + yıl/hafta kutuları ---
+  const chipStent=document.getElementById('chipStent');
+  const chipDiyaliz=document.getElementById('chipDiyaliz');
+  const chipPsik=document.getElementById('chipPsik');
+  const chipBypass=document.getElementById('chipBypass');
+  const chipSvo=document.getElementById('chipSvo');
+  const chipPedvt=document.getElementById('chipPedvt');
+  const chipGebelik=document.getElementById('chipGebelik');
+  const stentBox=document.getElementById('stentBox');
+  const diyalizBox=document.getElementById('diyalizBox');
+  const psikSub=document.getElementById('psikSub');
+  const bypassYearBox=document.getElementById('bypassYearBox');
+  const svoYearBox=document.getElementById('svoYearBox');
+  const pedvtYearBox=document.getElementById('pedvtYearBox');
+  const gebelikBox=document.getElementById('gebelikBox');
+
+  // Yıl/hafta bilgisi gerektiren chip'ler: chip -> {box, inputId, fmt}
+  const ozgecmisExtraMap=[
+    {chip:chipBypass, box:bypassYearBox, inputId:'f_bypass_yil', fmt:v=>` (${v})`},
+    {chip:chipSvo, box:svoYearBox, inputId:'f_svo_yil', fmt:v=>` (${v})`},
+    {chip:chipPedvt, box:pedvtYearBox, inputId:'f_pedvt_yil', fmt:v=>` (${v})`},
+    {chip:chipGebelik, box:gebelikBox, inputId:'f_gebelik_hafta', fmt:v=>` (${v} hafta)`},
+  ];
+
+  function updateOzgecmisExtras(){
+    stentBox.style.display=chipStent.classList.contains('active')?'flex':'none';
+    diyalizBox.style.display=chipDiyaliz.classList.contains('active')?'flex':'none';
+    psikSub.style.display=chipPsik.classList.contains('active')?'flex':'none';
+    ozgecmisExtraMap.forEach(({chip,box})=>{
+      box.style.display=chip.classList.contains('active')?'flex':'none';
+    });
+  }
+
+  function ozgecmisText(){
+    const box=form.querySelector('[data-field="ozgecmis"]');
+    let parts=[];
+    box.querySelectorAll(':scope > .chips .chip.active').forEach(c=>{
+      if(psikSub.contains(c))return;
+      if(c===chipStent){
+        const n=val('f_stent_sayi');
+        parts.push(n?`Stent: ${n} adet`:'Stent');
+      }else if(c===chipDiyaliz){
+        const g=val('f_diyaliz_gun');
+        parts.push(g?`Diyaliz alıyor (${g}/7)`:'Diyaliz alıyor');
+      }else if(c===chipPsik){
+        const subs=[];
+        psikSub.querySelectorAll('.chip.active').forEach(s=>subs.push(s.dataset.full||s.textContent.trim()));
+        parts.push(subs.length?`Psikiyatrik hastalık (${subs.join(', ')})`:'Psikiyatrik hastalık');
+      }else{
+        const extraInfo=ozgecmisExtraMap.find(e=>e.chip===c);
+        if(extraInfo){
+          const v=val(extraInfo.inputId);
+          parts.push((c.dataset.full||c.textContent.trim())+(v?extraInfo.fmt(v):''));
+        }else{
+          parts.push(c.dataset.full||c.textContent.trim());
+        }
+      }
+    });
+    const extra=box.querySelector(':scope > [data-extra]');
+    if(extra&&extra.value.trim())parts.push(extra.value.trim());
+    return parts.join(', ');
+  }
+
+  function detail(){
+    let out=[];
+    detayBox.querySelectorAll('.detay-panel').forEach(p=>{
+      if(p.style.display==='none')return;
+      let vals=[];
+      p.querySelectorAll('.chip.active').forEach(c=>vals.push(c.textContent.trim()));
+      if(vals.length)out.push(`${cap(p.dataset.complaint)}: ${vals.join(', ')}`);
+    });
+    return out.join('. ');
+  }
+
+  function vitals(){
+    let v=[];
+    form.querySelectorAll('.vit').forEach(inp=>{
+      if(inp.value.trim()){
+        const pre=inp.dataset.pre||'',unit=inp.dataset.unit||'';
+        v.push(`${inp.dataset.vit}: ${pre}${inp.value.trim()}${unit}`);
+      }
+    });
+    return v.join(', ');
+  }
+
+  function dispoSentence(){
+    const k=form.querySelector('[data-field="karar"]');
+    const sel=k.querySelector('.chip.active');
+    const target=k.querySelector('[data-extra]').value.trim();
+    if(!sel)return '';
+    const t=sel.textContent.trim();
+    if(t==='Taburcu')return `Genel durumu iyi, vital bulguları stabil olan hasta önerilerle taburcu edildi.`;
+    if(t==='Servise yatış')return `Hasta ileri tetkik ve tedavi amacıyla ${target||'ilgili'} servisine yatırıldı.`;
+    if(t==='Yoğun bakıma yatış')return `Hasta ileri takip ve tedavi amacıyla ${target||'ilgili'} yoğun bakım ünitesine yatırıldı.`;
+    if(t==='Sevk')return `Hasta ileri tetkik/tedavi amacıyla ${target||'ilgili merkeze'} sevk edildi.`;
+    if(t==='Konsültasyon')return `${target||'İlgili branş'} konsültasyonu istendi.`;
+    return t;
+  }
+
+  let lastText='';
+
+  // --- Hasta gecmisi / oturum bellegi (sadece JS bellekte, kalici depolama YOK) ---
+  let patients=[];
+  let activeIndex=null;
+
+  function captureState(){
+    const d=new Date();
+    return {
+      chips:[...form.querySelectorAll('.chip')].map(c=>c.classList.contains('active')),
+      inputs:[...form.querySelectorAll('input,textarea')].map(i=>i.value),
+      examOpen:[...examWrap.querySelectorAll('.exam-sys')].map(s=>s.classList.contains('open')),
+      time:`${pad(d.getHours())}:${pad(d.getMinutes())}`,
+    };
+  }
+
+  function restoreState(st){
+    const chips=[...form.querySelectorAll('.chip')];
+    chips.forEach((c,i)=>c.classList.toggle('active', !!st.chips[i]));
+    const inputs=[...form.querySelectorAll('input,textarea')];
+    inputs.forEach((el,i)=>{el.value=st.inputs[i]!==undefined?st.inputs[i]:'';});
+    const sysList=[...examWrap.querySelectorAll('.exam-sys')];
+    sysList.forEach((s,i)=>{
+      const open=!!st.examOpen[i];
+      s.classList.toggle('open', open);
+      const tog=s.querySelector('.tog');
+      if(tog)tog.textContent=open?'−':'+';
+    });
+  }
+
+  function isStateEmpty(st){
+    return !st.chips.some(Boolean) && !st.inputs.some(v=>v&&v.trim());
+  }
+
+  function renderPatientTabs(){
+    const wrap=document.getElementById('patientTabs');
+    wrap.innerHTML='';
+    patients.forEach((p,i)=>{
+      const b=document.createElement('button');
+      b.type='button';
+      b.className='patient-tab'+(i===activeIndex?' active':'');
+      b.innerHTML=`${i+1}<span class="time">${p.time||''}</span>`;
+      b.title=`Hasta #${i+1} — ${p.time||''}`;
+      b.dataset.idx=i;
+      wrap.appendChild(b);
+    });
+  }
+
+  document.getElementById('patientTabs').addEventListener('click',e=>{
+    const btn=e.target.closest('.patient-tab');
+    if(!btn)return;
+    const idx=Number(btn.dataset.idx);
+    if(idx===activeIndex)return;
+    if(activeIndex!==null){
+      patients[activeIndex]=captureState();
+    }else{
+      const cur=captureState();
+      if(!isStateEmpty(cur))patients.push(cur);
+    }
+    restoreState(patients[idx]);
+    activeIndex=idx;
+    renderPatientTabs();
+    refreshDetail();render();
+  });
+  function render(){
+    updateExamBadges();
+    updateOzgecmisExtras();
+    const age=val('f_age');
+    const sexEl=form.querySelector('#f_sex .chip.active');
+    const sex=sexEl?sexEl.textContent.trim():'';
+    const arrEl=form.querySelector('#f_arrival .chip.active');
+    const arr=arrEl?arrEl.textContent.trim():'';
+
+    const sikayetBase=sec('sikayet');
+    const sure=durationText();
+    const sikayetRow=(sure&&sikayetBase)?(sure+sikayetBase):sikayetBase;
+
+    const rows=[
+      ['Başvuru Şikayeti', sikayetRow],
+      ['Şikayet Detayı', detail()],
+      ['Hikaye', sec('hikaye')],
+      ['Özgeçmiş', ozgecmisText()],
+      ['Alerji', sec('alerji')],
+      ['Vital Bulgular', vitals()],
+      ['EKG', sec('ekg')],
+      ['Fizik Muayene', examText()],
+      ['Uygulanan Tedavi', sec('tedavi')],
+      ['Sonuç / Karar', dispoSentence()],
+      ['Öneriler', sec('oneri')],
+    ];
+
+    let pline=[];
+    if(age)pline.push(age+' yaşında');
+    if(sex)pline.push(sex.toLowerCase());
+    let patient=pline.join(', ');
+    if(patient)patient=cap(patient)+' hasta';
+    if(arr&&patient)patient+=', '+lc(arr);
+
+    const anyContent=rows.some(r=>r[1])||patient;
+    const paper=document.getElementById('paper');
+    if(!anyContent){
+      paper.innerHTML=`<p class="placeholder-doc">Soldaki kutuları işaretledikçe epikriz burada oluşacak…</p>`;
+      lastText='';return;
+    }
+    let html=`<div class="meta"><span></span><span>${dateStr}</span></div>`;
+    if(patient)html+=`<div class="doc-row">${esc(patient)}.</div>`;
+    rows.forEach(([k,v])=>{html+=`<div class="doc-row ${v?'':'empty'}"><span class="k">${k}:</span> ${esc(v)}</div>`;});
+    paper.innerHTML=html;
+
+    let t=[dateStr,''];
+    if(patient)t.push(patient+'.');
+    rows.forEach(([k,v])=>{if(v)t.push(k+': '+v);});
+    lastText=t.join('\n');
+  }
+
+  function durationText(){
+    const v=val('f_sikayet_sure');
+    const unitEl=form.querySelector('#f_sikayet_birim .chip.active');
+    if(!v||!unitEl)return '';
+    return `${v} ${unitEl.textContent.trim()} önce başlayan `;
+  }
+
+  function cap(s){return s.charAt(0).toLocaleUpperCase('tr')+s.slice(1);}
+  function lc(s){return s.charAt(0).toLocaleLowerCase('tr')+s.slice(1);}
+  function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  window.copyText=function(){
+    if(!lastText){toast('Önce hastayı işaretleyin');return;}
+    const out=lastText.toLocaleUpperCase('tr');
+    const done=()=>toast('Kopyalandı');
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(out).then(done).catch(fallback);
+    }else fallback();
+    function fallback(){
+      const ta=document.createElement('textarea');
+      ta.value=out;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');done();}catch(e){toast('Kopyalanamadı');}
+      document.body.removeChild(ta);
+    }
+  };
+
+  window.resetAll=function(){
+    const cur=captureState();
+    let msg='Form temizlendi';
+    if(!isStateEmpty(cur)){
+      if(activeIndex!==null){
+        patients[activeIndex]=cur;
+        msg=`Hasta #${activeIndex+1} güncellendi, yeni hasta`;
+      }else{
+        patients.push(cur);
+        msg=`Hasta #${patients.length} olarak kaydedildi, yeni hasta`;
+      }
+    }
+    form.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
+    form.querySelectorAll('input,textarea').forEach(i=>i.value='');
+    examWrap.querySelectorAll('.exam-sys').forEach(s=>{
+      s.classList.remove('open');
+      const tog=s.querySelector('.tog');
+      if(tog)tog.textContent='+';
+    });
+    activeIndex=null;
+    renderPatientTabs();
+    refreshDetail();render();
+    toast(msg);
+  };
+
+  let toastT;
+  function toast(msg){
+    const el=document.getElementById('toast');
+    el.textContent=msg;el.classList.add('show');
+    clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),1600);
+  }
+  renderPatientTabs();
+  render();
+})();
+</script>
+</body>
+</html>
