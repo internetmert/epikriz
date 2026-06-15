@@ -339,7 +339,7 @@
           <input type="checkbox" id="autoSyncToggle" onchange="toggleAutoSync(this.checked)">
           Otomatik senkronu aç (gerçek zamanlı)
         </label>
-        <div class="modal-warn" style="margin-top:8px;margin-bottom:0;">Otomatik senkron açıkken, formda değişiklik yaptıkça veriler düzenli olarak şifrelenip sunucuya gönderilir ve diğer cihazdaki güncellemeler otomatik sorgulanıp çekilir. Bu, sürekli arka plan ağ trafiği oluşturur.</div>
+        <div class="modal-warn" style="margin-top:8px;margin-bottom:0;">Otomatik senkron açıkken, formda değişiklik yaptıkça veriler düzenli olarak şifrelenip sunucuya gönderilir ve diğer cihazdaki güncellemeler otomatik sorgulanıp çekilir. Bu, sürekli arka plan ağ trafiği oluşturur. "Kod Oluştur ve Gönder" veya "Getir ve Doldur" ile ilk senkronu yaptığınızda otomatik senkron kendiliğinden açılır; bu pencereyi bir daha açmadan cihazlar arka planda güncel kalır. İstemezseniz buradan kapatabilirsiniz.</div>
         <div class="sync-status" id="autoSyncStatus"></div>
       </div>
 
@@ -1614,7 +1614,8 @@
     const g=val('f_gks_goz'),m=val('f_gks_motor'),vb=val('f_gks_verbal');
     const gksTotalEl=document.getElementById('gksTotal');
     if(g&&m&&vb){
-      gksTotalEl.textContent=`${Number(g)+Number(m)+Number(vb)}/15`;
+      const total=Math.min(Number(g)+Number(m)+Number(vb),15);
+      gksTotalEl.textContent=`${total}/15`;
     }else{
       gksTotalEl.textContent='-/15';
     }
@@ -1625,16 +1626,30 @@
     const g=val('f_adli_gks_goz'),m=val('f_adli_gks_motor'),vb=val('f_adli_gks_verbal');
     const totalEl=document.getElementById('adliGksTotal');
     if(g&&m&&vb){
-      totalEl.textContent=`${Number(g)+Number(m)+Number(vb)}/15`;
+      const total=Math.min(Number(g)+Number(m)+Number(vb),15);
+      totalEl.textContent=`${total}/15`;
     }else{
       totalEl.textContent='-/15';
     }
   }
 
+  // Varsayılan GKS: tam puan (Göz 4, Motor 6, Verbal 5 = 15) - hekim isterse düşürür
+  function setGksDefaults(){
+    document.getElementById('f_gks_goz').value='4';
+    document.getElementById('f_gks_motor').value='6';
+    document.getElementById('f_gks_verbal').value='5';
+    document.getElementById('f_adli_gks_goz').value='4';
+    document.getElementById('f_adli_gks_motor').value='6';
+    document.getElementById('f_adli_gks_verbal').value='5';
+    updateGksTotal();
+    updateAdliGksTotal();
+  }
+
   function gksText(){
     const g=val('f_gks_goz'),m=val('f_gks_motor'),vb=val('f_gks_verbal');
     if(g&&m&&vb){
-      return `GKS: ${Number(g)+Number(m)+Number(vb)}/15 (Göz ${g}, Motor ${m}, Verbal ${vb})`;
+      const total=Math.min(Number(g)+Number(m)+Number(vb),15);
+      return `GKS: ${total}/15 (Göz ${g}, Motor ${m}, Verbal ${vb})`;
     }
     return '';
   }
@@ -2840,6 +2855,7 @@
       if(tog)tog.textContent='+';
     });
     activeIndex=null;
+    setGksDefaults();
     renderPatientTabs();
     refreshDetail();render();
     toast(msg);
@@ -2851,6 +2867,7 @@
     el.textContent=msg;el.classList.add('show');
     clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),1600);
   }
+  setGksDefaults();
   renderPatientTabs();
   render();
 
@@ -3231,6 +3248,7 @@
       renderSyncQr(raw);
       statusEl.className='sync-status ok';
       statusEl.textContent='Gönderildi. Kod 48 saat geçerlidir.';
+      autoEnableSyncIfNeeded();
     }catch(e){
       statusEl.className='sync-status err';
       statusEl.textContent='Hata: gönderilemedi ('+e.message+'). Supabase tablosunu kontrol edin.';
@@ -3273,6 +3291,7 @@
       document.getElementById('syncForgetLink').hidden=false;
       statusEl.className='sync-status ok';
       statusEl.textContent='Veriler dolduruldu.';
+      autoEnableSyncIfNeeded();
       setTimeout(closeSyncModal,900);
     }catch(e){
       statusEl.className='sync-status err';
@@ -3337,6 +3356,18 @@
       if(autoSyncSendTimer){clearTimeout(autoSyncSendTimer);autoSyncSendTimer=null;}
     }
   };
+
+  // İlk manuel senkron (kod oluştur/gönder veya getir) başarılı olduğunda,
+  // otomatik senkron henüz açık değilse otomatik olarak açar - kullanıcı bir daha
+  // Senkron panelini açmadan cihazlar arka planda güncel kalır.
+  function autoEnableSyncIfNeeded(){
+    if(autoSyncEnabled)return;
+    autoSyncEnabled=true;
+    saveAutoSyncPref(true);
+    updateAutoSyncUI();
+    startAutoSyncPolling();
+    toast('Otomatik senkron açıldı: cihazlar arka planda otomatik güncellenecek');
+  }
 
   function startAutoSyncPolling(){
     stopAutoSyncPolling();
