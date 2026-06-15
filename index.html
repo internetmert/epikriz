@@ -300,6 +300,17 @@
     margin-left:5px;animation:autoSyncBlink 1.4s infinite;vertical-align:middle;}
   .auto-sync-dot[hidden]{display:none;}
   @keyframes autoSyncBlink{0%,100%{opacity:1;}50%{opacity:.2;}}
+  .sync-qr-box{display:flex;flex-direction:column;align-items:center;gap:5px;margin-top:9px;
+    background:#fff;border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);
+    box-shadow:inset 1px 1px 0 #0a0a0a;padding:8px;width:fit-content;}
+  .sync-qr-box[hidden]{display:none;}
+  .sync-qr-box img,.sync-qr-box canvas{display:block;}
+  .sync-qr-label{font-size:10px;font-weight:700;text-transform:none;color:#333;}
+  .sync-qr-scan{margin-top:8px;background:#fff;border:2px solid;
+    border-color:var(--shadow) var(--light) var(--light) var(--shadow);
+    box-shadow:inset 1px 1px 0 #0a0a0a;padding:8px;}
+  .sync-qr-scan[hidden]{display:none;}
+  .sync-qr-scan video{width:100%;max-width:280px;display:block;margin:0 auto 6px;background:#000;}
 </style>
 </head>
 <body>
@@ -339,6 +350,10 @@
           <input type="text" class="txt" id="syncCodeOut" readonly style="flex:1;">
           <button type="button" class="btn" id="btnSyncCopyCode" onclick="copySyncCode()">Kopyala</button>
         </div>
+        <div class="sync-qr-box" id="syncQrBox" hidden>
+          <div class="sync-qr-label">Diğer cihazla okutmak için QR kod</div>
+          <div id="syncQrCanvas"></div>
+        </div>
         <div class="sync-status" id="syncSendStatus"></div>
       </div>
 
@@ -347,6 +362,11 @@
         <div class="sync-row">
           <input type="text" class="txt" id="syncCodeIn" placeholder="ör. AB3K-9XQ2" maxlength="10">
           <button type="button" class="btn" id="btnSyncFetch" onclick="syncFetch()">Getir ve Doldur</button>
+        </div>
+        <button type="button" class="btn" id="btnQrScan" onclick="toggleQrScan()" style="margin-top:8px;">📷 QR Tara</button>
+        <div class="sync-qr-scan" id="syncQrScanBox" hidden>
+          <video id="syncQrVideo" playsinline muted autoplay></video>
+          <div class="sync-status" id="syncQrScanStatus"></div>
         </div>
         <div class="sync-status" id="syncFetchStatus"></div>
       </div>
@@ -1109,6 +1129,8 @@
 
 <div class="toast" id="toast">Kopyalandı</div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
 (function(){
   const form=document.getElementById('form');
@@ -2998,8 +3020,10 @@
       document.getElementById('syncCodeBox').hidden=false;
       document.getElementById('syncCodeIn').value=formatted;
       forgetLink.hidden=false;
+      renderSyncQr(remembered);
     }else{
       forgetLink.hidden=true;
+      document.getElementById('syncQrBox').hidden=true;
     }
     updateAutoSyncUI();
     if(autoSyncStatusTickTimer)clearInterval(autoSyncStatusTickTimer);
@@ -3008,16 +3032,30 @@
   window.closeSyncModal=function(){
     document.getElementById('syncModalOverlay').hidden=true;
     if(autoSyncStatusTickTimer){clearInterval(autoSyncStatusTickTimer);autoSyncStatusTickTimer=null;}
+    stopQrScan();
   };
   window.syncForgetCode=function(){
     forgetCode();
     document.getElementById('syncCodeOut').value='';
     document.getElementById('syncCodeBox').hidden=true;
+    document.getElementById('syncQrBox').hidden=true;
     document.getElementById('syncCodeIn').value='';
     document.getElementById('syncSendStatus').textContent='';
     document.getElementById('syncFetchStatus').textContent='';
     document.getElementById('syncForgetLink').hidden=true;
   };
+
+  /* ===== QR eşleştirme ===== */
+  let syncQrCodeObj=null;
+  function renderSyncQr(raw){
+    const box=document.getElementById('syncQrBox');
+    const target=document.getElementById('syncQrCanvas');
+    if(!box||!target)return;
+    if(!raw||typeof QRCode==='undefined'){box.hidden=true;return;}
+    target.innerHTML='';
+    syncQrCodeObj=new QRCode(target,{text:raw,width:128,height:128,colorDark:'#000000',colorLight:'#ffffff'});
+    box.hidden=false;
+  }
   window.copySyncCode=function(){
     const v=document.getElementById('syncCodeOut').value;
     if(!v)return;
@@ -3068,6 +3106,7 @@
       codeOut.value=raw.slice(0,4)+'-'+raw.slice(4);
       codeBox.hidden=false;
       document.getElementById('syncForgetLink').hidden=false;
+      renderSyncQr(raw);
       statusEl.className='sync-status ok';
       statusEl.textContent='Gönderildi. Kod 48 saat geçerlidir.';
     }catch(e){
@@ -3226,6 +3265,7 @@
         codeBox.hidden=false;
         document.getElementById('syncCodeIn').value=raw.slice(0,4)+'-'+raw.slice(4);
         document.getElementById('syncForgetLink').hidden=false;
+        renderSyncQr(raw);
       }
     }catch(e){
       const el=document.getElementById('autoSyncStatus');
@@ -3274,6 +3314,89 @@
     if(!e.target.closest('#form'))return;
     scheduleAutoSend();
   },true);
+
+  /* ===== QR Tara (Al tarafı) ===== */
+  let qrScanStream=null;
+  let qrScanRAF=null;
+
+  window.toggleQrScan=function(){
+    const box=document.getElementById('syncQrScanBox');
+    if(box.hidden)startQrScan();else stopQrScan();
+  };
+
+  async function startQrScan(){
+    const box=document.getElementById('syncQrScanBox');
+    const video=document.getElementById('syncQrVideo');
+    const statusEl=document.getElementById('syncQrScanStatus');
+    const btn=document.getElementById('btnQrScan');
+    if(typeof jsQR==='undefined'){
+      statusEl.className='sync-status err';
+      statusEl.textContent='QR kütüphanesi yüklenemedi. Kodu manuel girin.';
+      return;
+    }
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+      statusEl.className='sync-status err';
+      statusEl.textContent='Bu tarayıcıda kameraya erişilemiyor. Kodu manuel girin.';
+      return;
+    }
+    try{
+      qrScanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    }catch(e){
+      statusEl.className='sync-status err';
+      statusEl.textContent='Kamera izni verilmedi ('+e.message+'). Kodu manuel girin.';
+      return;
+    }
+    video.srcObject=qrScanStream;
+    try{await video.play();}catch(e){}
+    box.hidden=false;
+    btn.textContent='QR Taramayı Durdur';
+    statusEl.className='sync-status';
+    statusEl.textContent='Kamerayı QR koda doğrultun...';
+    const canvas=document.createElement('canvas');
+    const ctx=canvas.getContext('2d');
+    function tick(){
+      if(!qrScanStream)return;
+      if(video.readyState===video.HAVE_ENOUGH_DATA){
+        canvas.width=video.videoWidth;
+        canvas.height=video.videoHeight;
+        ctx.drawImage(video,0,0,canvas.width,canvas.height);
+        const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+        const code=jsQR(imageData.data,imageData.width,imageData.height);
+        if(code&&code.data){
+          const raw=normalizeCode(code.data);
+          if(raw.length===8){
+            handleQrCode(raw);
+            return;
+          }
+        }
+      }
+      qrScanRAF=requestAnimationFrame(tick);
+    }
+    qrScanRAF=requestAnimationFrame(tick);
+  }
+
+  function stopQrScan(){
+    const box=document.getElementById('syncQrScanBox');
+    const btn=document.getElementById('btnQrScan');
+    const video=document.getElementById('syncQrVideo');
+    if(qrScanRAF){cancelAnimationFrame(qrScanRAF);qrScanRAF=null;}
+    if(qrScanStream){qrScanStream.getTracks().forEach(t=>t.stop());qrScanStream=null;}
+    if(video)video.srcObject=null;
+    if(box)box.hidden=true;
+    if(btn)btn.textContent='📷 QR Tara';
+  }
+  window.stopQrScan=stopQrScan;
+
+  function handleQrCode(raw){
+    const statusEl=document.getElementById('syncQrScanStatus');
+    stopQrScan();
+    const formatted=raw.slice(0,4)+'-'+raw.slice(4);
+    document.getElementById('syncCodeIn').value=formatted;
+    statusEl.className='sync-status ok';
+    statusEl.textContent='QR okundu, getiriliyor...';
+    toast('QR okundu, getiriliyor...');
+    syncFetch();
+  }
 
   // Başlangıçta tercih varsa otomatik senkronu etkinleştir
   (async function initAutoSync(){
