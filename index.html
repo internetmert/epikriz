@@ -2963,6 +2963,41 @@
       if(score===0)return 'Düşük risk - ayaktan yönetim düşünülebilir';
       return 'Skor >0 - hospitalizasyon / endoskopi değerlendirmesi gerekebilir';
     }},
+    {id:'wellspe',name:'Wells Skoru (PE)',fields:[
+      {key:'dvt',label:'Klinik DVT bulguları (bacak şişliği + derin venlerde palpasyonla hassasiyet)',type:'check',points:3},
+      {key:'altdx',label:'PE, en olası tanı veya diğerleriyle eşit derecede olası',type:'check',points:3},
+      {key:'hr',label:'Nabız >100/dk',type:'check',points:1.5},
+      {key:'immob',label:'≥3 gün immobilizasyon veya son 4 haftada cerrahi',type:'check',points:1.5},
+      {key:'prior',label:'Önceki DVT/PE öyküsü',type:'check',points:1.5},
+      {key:'hemoptysis',label:'Hemoptizi',type:'check',points:1},
+      {key:'malignancy',label:'Malignite (son 6 ayda tedavi altında veya palyatif)',type:'check',points:1},
+    ],interpret:(score)=>{
+      let tier;
+      if(score<2)tier='Düşük olasılık (PE prevalansı ~%3-8)';
+      else if(score<=6)tier='Orta olasılık (PE prevalansı ~%20-30)';
+      else tier='Yüksek olasılık (PE prevalansı ~%50-65)';
+      const dichot=score<=4?'PE olası değil — D-dimer ile ekarte edilebilir':'PE olası — BT pulmoner anjiyografi (BTPA) düşünülmeli';
+      return `${tier}. ${dichot} (basitleştirilmiş eşik: 4)`;
+    }},
+    {id:'wellsdvt',name:'Wells Skoru (DVT)',fields:[
+      {key:'cancer',label:'Aktif kanser (tedavi altında, son 6 ay veya palyatif)',type:'check',points:1},
+      {key:'paralysis',label:'Paralizi/parezi veya alçı immobilizasyonu (alt ekstremite)',type:'check',points:1},
+      {key:'bedridden',label:'>3 gün yatak istirahati veya son 12 haftada majör cerrahi',type:'check',points:1},
+      {key:'tenderness',label:'Derin ven sistemi boyunca lokalize hassasiyet',type:'check',points:1},
+      {key:'swollenleg',label:'Tüm bacakta şişlik',type:'check',points:1},
+      {key:'calf',label:'Baldır şişliği >3cm (karşı bacağa göre)',type:'check',points:1},
+      {key:'edema',label:'Semptomatik bacakta pitting ödem',type:'check',points:1},
+      {key:'collateral',label:'Kollateral yüzeyel venler (varis değil)',type:'check',points:1},
+      {key:'priordvt',label:'Önceden dokümante DVT',type:'check',points:1},
+      {key:'altdx',label:'DVT\'ye göre en az eşit derecede olası alternatif tanı',type:'check',points:-2},
+    ],interpret:(score)=>{
+      let tier;
+      if(score<=0)tier='Düşük olasılık (DVT prevalansı ~%5)';
+      else if(score<=2)tier='Orta olasılık (DVT prevalansı ~%17)';
+      else tier='Yüksek olasılık (DVT prevalansı ~%17-53)';
+      const dichot=score<2?'DVT olası değil — D-dimer ile ekarte edilebilir':'DVT olası — kompresyon USG önerilir';
+      return `${tier}. ${dichot} (basitleştirilmiş eşik: 2)`;
+    }},
   ];
 
   function defaultScoreCompute(def,v){
