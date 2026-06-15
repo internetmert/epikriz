@@ -2519,32 +2519,119 @@
   let patients=[];
   let activeIndex=null;
 
+  // --- Senkron/oturum durumu: DOM-index yerine kararlı (stable) anahtarlarla serileştirme ---
+  // pathKey: bir elemanin 'form' köküne kadar her seviyede kardesleri arasindaki konumundan
+  // olusan bir yol döndürür. Bu yol, sadece o elemanin kendi atalarinin kardes sayisina
+  // bagli oldugundan, #lezyonList icindeki dinamik kart sayisi (atalar zincirinde
+  // #lezyonList GECMEYEN elemanlar icin) bu yolu ETKILEMEZ. #lezyonList'in kendisi
+  // kendi kardesleri arasinda sabit bir konumda oldugu icin, lezyon kartlarinin
+  // sayisi degissin/degismesin, dışındaki tüm chip/input'larin yolu iki cihazda da
+  // birbirinin AYNISI olur.
+  function pathKey(el){
+    const path=[];
+    let n=el;
+    while(n && n!==form){
+      const p=n.parentElement;
+      if(!p)return null;
+      path.unshift(Array.prototype.indexOf.call(p.children,n));
+      n=p;
+    }
+    return path.join('.');
+  }
+
+  // Lezyon kartlari: dinamik olarak eklenip/silinebildigi ve alt-bölge/segment chip
+  // setleri bölgeye göre yeniden üretildigi icin, path/index tabanli degil; her kart
+  // icin semantik alan adlarina (yan/bölge/alt-bölge/segment/pozisyon/tip/x/y) göre
+  // anlam tabanli (text degeri) bir liste olarak serilestirilir.
+  function captureLezyonCards(){
+    return [...lezyonList.querySelectorAll('.lezyon-card')].map(card=>{
+      const get=role=>{
+        const a=card.querySelector(`[data-role="${role}"] .chip.active`);
+        return a?a.textContent.trim():null;
+      };
+      const xEl=card.querySelector('[data-role="x"]');
+      const yEl=card.querySelector('[data-role="y"]');
+      return {
+        yan:get('yan'), bolge:get('bolge'), altbolge:get('altbolge'), segment:get('segment'),
+        pozisyon:get('pozisyon'), tip:get('tip'),
+        x:xEl?xEl.value:'', y:yEl?yEl.value:'',
+      };
+    });
+  }
+
+  function restoreLezyonCards(list){
+    list=list||[];
+    while(lezyonList.children.length<list.length)createLezyonCard();
+    while(lezyonList.children.length>list.length)lezyonList.lastElementChild.remove();
+    if(lezyonList.children.length)renumberLezyonCards();
+    const cards=[...lezyonList.querySelectorAll('.lezyon-card')];
+    cards.forEach((card,i)=>{
+      const st=list[i]||{};
+      setChipActive(card.querySelector('[data-role="yan"]'), st.yan);
+      setChipActive(card.querySelector('[data-role="bolge"]'), st.bolge);
+      updateLezyonAltBolge(card, st.bolge, st.altbolge, st.segment);
+      setChipActive(card.querySelector('[data-role="pozisyon"]'), st.pozisyon);
+      setChipActive(card.querySelector('[data-role="tip"]'), st.tip);
+      const xEl=card.querySelector('[data-role="x"]');
+      const yEl=card.querySelector('[data-role="y"]');
+      if(xEl)xEl.value=st.x||'';
+      if(yEl)yEl.value=st.y||'';
+    });
+  }
+
   function captureState(){
     const d=new Date();
+    const chips={};
+    form.querySelectorAll('.chip').forEach(c=>{
+      if(c.closest('#lezyonList'))return;
+      const k=pathKey(c);
+      if(k!=null)chips[k]=c.classList.contains('active');
+    });
+    const inputs={};
+    form.querySelectorAll('input,textarea').forEach(el=>{
+      if(el.closest('#lezyonList'))return;
+      const k=pathKey(el);
+      if(k!=null)inputs[k]=el.value;
+    });
+    const examOpen={};
+    examWrap.querySelectorAll('.exam-sys').forEach(s=>{
+      if(s.dataset.sys)examOpen[s.dataset.sys]=s.classList.contains('open');
+    });
     return {
-      chips:[...form.querySelectorAll('.chip')].map(c=>c.classList.contains('active')),
-      inputs:[...form.querySelectorAll('input,textarea')].map(i=>i.value),
-      examOpen:[...examWrap.querySelectorAll('.exam-sys')].map(s=>s.classList.contains('open')),
+      chips, inputs, examOpen,
+      lezyon:captureLezyonCards(),
       time:`${pad(d.getHours())}:${pad(d.getMinutes())}`,
     };
   }
 
   function restoreState(st){
-    const chips=[...form.querySelectorAll('.chip')];
-    chips.forEach((c,i)=>c.classList.toggle('active', !!st.chips[i]));
-    const inputs=[...form.querySelectorAll('input,textarea')];
-    inputs.forEach((el,i)=>{el.value=st.inputs[i]!==undefined?st.inputs[i]:'';});
-    const sysList=[...examWrap.querySelectorAll('.exam-sys')];
-    sysList.forEach((s,i)=>{
-      const open=!!st.examOpen[i];
+    const chips=st.chips||{};
+    form.querySelectorAll('.chip').forEach(c=>{
+      if(c.closest('#lezyonList'))return;
+      const k=pathKey(c);
+      c.classList.toggle('active', !!(k!=null && chips[k]));
+    });
+    const inputs=st.inputs||{};
+    form.querySelectorAll('input,textarea').forEach(el=>{
+      if(el.closest('#lezyonList'))return;
+      const k=pathKey(el);
+      el.value=(k!=null && inputs[k]!==undefined)?inputs[k]:'';
+    });
+    const examOpen=st.examOpen||{};
+    examWrap.querySelectorAll('.exam-sys').forEach(s=>{
+      const open=!!(s.dataset.sys && examOpen[s.dataset.sys]);
       s.classList.toggle('open', open);
       const tog=s.querySelector('.tog');
       if(tog)tog.textContent=open?'−':'+';
     });
+    restoreLezyonCards(st.lezyon);
   }
 
   function isStateEmpty(st){
-    return !st.chips.some(Boolean) && !st.inputs.some(v=>v&&v.trim());
+    const chips=st.chips||{}, inputs=st.inputs||{};
+    return !Object.values(chips).some(Boolean)
+      && !Object.values(inputs).some(v=>v&&v.trim())
+      && !(st.lezyon&&st.lezyon.length);
   }
 
   function renderPatientTabs(){
