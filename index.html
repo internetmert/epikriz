@@ -513,6 +513,10 @@
           <div class="score-item"><label style="text-transform:none;">AST/ALT yüksek</label>
             <input type="checkbox" id="para_ast" onchange="calcParasetamol()"></div>
           <div class="score-result" id="paraResult" style="text-transform:none;font-weight:400;line-height:1.5;margin-top:6px;"><div style="color:#555;">Alım paterni ve değerleri girin.</div></div>
+          <div style="margin-top:8px;border-top:1px solid var(--shadow);padding-top:5px;text-transform:none;">
+            <button type="button" onclick="calcParasetamol();var b=document.getElementById('nacRejim');b.style.display=b.style.display==='none'?'block':'none';" style="background:none;border:none;padding:0;cursor:pointer;font-size:10px;font-weight:700;color:#000;font-family:inherit;">💉 NAC doz rejimi (göster / gizle)</button>
+            <div id="nacRejim" style="display:none;font-size:9.5px;line-height:1.5;margin-top:4px;"></div>
+          </div>
           <div style="font-size:9px;color:#555;margin-top:6px;text-transform:none;line-height:1.4;">&#9888; Klinik karar DESTEK aracıdır; hekim muhakemesi, Revised Rumack-Matthew nomogramı ve zehir danışma yerine geçmez. Kaynak: UpToDate — <i>Acetaminophen poisoning: Management</i> (Apr 2026).</div>
         </div>
       </div>
@@ -4209,7 +4213,7 @@
     const r=g('paraResult');
     if(!r)return;
     const akut=(pattern==='akut');
-    ['para_doz_row','para_kilo_row','para_sure_row'].forEach(id=>{const e=g(id);if(e)e.style.display=akut?'':'none';});
+    ['para_doz_row','para_sure_row'].forEach(id=>{const e=g(id);if(e)e.style.display=akut?'':'none';}); // kilo NAC dozu için her zaman görünür
     const L=[];
     const line=(txt,kind)=>{
       const col=kind==='nac'?'#a00':kind==='warn'?'#b35a00':kind==='ok'?'#060':'#000';
@@ -4245,6 +4249,21 @@
       else line('Serum düzeyi + AST/ALT al; &gt;10 mcg/mL veya AST/ALT yüksekse NAC.','info');
     }
     r.innerHTML=L.join('');
+    const nac=g('nacRejim');
+    if(nac){
+      const mg=perkg=>isNaN(kilo)?`${perkg} mg/kg`:`<b>${Math.round(perkg*kilo)} mg</b>`;
+      nac.innerHTML=
+        `<div style="font-weight:700;">IV — standart 21 saat (toplam 300 mg/kg):</div>`+
+        `<div>1) Yük: ${mg(150)} (150 mg/kg) IV — 60 dk</div>`+
+        `<div>2) ${mg(50)} (50 mg/kg) — 4 saatte (12,5 mg/kg/sa)</div>`+
+        `<div>3) ${mg(100)} (100 mg/kg) — 16 saatte (6,25 mg/kg/sa)</div>`+
+        `<div style="color:#555;">Büyük alım / AST-ALT yüksekse süre uzatılır. &lt;40 kg çocukta doz aynı, dilüsyon farklı.</div>`+
+        `<div style="font-weight:700;margin-top:4px;">Oral — 72 saat (18 doz):</div>`+
+        `<div>Yük: ${mg(140)} (140 mg/kg) PO → ${mg(70)} (70 mg/kg) PO her 4 saatte (17 doz)</div>`+
+        `<div style="font-weight:700;margin-top:4px;">IV — 12 saat SNAP (yüksek-risk DEĞİLSE):</div>`+
+        `<div>${mg(100)} (50 mg/kg/sa × 2 sa) → ${mg(200)} (20 mg/kg/sa × 10 sa)</div>`+
+        (isNaN(kilo)?`<div style="color:#b35a00;margin-top:3px;">Kilo girilince mg cinsinden hesaplanır.</div>`:``);
+    }
   }
   window.calcParasetamol=calcParasetamol;
   /* ===== Parkland Hesaplayici ===== */
