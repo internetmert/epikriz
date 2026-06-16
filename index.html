@@ -344,7 +344,7 @@
 <div class="modal-overlay" id="syncModalOverlay" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle">
     <div class="modal-titlebar">
-      <span id="syncModalTitle">Cihazlar Arası Senkronizasyon</span>
+      <span id="syncModalTitle">Senkronizasyon</span>
       <button type="button" class="modal-close" onclick="closeSyncModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -354,9 +354,9 @@
         <div class="subhead">Otomatik Senkron</div>
         <label class="auto-sync-toggle">
           <input type="checkbox" id="autoSyncToggle" onchange="toggleAutoSync(this.checked)">
-          Otomatik senkronu aç (gerçek zamanlı)
+          Otomatik senkronu aç
         </label>
-        <div class="modal-warn" style="margin-top:8px;margin-bottom:0;">Otomatik senkron açıkken, formda değişiklik yaptıkça veriler düzenli olarak şifrelenip sunucuya gönderilir ve diğer cihazdaki güncellemeler otomatik sorgulanıp çekilir. Bu, sürekli arka plan ağ trafiği oluşturur. "Kod Oluştur ve Gönder" veya "Getir ve Doldur" ile ilk senkronu yaptığınızda otomatik senkron kendiliğinden açılır; bu pencereyi bir daha açmadan cihazlar arka planda güncel kalır. İstemezseniz buradan kapatabilirsiniz.</div>
+        <div class="modal-warn" style="margin-top:8px;margin-bottom:0;"></div>
         <div class="sync-status" id="autoSyncStatus"></div>
       </div>
 
