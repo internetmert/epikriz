@@ -54,6 +54,18 @@
   .thanks-box:active{border-color:var(--dark) var(--light) var(--light) var(--dark);
     box-shadow:inset -1px -1px 0 var(--hl),inset 1px 1px 0 var(--shadow);}
   .thanks-count{font-size:13px;font-weight:700;margin-top:4px;}
+  .feedback-box{background:#c0c0c0;border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
+    box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
+    padding:10px 12px;max-width:420px;width:100%;box-sizing:border-box;text-transform:none;}
+  .feedback-box .feedback-title{font-size:12px;font-weight:700;margin-bottom:6px;}
+  .feedback-box textarea{width:100%;box-sizing:border-box;min-height:58px;resize:vertical;font-family:inherit;
+    font-size:12px;border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);
+    background:#fff;color:#000;padding:5px 6px;border-radius:0;}
+  .feedback-send{margin-top:6px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;padding:4px 16px;
+    background:#c0c0c0;border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
+    box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);}
+  .feedback-send:active{border-color:var(--dark) var(--light) var(--light) var(--dark);box-shadow:none;}
+  .feedback-status{font-size:11px;color:#333;margin-top:5px;min-height:14px;}
   .mode-btn{width:220px;min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
     border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
     box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
@@ -428,6 +440,12 @@
   <div class="thanks-box" onclick="incrementThanks()" title="Teşekkür et!">
     <div>❤️ 🙏</div>
     <div class="thanks-count" id="thanksCount">0 kez teşekkür edildi</div>
+  </div>
+  <div class="feedback-box">
+    <div class="feedback-title">💬 Anonim geri bildirim</div>
+    <textarea id="feedbackText" maxlength="1000" placeholder="Görüş, öneri, hata bildirimi…"></textarea>
+    <button type="button" class="feedback-send" onclick="sendFeedback()">Gönder</button>
+    <div class="feedback-status" id="feedbackStatus"></div>
   </div>
 </div>
 
@@ -14920,6 +14938,24 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(d&&d[0]&&typeof d[0].count!=='undefined')updateThanksDisplay(Number(d[0].count));
     }).catch(()=>{/* offline — mevcut değer korunur */});
   })();
+  window.sendFeedback=function(){
+    const ta=document.getElementById('feedbackText');
+    const st=document.getElementById('feedbackStatus');
+    if(!ta||!st)return;
+    const msg=(ta.value||'').trim();
+    if(!msg){st.textContent='Lütfen bir şeyler yazın.';return;}
+    if(msg.length>1000){st.textContent='En fazla 1000 karakter.';return;}
+    st.textContent='Gönderiliyor…';
+    fetch(`${SUPABASE_URL}/rest/v1/feedback`,{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,
+        'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({message:msg})
+    }).then(r=>{
+      if(r.ok){ta.value='';st.textContent='Teşekkürler! Geri bildiriminiz alındı. 🙏';}
+      else{st.textContent='Gönderilemedi (sunucu hatası). Lütfen sonra tekrar deneyin.';}
+    }).catch(()=>{st.textContent='Bağlantı yok — gönderilemedi.';});
+  };
   window.incrementThanks=function(){
     const newCount=_thanksCount+1;
     updateThanksDisplay(newCount); // optimistic
