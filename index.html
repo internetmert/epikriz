@@ -3966,6 +3966,91 @@
       const dichot=score<2?'DVT olası değil — D-dimer ile ekarte edilebilir':'DVT olası — kompresyon USG önerilir';
       return `${tier}. ${dichot} (basitleştirilmiş eşik: 2)`;
     }},
+    {id:'rts',name:'RTS — Revised Trauma',fields:[
+      {key:'gks',label:'GKS',type:'select',options:[
+        {label:'13-15 (kod 4)',value:4},{label:'9-12 (kod 3)',value:3},{label:'6-8 (kod 2)',value:2},{label:'4-5 (kod 1)',value:1},{label:'3 (kod 0)',value:0}]},
+      {key:'sbp',label:'Sistolik KB',type:'select',options:[
+        {label:'>89 mmHg (4)',value:4},{label:'76-89 (3)',value:3},{label:'50-75 (2)',value:2},{label:'1-49 (1)',value:1},{label:'0 (0)',value:0}]},
+      {key:'rr',label:'Solunum Hızı',type:'select',options:[
+        {label:'10-29/dk (4)',value:4},{label:'>29 (3)',value:3},{label:'6-9 (2)',value:2},{label:'1-5 (1)',value:1},{label:'0 (0)',value:0}]},
+    ],compute:(v)=>+(v.gks*0.9368+v.sbp*0.7326+v.rr*0.2908).toFixed(2),
+    interpret:(score)=>score>=7.84?'İyi prognoz (≥7.84)':score>=4?'Orta ağır travma':'Kritik — kötü prognoz'},
+    {id:'news2',name:'NEWS2',fields:[
+      {key:'rr',label:'Solunum Hızı',type:'select',options:[
+        {label:'12-20/dk (0)',value:0},{label:'9-11 (1)',value:1},{label:'21-24 (2)',value:2},{label:'≤8 (3)',value:3},{label:'≥25 (3)',value:3}]},
+      {key:'spo2',label:'SpO2 (O2 yok)',type:'select',options:[
+        {label:'≥96% (0)',value:0},{label:'94-95% (1)',value:1},{label:'92-93% (2)',value:2},{label:'≤91% (3)',value:3}]},
+      {key:'o2',label:'Ek Oksijen',type:'check',points:2},
+      {key:'sbp',label:'Sistolik KB',type:'select',options:[
+        {label:'111-219 mmHg (0)',value:0},{label:'101-110 (1)',value:1},{label:'91-100 (2)',value:2},{label:'≤90 (3)',value:3},{label:'≥220 (3)',value:3}]},
+      {key:'hr',label:'Nabız',type:'select',options:[
+        {label:'51-90/dk (0)',value:0},{label:'41-50 (1)',value:1},{label:'91-110 (1)',value:1},{label:'111-130 (2)',value:2},{label:'≤40 (3)',value:3},{label:'≥131 (3)',value:3}]},
+      {key:'mental',label:'Bilinç',type:'select',options:[
+        {label:'Alert (0)',value:0},{label:'CVPU (3)',value:3}]},
+      {key:'temp',label:'Ateş °C',type:'select',options:[
+        {label:'36.1-38.0 (0)',value:0},{label:'35.1-36.0 (1)',value:1},{label:'38.1-39.0 (1)',value:1},{label:'≥39.1 (2)',value:2},{label:'≤35.0 (3)',value:3}]},
+    ],interpret:(score)=>score<=4?'Düşük risk':score<=6?'Orta risk — acil değerlendirme':'Yüksek risk — acil müdahale'},
+    {id:'nihss',name:'NIHSS (Simplified)',fields:[
+      {key:'loc',label:'1a. Bilinç düzeyi',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2},{label:'3',value:3}]},
+      {key:'gaze',label:'2. Göz hareketleri',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2}]},
+      {key:'visual',label:'3. Görsel alan',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2},{label:'3',value:3}]},
+      {key:'facial',label:'4. Yüz felci',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2},{label:'3',value:3}]},
+      {key:'arml',label:'5a. Motor kol (sol)',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2},{label:'3',value:3},{label:'4',value:4}]},
+      {key:'armr',label:'5b. Motor kol (sağ)',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2},{label:'3',value:3},{label:'4',value:4}]},
+      {key:'legl',label:'6a. Motor bacak (sol)',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2},{label:'3',value:3},{label:'4',value:4}]},
+      {key:'legr',label:'6b. Motor bacak (sağ)',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2},{label:'3',value:3},{label:'4',value:4}]},
+      {key:'sensory',label:'8. Duysal',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2}]},
+      {key:'language',label:'9. Dil/Afazi',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2},{label:'3',value:3}]},
+      {key:'dysarth',label:'10. Dizartri',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2}]},
+      {key:'neglect',label:'11. İhmal/İnatt.',type:'select',options:[{label:'0',value:0},{label:'1',value:1},{label:'2',value:2}]},
+    ],interpret:(score)=>score===0?'Normal nörolojik muayene':score<=4?'Hafif inme':score<=15?'Orta inme':score<=20?'Orta-ağır inme':'Ağır inme'},
+    {id:'ottawa',name:'Ottawa Ayak Bileği',fields:[
+      {key:'med',label:'Medial malleol post. ağrı',type:'check',points:1},
+      {key:'lat',label:'Lateral malleol post. ağrı',type:'check',points:1},
+      {key:'mt5',label:'5. metatars tabanı ağrısı',type:'check',points:1},
+      {key:'nav',label:'Navikular ağrı',type:'check',points:1},
+      {key:'mt6',label:'5.-6. metatars başı ağrısı',type:'check',points:1},
+      {key:'wt',label:'Yük verememe (4 adım)',type:'check',points:1},
+    ],interpret:(score)=>score>0?'Radyografi önerilir':'Radyografi gerekmeyebilir'},
+    {id:'pecarn2y',name:'PECARN (<2 yaş)',fields:[
+      {key:'gks',label:'GKS < 15',type:'check',points:2},
+      {key:'skull',label:'Kafa tabanı kırık bulgusu',type:'check',points:2},
+      {key:'ams',label:'Bilinç değişikliği / ajitasyon',type:'check',points:2},
+      {key:'hem',label:'Temporal/parietal/oksip. hematom',type:'check',points:1},
+      {key:'loc',label:'LOC > 5 saniye',type:'check',points:1},
+      {key:'mech',label:'Ağır mekanizma (araç/yüksekten/vurma)',type:'check',points:1},
+    ],compute:(v)=>{
+      if(v.gks||v.skull||v.ams)return 2;
+      if(v.hem||v.loc||v.mech)return 1;
+      return 0;
+    },interpret:(score)=>score===2?'Yüksek risk — BT önerilir':score===1?'Orta risk — BT vs. gözlem':'Düşük risk — BT gerekmeyebilir'},
+    {id:'pecarn12y',name:'PECARN (≥2 yaş)',fields:[
+      {key:'gks',label:'GKS < 15',type:'check',points:2},
+      {key:'skull',label:'Kafa tabanı kırık bulgusu',type:'check',points:2},
+      {key:'ams',label:'Bilinç değişikliği',type:'check',points:2},
+      {key:'loc',label:'Bilinç kaybı (herhangi)',type:'check',points:1},
+      {key:'vomit',label:'Kusma (travmaya bağlı)',type:'check',points:1},
+      {key:'mech',label:'Ağır mekanizma (araç/yüksekten düşme)',type:'check',points:1},
+      {key:'head',label:'Şiddetli baş ağrısı',type:'check',points:1},
+    ],compute:(v)=>{
+      if(v.gks||v.skull||v.ams)return 2;
+      if(v.loc||v.vomit||v.mech||v.head)return 1;
+      return 0;
+    },interpret:(score)=>score===2?'Yüksek risk — BT önerilir':score===1?'Orta risk — BT vs. gözlem':'Düşük risk — BT gerekmeyebilir'},
+    {id:'crams',name:'CRAMS (Travma)',fields:[
+      {key:'circ',label:'Dolaşım',type:'select',options:[
+        {label:'Normal (kapillar hızlı / sisKB>100)',value:2},
+        {label:'Gecikmiş / sisKB 85-100',value:1},
+        {label:'Yok / sisKB <85',value:0}]},
+      {key:'resp',label:'Solunum',type:'select',options:[
+        {label:'Normal',value:2},{label:'Anormal',value:1},{label:'Yok',value:0}]},
+      {key:'abd',label:'Abdomen',type:'select',options:[
+        {label:'Normal',value:2},{label:'Hassas',value:1},{label:'Rijid / flail göğüs',value:0}]},
+      {key:'motor',label:'Motor',type:'select',options:[
+        {label:'Normal (komuta uyar)',value:2},{label:'Ağrıya yanıt',value:1},{label:'Yanıtsız',value:0}]},
+      {key:'speech',label:'Konuşma',type:'select',options:[
+        {label:'Normal',value:2},{label:'Konfüzyon / uygunsuz',value:1},{label:'Yok / anlaşılmaz',value:0}]},
+    ],interpret:(score)=>score>=9?'Minor travma (≥9)':'Major travma (<9) — ileri müdahale'},
   ];
 
   function defaultScoreCompute(def,v){
