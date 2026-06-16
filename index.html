@@ -504,8 +504,8 @@
               oninput="calcEtt()">
           </div>
           <div class="score-result" id="ettResult" style="text-transform:none;font-weight:400;line-height:1.8;margin-top:6px;">
-            <div>Kaflı (Cuffed): <b>—</b></div>
-            <div>Kafsız (Uncuffed): <b>—</b></div>
+            <div>Kaflı: <b>—</b></div>
+            <div>Kafsız: <b>—</b></div>
           </div>
           <div style="font-size:9px;color:#555;margin-top:5px;text-transform:none;line-height:1.4;">&#9888; Yalnızca 1-8 yaş için geçerlidir.</div>
         </div>
@@ -703,7 +703,7 @@
 
     <!-- 02 GKS -->
     <div class="section" data-field="gks">
-      <div class="sec-label"><span class="num">02</span> GKS (Glasgow Koma Skalası)</div>
+      <div class="sec-label"><span class="num">02</span> GKS</div>
       <div class="grid g3">
         <div class="field"><label>Göz (x/4)</label><select class="txt" id="f_gks_goz">
           <option value="4">4 — Spontan</option>
@@ -730,9 +730,9 @@
       <div class="mini-row">Toplam: <span id="gksTotal">-/15</span></div>
     </div>
 
-    <!-- Primary Survey (ABCDE) -->
+    <!-- Primary Survey -->
     <div class="section" data-field="primary">
-      <div class="sec-label"><span class="num">03</span> Primary Survey (ABCDE)</div>
+      <div class="sec-label"><span class="num">03</span> Primary Survey</div>
       <div id="primaryWrap">
 
         <div class="exam-sys" data-sys="airway">
@@ -1490,10 +1490,10 @@
       </div>
       <div class="grid g2" style="margin-top:9px;">
         <div class="field"><label>Yaralanma yeri</label><input class="txt" id="f_yaralanma_yeri" placeholder="örn. Ev/İş/Yol/Diğer"></div>
-        <div class="field"><label>Aktivite (olay anında ne yapıyordu)</label><input class="txt" id="f_aktivite" placeholder="örn. merdivenden iniyordu"></div>
+        <div class="field"><label>Olay anındaki aktivite</label><input class="txt" id="f_aktivite" placeholder="örn. merdivenden iniyordu"></div>
       </div>
 
-      <div class="subhead">LOC (bilinç kaybı) süresi</div>
+      <div class="subhead">LOC süresi</div>
       <div class="chips" data-single="true" id="locSure">
         <button class="chip">Bilinç kaybı yok</button>
         <button class="chip" data-full="LOC &lt;5dk">&lt;5dk</button>
@@ -2156,7 +2156,7 @@
       </div>
 
       <div id="adliGksBox" style="display:none;">
-        <div class="subhead">GKS (Glasgow Koma Skalası)</div>
+        <div class="subhead">GKS</div>
         <div class="grid g3">
           <div class="field"><label>Göz (x/4)</label><select class="txt" id="f_adli_gks_goz">
             <option value="4">4 — Spontan</option>
@@ -2183,7 +2183,7 @@
         <div class="mini-row">Toplam: <span id="adliGksTotal">-/15</span></div>
       </div>
 
-      <div class="subhead">Patolojik bulgu (fizik muayene)</div>
+      <div class="subhead">Patolojik bulgu</div>
       <input class="extra" id="f_adli_patoloji" style="margin-top:0;" placeholder="örn. sol kolda ekimoz, sağ frontal bölgede laserasyon (lezyon eklenirse bu kutu yerine lezyon listesi kullanılır)">
       <div id="lezyonList"></div>
       <button class="btn" type="button" id="lezyonAddBtn" style="margin-top:7px;">+ Lezyon ekle</button>
@@ -12826,7 +12826,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     });
   }
 
-  // --- GKS (Glasgow Koma Skalası) bölümü ---
+  // --- GKS bölümü ---
   function updateGksTotal(){
     const g=val('f_gks_goz'),m=val('f_gks_motor'),vb=val('f_gks_verbal');
     const gksTotalEl=document.getElementById('gksTotal');
@@ -12930,7 +12930,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   }
   // ---- /Fizik Muayene ----
 
-  // ---- Primary Survey (ABCDE) ----
+  // ---- Primary Survey ----
   const primaryWrap=document.getElementById('primaryWrap');
   const chipAirwayAnormal=document.getElementById('chipAirwayAnormal');
   const airwayAnormalBox=document.getElementById('airwayAnormalBox');
@@ -14114,7 +14114,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const rows=[
       ['GKS', gksText()],
 
-      ['Primary Survey (ABCDE)', primarySurveyText()],
+      ['Primary Survey', primarySurveyText()],
       ['Başvuru Şikayeti', sikayetRow],
       ['Şikayet Detayı', detail()],
       ['Vital Bulgular', vitals()],
@@ -14679,12 +14679,12 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const r=document.getElementById('ettResult');
     if(!r) return;
     if(!yas||yas<1||yas>8){
-      r.innerHTML='<div>Kaflı (Cuffed): <b>—</b></div><div>Kafsız (Uncuffed): <b>—</b></div>';
+      r.innerHTML='<div>Kaflı: <b>—</b></div><div>Kafsız: <b>—</b></div>';
       return;
     }
     const cuffed=(3.5+yas/4).toFixed(1);
     const uncuffed=(4.0+yas/4).toFixed(1);
-    r.innerHTML=`<div>Kaflı (Cuffed): <b>${cuffed} mm</b></div><div>Kafsız (Uncuffed): <b>${uncuffed} mm</b></div>`;
+    r.innerHTML=`<div>Kaflı: <b>${cuffed} mm</b></div><div>Kafsız: <b>${uncuffed} mm</b></div>`;
   }
   window.calcEtt=calcEtt;
 
