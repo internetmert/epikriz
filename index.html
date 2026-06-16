@@ -66,6 +66,7 @@
     box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);}
   .feedback-send:active{border-color:var(--dark) var(--light) var(--light) var(--dark);box-shadow:none;}
   .feedback-status{font-size:11px;color:#333;margin-top:5px;min-height:14px;}
+  .feedback-count{font-size:10px;color:#555;text-align:right;margin-top:2px;}
   .mode-btn{width:220px;min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
     border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
     box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
@@ -443,7 +444,8 @@
   </div>
   <div class="feedback-box">
     <div class="feedback-title">💬 Anonim geri bildirim</div>
-    <textarea id="feedbackText" maxlength="1000" placeholder="Görüş, öneri, hata bildirimi…"></textarea>
+    <textarea id="feedbackText" maxlength="300" placeholder="Görüş, öneri, hata bildirimi…" oninput="updateFeedbackCount()"></textarea>
+    <div class="feedback-count" id="feedbackCount">0 / 300</div>
     <button type="button" class="feedback-send" onclick="sendFeedback()">Gönder</button>
     <div class="feedback-status" id="feedbackStatus"></div>
   </div>
@@ -14938,22 +14940,30 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(d&&d[0]&&typeof d[0].count!=='undefined')updateThanksDisplay(Number(d[0].count));
     }).catch(()=>{/* offline — mevcut değer korunur */});
   })();
+  // Geri bildirimleri e-postaya iletir (Web3Forms — backend gerekmez).
+  // KEY: https://web3forms.com → e-postanı gir → ücretsiz access key → aşağıya yapıştır.
+  const WEB3FORMS_ACCESS_KEY='BURAYA-WEB3FORMS-ACCESS-KEY';
+  window.updateFeedbackCount=function(){
+    const ta=document.getElementById('feedbackText'),c=document.getElementById('feedbackCount');
+    if(ta&&c)c.textContent=(ta.value||'').length+' / 300';
+  };
   window.sendFeedback=function(){
     const ta=document.getElementById('feedbackText');
     const st=document.getElementById('feedbackStatus');
     if(!ta||!st)return;
     const msg=(ta.value||'').trim();
     if(!msg){st.textContent='Lütfen bir şeyler yazın.';return;}
-    if(msg.length>1000){st.textContent='En fazla 1000 karakter.';return;}
+    if(msg.length>300){st.textContent='En fazla 300 karakter.';return;}
+    if(!WEB3FORMS_ACCESS_KEY||WEB3FORMS_ACCESS_KEY.indexOf('BURAYA')===0){
+      st.textContent='Geri bildirim e-postası henüz yapılandırılmadı.';return;}
     st.textContent='Gönderiliyor…';
-    fetch(`${SUPABASE_URL}/rest/v1/feedback`,{
+    fetch('https://api.web3forms.com/submit',{
       method:'POST',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,
-        'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({message:msg})
-    }).then(r=>{
-      if(r.ok){ta.value='';st.textContent='Teşekkürler! Geri bildiriminiz alındı. 🙏';}
-      else{st.textContent='Gönderilemedi (sunucu hatası). Lütfen sonra tekrar deneyin.';}
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({access_key:WEB3FORMS_ACCESS_KEY,subject:'Acil Epikriz — Anonim geri bildirim',from_name:'Acil Epikriz',message:msg})
+    }).then(r=>r.json()).then(d=>{
+      if(d&&d.success){ta.value='';updateFeedbackCount();st.textContent='Teşekkürler! Geri bildiriminiz iletildi. 🙏';}
+      else{st.textContent='Gönderilemedi, lütfen sonra tekrar deneyin.';}
     }).catch(()=>{st.textContent='Bağlantı yok — gönderilemedi.';});
   };
   window.incrementThanks=function(){
