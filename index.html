@@ -397,7 +397,7 @@
       <div class="sync-section">
         <div class="subhead">Başka cihazdan al</div>
         <div class="sync-row">
-          <input type="text" class="txt" id="syncCodeIn" placeholder="ör. AB3K-9XQ2" maxlength="10">
+          <input type="text" class="txt" id="syncCodeIn" placeholder="örn. AB3K-9XQ2" maxlength="10">
           <button type="button" class="btn" id="btnSyncFetch" onclick="syncFetch()">Getir ve Doldur</button>
         </div>
         <button type="button" class="btn" id="btnQrScan" onclick="toggleQrScan()" style="margin-top:8px;">📷 QR Tara</button>
@@ -434,9 +434,9 @@
   </div>
   <p>Daha sonra formun üstündeki "Mod değiştir" butonu ile seçimi değiştirebilirsiniz.</p>
   <div class="info-box">
-    <p>Bu web tabanlı uygulama, benim gibi yazı yazmayı sevmeyen tembel acil doktorlarının hasta notlarını HBYS'ye daha hızlı aktarabilmesi için geliştirildi.</p>
-    <p>Hastanın yanında telefonunuzdan kısa notlar alabilir, bunları anında bilgisayarınızla senkronize edebilir ve oluşturulan metni tek tıkla HBYS'ye yapıştırabilirsiniz. Klavyede uzun süre vakit harcamadan, standart ve düzenli hasta kayıtları oluşturmanıza yardımcı olur.</p>
-    <p>Daha az yazı, daha fazla dokümentasyon.</p>
+    <p>Acil servis hekimlerinin hasta notlarını hızlı, standart ve düzenli biçimde oluşturup HBYS'ye aktarmasını sağlayan bir dokümantasyon aracıdır.</p>
+    <p>İlgili alanları işaretledikçe sağ tarafta profesyonel bir epikriz metni anında oluşur. Hasta başında telefonunuzdan girdiğiniz notları bilgisayarınızla senkronize edebilir, hazır metni tek tıkla kopyalayıp HBYS'ye yapıştırabilirsiniz.</p>
+    <p>Daha az yazım yükü, daha hızlı dokümantasyon.</p>
   </div>
   <div class="thanks-box" onclick="incrementThanks()" title="Teşekkür et!">
     <div>❤️ 🙏</div>
@@ -772,7 +772,7 @@
           <div class="exam-body">
             <div class="sub">Solunum sayısı</div>
             <div class="mini-row">
-              <input class="txt" id="f_primary_rr" type="number" min="0" step="1" placeholder="ör. 16"> /dk
+              <input class="txt" id="f_primary_rr" type="number" min="0" step="1" placeholder="örn. 16"> /dk
             </div>
             <div class="sub">Göğüs hareketi</div>
             <div class="chips" data-single="true" id="primaryGogusHareketi">
@@ -879,7 +879,7 @@
             </div>
             <div class="sub">Kan şekeri</div>
             <div class="mini-row">
-              <input class="txt" id="f_primary_kan_sekeri" type="number" min="0" step="1" placeholder="ör. 95"> mg/dL
+              <input class="txt" id="f_primary_kan_sekeri" type="number" min="0" step="1" placeholder="örn. 95"> mg/dL
             </div>
             <div class="sub">Ekstremite hareketi (hareketsiz olanlar)</div>
             <div class="chips" id="primaryEkstremiteHareketsiz">
@@ -1486,11 +1486,11 @@
       <div class="grid g3">
         <div class="field"><label>Yaralanma tarihi</label><input class="txt" id="f_yaralanma_tarih" type="date"></div>
         <div class="field"><label>Yaralanma saati</label><input class="txt" id="f_yaralanma_saat" type="time"></div>
-        <div class="field"><label>Son yemek zamanı</label><input class="txt" id="f_son_yemek" placeholder="ör. 2 saat önce"></div>
+        <div class="field"><label>Son yemek zamanı</label><input class="txt" id="f_son_yemek" placeholder="örn. 2 saat önce"></div>
       </div>
       <div class="grid g2" style="margin-top:9px;">
-        <div class="field"><label>Yaralanma yeri</label><input class="txt" id="f_yaralanma_yeri" placeholder="ör. Ev/İş/Yol/Diğer"></div>
-        <div class="field"><label>Aktivite (olay anında ne yapıyordu)</label><input class="txt" id="f_aktivite" placeholder="ör. merdivenden iniyordu"></div>
+        <div class="field"><label>Yaralanma yeri</label><input class="txt" id="f_yaralanma_yeri" placeholder="örn. Ev/İş/Yol/Diğer"></div>
+        <div class="field"><label>Aktivite (olay anında ne yapıyordu)</label><input class="txt" id="f_aktivite" placeholder="örn. merdivenden iniyordu"></div>
       </div>
 
       <div class="subhead">LOC (bilinç kaybı) süresi</div>
@@ -1604,7 +1604,7 @@
 
     <!-- 05b Kullanılan İlaçlar -->
     <div class="section" data-field="ilaclar">
-      <div class="sec-label"><span class="num">06b</span> 💊 Kullanılan İlaçlar</div>
+      <div class="sec-label"><span class="num">06b</span> Kullanılan İlaçlar</div>
 
       <div class="exam-sys" id="ilacGrup_diyabet">
         <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Diyabet İlaçları</span><span class="badge zero">0</span></button>
@@ -1963,7 +1963,7 @@
 
     <!-- 07 Fizik Muayene (sistem-bazlı, katlanabilir) -->
     <div class="section" data-field="muayene">
-      <div class="sec-label"><span class="num">08</span> Fizik Muayene <span class="num">(sisteme göre)</span></div>
+      <div class="sec-label"><span class="num">08</span> Fizik Muayene<span class="num">(sisteme göre)</span></div>
       <div class="exam-tools">
         <button class="allnorm-btn" id="examAllNormal">✓ Tüm sistemler doğal</button>
         <button class="allnorm-btn" id="examCollapse">Hepsini kapat</button>
@@ -2063,7 +2063,7 @@
         <button class="chip">Ameliyathaneye alındı</button>
         <button class="chip">Exitus</button>
       </div>
-      <input class="extra" data-extra placeholder="Branş / hedef klinik (ör. Dahiliye)">
+      <input class="extra" data-extra placeholder="Branş / hedef klinik (örn. Dahiliye)">
     </div>
 
     <!-- 10 Öneriler -->
@@ -2127,7 +2127,7 @@
       </div>
 
       <div class="mini-row" id="dusmeYukseklikBox" style="display:none">
-        Yükseklik (metre): <input class="txt" id="f_dusme_yukseklik" type="number" min="0" step="0.1" placeholder="ör. 2">
+        Yükseklik (metre): <input class="txt" id="f_dusme_yukseklik" type="number" min="0" step="0.1" placeholder="örn. 2">
       </div>
 
       <div class="subhead">Niyet</div>
@@ -14828,7 +14828,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const codeOut=document.getElementById('syncCodeOut');
     btn.disabled=true;
     statusEl.className='sync-status';
-    statusEl.textContent='Gönderiliyor...';
+    statusEl.textContent='Gönderiliyor…';
     try{
       const raw=getRememberedCode()||generateCode();
       const key=await deriveKey(raw);
@@ -14881,7 +14881,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     }
     btn.disabled=true;
     statusEl.className='sync-status';
-    statusEl.textContent='Getiriliyor...';
+    statusEl.textContent='Getiriliyor…';
     try{
       const codeHash=await sha256Hex(raw);
       const res=await fetch(`${SUPABASE_URL}/rest/v1/sync_blobs?code_hash=eq.${codeHash}&select=ciphertext,iv,expires_at`,{
@@ -15196,7 +15196,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     box.hidden=false;
     btn.textContent='QR Taramayı Durdur';
     statusEl.className='sync-status';
-    statusEl.textContent='Kamerayı QR koda doğrultun...';
+    statusEl.textContent='Kamerayı QR koda doğrultun…';
     const canvas=document.createElement('canvas');
     const ctx=canvas.getContext('2d');
     function tick(){
@@ -15238,8 +15238,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const formatted=raw.slice(0,4)+'-'+raw.slice(4);
     document.getElementById('syncCodeIn').value=formatted;
     statusEl.className='sync-status ok';
-    statusEl.textContent='QR okundu, getiriliyor...';
-    toast('QR okundu, getiriliyor...');
+    statusEl.textContent='QR okundu, getiriliyor…';
+    toast('QR okundu, getiriliyor…');
     syncFetch();
   }
 
