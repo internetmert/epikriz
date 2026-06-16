@@ -12,14 +12,20 @@
 2. **Tüm işlem tarayıcıda (client-side).** Hasta verisi hiçbir sunucuya/ API'ye gitmez. KVKK gereği bu kritik. Hiçbir veri toplama, çağrı, depolama eklenmemeli.
 3. **Türkçe** arayüz ve çıktı. Tüm tıbbi terminoloji Türkçe acil pratiğine uygun.
 4. **Hız her şeyden önce gelir.** Araç bir hekimin saniyeler içinde tıklayıp epikriz çıkarması için var. Bir özellik tıklama sayısını/karmaşıklığı artırıyorsa, gözden geçir.
+5. **Sorumluluk reddi / uyarı yazısı ekleme.** Kullanıcı (hekim) açıkça istemedikçe tool'lara "klinik karar destek aracıdır, ... yerine geçmez" türü disclaimer/uyarı metinleri KOYMA. (Klinik yönlendirme/karar çıktısı ayrı şeydir; bu kural yalnızca disclaimer/CYA boilerplate içindir.)
 
 ## Mevcut durum
 
 - Sol panel: işaretlenecek bölümler. Sağ panel: canlı oluşan epikriz önizlemesi.
-- Bölümler: Hasta, Başvuru Şikayeti, Hikaye, Bilinen Hastalıklar, Alerji, Vital Bulgular (+EKG), Fizik Muayene, Uygulanan Tedavi, Karar, Öneriler.
+- Bölümler (dahili sırası): Hasta, GKS, Başvuru Şikayeti, Vital Bulgular (+EKG), Hikaye, Özgeçmiş, Alerji, Düzenli İlaçlar, Fizik Muayene, Uygulanan Tedavi, Karar, Öneriler. *(Vital, başvuru şikayetinin hemen ardında.)*
 - **Dinamik detay panelleri:** bir şikayet seçilince (ör. göğüs ağrısı) altında ona özel sorular açılıyor (süre, nitelik, efor ilişkisi vb.). Veri yapısı `followups` objesinde; yeni şikayet eklemek kolay.
 - "Karar" seçimi otomatik tam cümle kuruyor (taburcu/yatış/sevk/konsültasyon).
 - Kopyala (HBYS'ye yapıştırmak için) ve Yazdır butonları var.
+- **3 mod:** Acil Dahili / Adli Muayene / Travma (her mod farklı bölümleri gösterir).
+- **Sağ panel araçları (katlanabilir; epikriz notuna dahil değil):**
+  - **Klinik Skorlamalar:** ABCD2, TIMI, HEART, CHA₂DS₂-VASc, CURB-65, qSOFA, Glasgow-Blatchford, Wells (PE/DVT), NEXUS, Canadian C-Spine, PECARN (<2/≥2 yaş), Centor, PSI.
+  - **Hesaplayıcılar:** Parkland (yanık sıvısı), Ped. ETT boyutu.
+  - **Klinik Yönlendirme — Parasetamol:** alım paterni (akut/tekrarlı/güvenilmez) + doz/kilo/süre/serum düzeyi/AST'ye göre doz-temelli tedavi yönlendirmesi (toksik eşik ≥150 mg/kg veya 7,5 g, aktif kömür, nomogram zamanlaması, >8 sa ampirik NAC, >30 g masif uyarısı) + kilodan otomatik NAC doz rejimi (IV 21 sa / oral 72 sa / SNAP). Eşikler UpToDate "Acetaminophen poisoning: Management" (Apr 2026) makalesine dayalı — dev referansı, kod içi yorumda da var.
 - **Görünüm:** Windows 98 estetiği — gri zemin, Arial, kabarık 3D bevel butonlar, lacivert başlık çubukları, seçili kutularda ✓.
 
 ## Sıradaki iş: Bates muayene içeriği
