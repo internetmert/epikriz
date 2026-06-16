@@ -3377,16 +3377,29 @@
   let lastSyncTime=null;
   let everSynced=false;
 
-  // Teşekkür sayacı (landing ekranı)
-  function updateThanksDisplay(){
-    const n=parseInt(localStorage.getItem('epikrTesekur')||'0',10);
+  // Teşekkür sayacı (global, Supabase)
+  let _thanksCount=0;
+  function updateThanksDisplay(n){
+    if(typeof n==='number')_thanksCount=n;
     const el=document.getElementById('thanksCount');
-    if(el) el.textContent=n+' kez teşekkür edildi';
+    if(el)el.textContent=_thanksCount+' kez teşekkür edildi';
   }
+  (function fetchThanks(){
+    fetch(`${SUPABASE_URL}/rest/v1/thanks_counter?id=eq.1&select=count`,{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}
+    }).then(r=>r.json()).then(d=>{
+      if(d&&d[0]&&typeof d[0].count!=='undefined')updateThanksDisplay(Number(d[0].count));
+    }).catch(()=>{/* offline — mevcut değer korunur */});
+  })();
   window.incrementThanks=function(){
-    const n=parseInt(localStorage.getItem('epikrTesekur')||'0',10)+1;
-    localStorage.setItem('epikrTesekur',n);
-    updateThanksDisplay();
+    updateThanksDisplay(_thanksCount+1); // optimistic
+    fetch(`${SUPABASE_URL}/rpc/increment_thanks`,{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+      body:'{}'
+    }).then(r=>r.json()).then(n=>{
+      if(typeof n==='number')updateThanksDisplay(n);
+    }).catch(()=>{/* offline — optimistic değer kalır */});
   };
   updateThanksDisplay();
 
