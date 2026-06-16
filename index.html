@@ -1162,7 +1162,7 @@
   const sectionFieldsByMode={
     dahili:['hasta','gks','sikayet','hikaye','ozgecmis','alerji','vital','muayene','tedavi','karar','oneri'],
     adli:['adli'],
-    travma:['hasta','gks','mekanizma','primary','sikayet','hikaye','vital','fast','muayene','degerlendirme','tedavi','karar','oneri'],
+    travma:['hasta','gks','primary','sikayet','hikaye','vital','fast','muayene','degerlendirme','tedavi','karar','oneri'],
   };
   const modeLabels={dahili:'Acil Dahili Hasta',adli:'Adli Muayene',travma:'Travma'};
 
@@ -2766,7 +2766,7 @@
 
     const rows=[
       ['GKS', gksText()],
-      ['Yaralanma Mekanizması', currentMode==='adli'?'':mekanizmaText()],
+
       ['Primary Survey (ABCDE)', primarySurveyText()],
       ['Başvuru Şikayeti', sikayetRow],
       ['Şikayet Detayı', detail()],
