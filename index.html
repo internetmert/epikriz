@@ -148,6 +148,9 @@
   .extra,.txt{font-family:Arial,sans-serif;font-size:12.5px;color:#000;background:#fff;
     border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);
     box-shadow:inset 1px 1px 0 #0a0a0a;border-radius:0;padding:4px 6px;width:100%;}
+  select.txt{-webkit-appearance:none;appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23000'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 6px center;padding-right:20px;}
   .extra{margin-top:9px;resize:vertical;}
   textarea.extra{min-height:46px;}
   .extra:focus,.txt:focus{outline:1px dotted #000;outline-offset:-4px;}
@@ -458,9 +461,27 @@
     <div class="section" data-field="gks">
       <div class="sec-label"><span class="num">02</span> GKS (Glasgow Koma Skalası)</div>
       <div class="grid g3">
-        <div class="field"><label>Göz (x/4)</label><input class="txt" id="f_gks_goz" type="number" min="1" max="4" step="1" placeholder="4"></div>
-        <div class="field"><label>Motor (x/6)</label><input class="txt" id="f_gks_motor" type="number" min="1" max="6" step="1" placeholder="6"></div>
-        <div class="field"><label>Verbal (x/5)</label><input class="txt" id="f_gks_verbal" type="number" min="1" max="5" step="1" placeholder="5"></div>
+        <div class="field"><label>Göz (x/4)</label><select class="txt" id="f_gks_goz">
+          <option value="4">4 — Spontan</option>
+          <option value="3">3 — Sese</option>
+          <option value="2">2 — Ağrıya</option>
+          <option value="1">1 — Yok</option>
+        </select></div>
+        <div class="field"><label>Motor (x/6)</label><select class="txt" id="f_gks_motor">
+          <option value="6">6 — Emirlere uyar</option>
+          <option value="5">5 — Yerleştirir</option>
+          <option value="4">4 — Çeker</option>
+          <option value="3">3 — Fleksiyon</option>
+          <option value="2">2 — Ekstansiyon</option>
+          <option value="1">1 — Yok</option>
+        </select></div>
+        <div class="field"><label>Verbal (x/5)</label><select class="txt" id="f_gks_verbal">
+          <option value="5">5 — Oryante</option>
+          <option value="4">4 — Konfüze</option>
+          <option value="3">3 — Uygunsuz</option>
+          <option value="2">2 — Anlaşılmaz</option>
+          <option value="1">1 — Yok</option>
+        </select></div>
       </div>
       <div class="mini-row">Toplam: <span id="gksTotal">-/15</span></div>
     </div>
@@ -800,7 +821,12 @@
         Stent sayısı: <input class="txt" id="f_stent_sayi" type="number" min="1" step="1" placeholder="adet">
       </div>
       <div class="mini-row" id="diyalizBox" style="display:none">
-        Haftalık diyaliz: <input class="txt" id="f_diyaliz_gun" type="number" min="1" max="7" step="1" placeholder="gün"> / 7
+        Haftalık diyaliz: <select class="txt" id="f_diyaliz_gun" style="width:auto;min-width:50px;">
+          <option value="">—</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option>
+        </select> / 7
       </div>
       <div class="mini-row" id="bypassYearBox" style="display:none">
         Kaç yıl önce?: <input class="txt" id="f_bypass_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
@@ -812,7 +838,14 @@
         Kaç yıl önce?: <input class="txt" id="f_pedvt_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
       </div>
       <div class="mini-row" id="gebelikBox" style="display:none">
-        Kaç hafta?: <input class="txt" id="f_gebelik_hafta" type="number" min="1" max="42" step="1" placeholder="hafta">
+        Kaç hafta?: <select class="txt" id="f_gebelik_hafta" style="width:auto;min-width:60px;">
+          <option value="">—</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+          <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+          <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
+          <option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option>
+          <option value="41">41</option><option value="42">42</option>
+        </select>
       </div>
       <div class="chips" id="psikSub" style="display:none;margin-top:7px;">
         <button class="chip">Depresyon</button>
@@ -1109,9 +1142,27 @@
       <div id="adliGksBox" style="display:none;">
         <div class="subhead">GKS (Glasgow Koma Skalası)</div>
         <div class="grid g3">
-          <div class="field"><label>Göz (x/4)</label><input class="txt" id="f_adli_gks_goz" type="number" min="1" max="4" step="1" placeholder="4"></div>
-          <div class="field"><label>Motor (x/6)</label><input class="txt" id="f_adli_gks_motor" type="number" min="1" max="6" step="1" placeholder="6"></div>
-          <div class="field"><label>Verbal (x/5)</label><input class="txt" id="f_adli_gks_verbal" type="number" min="1" max="5" step="1" placeholder="5"></div>
+          <div class="field"><label>Göz (x/4)</label><select class="txt" id="f_adli_gks_goz">
+            <option value="4">4 — Spontan</option>
+            <option value="3">3 — Sese</option>
+            <option value="2">2 — Ağrıya</option>
+            <option value="1">1 — Yok</option>
+          </select></div>
+          <div class="field"><label>Motor (x/6)</label><select class="txt" id="f_adli_gks_motor">
+            <option value="6">6 — Emirlere uyar</option>
+            <option value="5">5 — Yerleştirir</option>
+            <option value="4">4 — Çeker</option>
+            <option value="3">3 — Fleksiyon</option>
+            <option value="2">2 — Ekstansiyon</option>
+            <option value="1">1 — Yok</option>
+          </select></div>
+          <div class="field"><label>Verbal (x/5)</label><select class="txt" id="f_adli_gks_verbal">
+            <option value="5">5 — Oryante</option>
+            <option value="4">4 — Konfüze</option>
+            <option value="3">3 — Uygunsuz</option>
+            <option value="2">2 — Anlaşılmaz</option>
+            <option value="1">1 — Yok</option>
+          </select></div>
         </div>
         <div class="mini-row">Toplam: <span id="adliGksTotal">-/15</span></div>
       </div>
@@ -1903,6 +1954,7 @@
     refreshDetail();updateSymptomSureBoxes();render();
   });
   form.addEventListener('input',render);
+  form.addEventListener('change',render);
 
   function secOf(box){
     if(!box)return '';
@@ -2668,7 +2720,7 @@
       if(k!=null)chips[k]=c.classList.contains('active');
     });
     const inputs={};
-    form.querySelectorAll('input,textarea').forEach(el=>{
+    form.querySelectorAll('input,select,textarea').forEach(el=>{
       if(el.closest('#lezyonList'))return;
       const k=pathKey(el);
       if(k!=null)inputs[k]=el.value;
@@ -2693,7 +2745,7 @@
     });
     const inputs=st.inputs||{};
     const gksDefaults={f_gks_goz:'4',f_gks_motor:'6',f_gks_verbal:'5',f_adli_gks_goz:'4',f_adli_gks_motor:'6',f_adli_gks_verbal:'5'};
-    form.querySelectorAll('input,textarea').forEach(el=>{
+    form.querySelectorAll('input,select,textarea').forEach(el=>{
       if(el.closest('#lezyonList'))return;
       const k=pathKey(el);
       let v=(k!=null && inputs[k]!==undefined)?inputs[k]:'';
@@ -2909,6 +2961,7 @@
     }
     form.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
     form.querySelectorAll('input,textarea').forEach(i=>i.value='');
+    form.querySelectorAll('select').forEach(s=>{if(s.options[0])s.selectedIndex=0;});
     lezyonList.innerHTML='';
     examWrap.querySelectorAll('.exam-sys').forEach(s=>{
       s.classList.remove('open');
