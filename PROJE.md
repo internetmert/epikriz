@@ -19,6 +19,7 @@
 - Sol panel: işaretlenecek bölümler. Sağ panel: canlı oluşan epikriz önizlemesi.
 - Bölümler (dahili sırası): Hasta, GKS, Başvuru Şikayeti, Vital Bulgular (+EKG), Hikaye, Özgeçmiş, Alerji, Düzenli İlaçlar, Fizik Muayene, Uygulanan Tedavi, Karar, Öneriler. *(Vital, başvuru şikayetinin hemen ardında.)*
 - **Dinamik detay panelleri:** bir şikayet seçilince (ör. göğüs ağrısı) altında ona özel sorular açılıyor (süre, nitelik, efor ilişkisi vb.). Veri yapısı `followups` objesinde; yeni şikayet eklemek kolay.
+- **Şikayet kategorileri katlanabilir:** her sistem (Kardiyak, Solunum, Nörolojik…) varsayılan KAPALI; başlığa basınca o sistemin şikayetleri açılır. Başlıkta aktif seçim sayısı rozeti — kapalıyken bile görünür. Runtime'da `makeComplaintsCollapsible()` gruplandırır.
 - "Karar" seçimi otomatik tam cümle kuruyor (taburcu/yatış/sevk/konsültasyon).
 - Kopyala (HBYS'ye yapıştırmak için) ve Yazdır butonları var.
 - **3 mod:** Acil Dahili / Adli Muayene / Travma (her mod farklı bölümleri gösterir).

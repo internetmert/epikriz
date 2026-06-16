@@ -106,6 +106,14 @@
     margin:8px 0 1px;padding-bottom:2px;border-bottom:1px solid var(--shadow);
     letter-spacing:.04em;text-transform:uppercase;pointer-events:none;}
   .chip-cat-label:first-child{margin-top:0;}
+  .chip-cat-label.cat-toggle{pointer-events:auto;cursor:pointer;user-select:none;display:flex;align-items:center;gap:5px;}
+  .chip-cat-label.cat-toggle:hover{color:#000;background:rgba(0,0,0,.05);}
+  .cat-arrow{font-size:8px;transition:transform .1s;}
+  .chip-cat-label.cat-toggle.open .cat-arrow{transform:rotate(90deg);}
+  .cat-count{margin-left:auto;font-size:9px;color:#fff;background:var(--navy);border-radius:7px;padding:0 5px;line-height:14px;}
+  .cat-count:empty{display:none;}
+  .cat-group{display:none;flex-basis:100%;flex-wrap:wrap;gap:6px;margin-bottom:2px;}
+  .cat-group.open{display:flex;}
   .chip{border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
     box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
     background:#c0c0c0;color:#000;font:inherit;font-size:12px;font-weight:400;
@@ -13687,6 +13695,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
         if(!extra&&n.dataset.sys)extra='y:'+n.dataset.sys;
         else if(!extra&&n.dataset.role)extra='r:'+n.dataset.role;
         else if(!extra&&n.dataset.complaint)extra='p:'+n.dataset.complaint;
+        else if(!extra&&n.dataset.cat)extra='cat:'+n.dataset.cat;
       }
       n=n.parentElement;
     }
@@ -13723,6 +13732,48 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       el.dataset.k=key;
     });
   }
+
+  // Başvuru şikayeti kategorilerini katlanabilir yap: her kategorinin chip'lerini bir
+  // .cat-group içine sar, etiketi tıklanabilir toggle'a çevir. Varsayılan KAPALI;
+  // sisteme (kategoriye) basınca o sistemin şikayetleri açılır.
+  function makeComplaintsCollapsible(){
+    const box=form.querySelector('[data-field="sikayet"] > .chips');
+    if(!box)return;
+    let group=null;
+    [...box.children].forEach(el=>{
+      if(el.classList.contains('chip-cat-label')){
+        const name=el.textContent.trim();
+        el.classList.add('cat-toggle');
+        el.dataset.cat=name;
+        el.innerHTML='<span class="cat-arrow">▶</span><span>'+name+'</span><span class="cat-count"></span>';
+        group=document.createElement('div');
+        group.className='cat-group';
+        group.dataset.cat=name;
+        el.insertAdjacentElement('afterend',group);
+      }else if(group){
+        group.appendChild(el);
+      }
+    });
+  }
+  // Kapalı kategoride seçim gizlenmesin diye başlıkta aktif şikayet sayısını göster.
+  function updateCatCounts(){
+    form.querySelectorAll('[data-field="sikayet"] > .chips > .cat-group').forEach(g=>{
+      const n=g.querySelectorAll(':scope > .chip.active').length;
+      const lbl=g.previousElementSibling;
+      const c=lbl&&lbl.querySelector&&lbl.querySelector('.cat-count');
+      if(c)c.textContent=n?String(n):'';
+    });
+  }
+  // Kategori başlığına tıklayınca o grubu aç/kapa (olay delegasyonu).
+  form.addEventListener('click',e=>{
+    const t=e.target.closest('.cat-toggle');
+    if(!t)return;
+    const g=t.nextElementSibling;
+    if(g&&g.classList.contains('cat-group')){
+      const open=g.classList.toggle('open');
+      t.classList.toggle('open',open);
+    }
+  });
 
   // Lezyon kartlari: dinamik olarak eklenip/silinebildigi ve alt-bölge/segment chip
   // setleri bölgeye göre yeniden üretildigi icin, path/index tabanli degil; her kart
@@ -13862,6 +13913,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     refreshDetail();render();
   });
   function render(){
+    updateCatCounts();
     updateExamBadges();
     updateOzgecmisExtras();
     updateEkgExtras();
@@ -14045,6 +14097,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     el.textContent=msg;el.classList.add('show');
     clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),1600);
   }
+  makeComplaintsCollapsible();
   assignStableKeys();
   setGksDefaults();
   renderPatientTabs();
