@@ -44,6 +44,12 @@ Yüklenen kaynak: Bates' Guide to Physical Examination (PDF).
 - Web → iOS için muhtemelen Capacitor (mevcut HTML'i sarmalar) veya Flutter.
 - Gerekenler: Apple Developer hesabı (99 $/yıl), Mac + Xcode, gizlilik politikası URL'si, tıbbi uygulama incelemesi için net sorumluluk reddi ("klinik karar destek aracıdır, hekim muhakemesinin yerini almaz").
 
+## Geliştirme / bakım
+
+- **Tek dosya, build yok.** `index.html` doğrudan açılır/dağıtılır. QR senkron kütüphaneleri (qrcodejs, jsQR) dosyaya GÖMÜLÜ (üstteki ~10000 satır) — offline çalışır, harici CDN yok. Elle düzenlenmez; uygulama kodu "UYGULAMA SCRIPT'İ BAŞLANGICI" işaretinden sonra başlar, başında aranabilir bir İÇİNDEKİLER (TOC) var.
+- **Testler:** `node test.js` — klinik mantık regresyon ağı (15 skor + parasetamol + NAC). Klinik eşik/ifade düzenleyince çalıştır; bozulursa kırmızı verir.
+- **State anahtarları içeriğe dayalı** (`computeBaseKey`): chip/bölüm taşınsa da kaydedilmiş/senkron durum doğru kutuya yüklenir (DOM konumuna bağlı değil).
+
 ## Güvenlik notu
 
 Cowork/Code'un "computer use" özelliğini HBYS'ye veya gerçek hasta verisi olan sistemlere BAĞLAMA. Geliştirme tamamen yerel dosya üzerinde yapılır; gerçek hasta verisi kullanılmaz.

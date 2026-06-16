@@ -12150,8 +12150,25 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
 /******/ ])["default"];
 });
 </script>
+<!-- ===================== UYGULAMA SCRIPT'İ BAŞLANGICI ===================== -->
+<!-- (Yukarıdaki ~10100 satır GÖMÜLÜ KÜTÜPHANE: qrcodejs + jsQR — elle düzenlenmez) -->
 <script>
 (function(){
+  /* ═══════════ İÇİNDEKİLER — Cmd/Ctrl+F ile landmark'a atla ═══════════
+     Mod seçimi ............. applyMode
+     Başvuru şikayeti ....... sikayetText
+     Followup / detay panel .. refreshDetail
+     Semptom süre kutuları ... updateSymptomSureBoxes
+     Fizik muayene .......... examText
+     Çıktı / epikriz metni ... function render
+     State + SABİT anahtar ... computeBaseKey · captureState · restoreState
+     Hasta sekmeleri ........ renderPatientTabs
+     Klinik skorlar ......... clinicalScores
+     Parasetamol yönlendirme  calcParasetamol
+     Hesaplayıcılar ......... calcParkland · calcEtt
+     Senkron (Supabase/AES) .. SUPABASE_URL
+     Testler: `node test.js`  (klinik mantık regresyon ağı)
+     ═══════════════════════════════════════════════════════════════════ */
   const form=document.getElementById('form');
   const pad=n=>String(n).padStart(2,'0');
   const now=new Date();
