@@ -1011,299 +1011,6 @@
       <div class="detay-wrap" id="detay"></div>
     </div>
 
-    <!-- 03 Hikaye -->
-    <div class="section" data-field="hikaye">
-      <div class="sec-label"><span class="num">04</span> Hikaye / Anamnez</div>
-      <textarea class="extra" data-extra placeholder="Kısa öykü (opsiyonel)"></textarea>
-
-      <div class="subhead" id="injuryInfoSubhead">Yaralanma bilgileri</div>
-      <div class="grid g3">
-        <div class="field"><label>Yaralanma tarihi</label><input class="txt" id="f_yaralanma_tarih" type="date"></div>
-        <div class="field"><label>Yaralanma saati</label><input class="txt" id="f_yaralanma_saat" type="time"></div>
-        <div class="field"><label>Son yemek zamanı</label><input class="txt" id="f_son_yemek" placeholder="ör. 2 saat önce"></div>
-      </div>
-      <div class="grid g2" style="margin-top:9px;">
-        <div class="field"><label>Yaralanma yeri</label><input class="txt" id="f_yaralanma_yeri" placeholder="ör. Ev/İş/Yol/Diğer"></div>
-        <div class="field"><label>Aktivite (olay anında ne yapıyordu)</label><input class="txt" id="f_aktivite" placeholder="ör. merdivenden iniyordu"></div>
-      </div>
-
-      <div class="subhead">LOC (bilinç kaybı) süresi</div>
-      <div class="chips" data-single="true" id="locSure">
-        <button class="chip">Bilinç kaybı yok</button>
-        <button class="chip" data-full="LOC &lt;5dk">&lt;5dk</button>
-        <button class="chip" data-full="LOC 5-30dk">5-30dk</button>
-        <button class="chip" data-full="LOC &gt;30dk">&gt;30dk</button>
-      </div>
-
-      <div class="subhead">Kafa/Boyun travması var mı</div>
-      <div class="chips" data-single="true" id="kafaBoyunTravma">
-        <button class="chip" data-full="Kafa travması mevcut">Evet</button>
-        <button class="chip" data-full="Kafa travması yok">Hayır</button>
-      </div>
-
-      <div class="subhead">Madde kullanımı</div>
-      <div class="chips" id="maddeKullanimi">
-        <button class="chip">Alkol</button>
-        <button class="chip">İlaç</button>
-        <button class="chip">Madde şüphesi</button>
-      </div>
-    </div>
-
-    <!-- 04 Bilinen Hastalıklar -->
-    <div class="section" data-field="ozgecmis">
-      <div class="sec-label"><span class="num">05</span> Bilinen Hastalıklar</div>
-      <div class="chips">
-        <button class="chip neg" data-clears="true">ek hastalığı yok</button>
-        <button class="chip">HT</button>
-        <button class="chip">DM</button>
-        <button class="chip" data-full="Hiperlipidemi">HL</button>
-        <button class="chip">KAH</button>
-        <button class="chip">Geçirilmiş MI</button>
-        <button class="chip" id="chipStent">Stent</button>
-        <button class="chip" id="chipBypass">Bypass</button>
-        <button class="chip">KKY</button>
-        <button class="chip" data-full="Atriyal fibrilasyon">AF</button>
-        <button class="chip">KOAH</button>
-        <button class="chip">Astım</button>
-        <button class="chip">KBY</button>
-        <button class="chip" id="chipDiyaliz">Diyaliz alıyor</button>
-        <button class="chip" id="chipSvo">SVO öyküsü</button>
-        <button class="chip" id="chipPedvt">Geçirilmiş PE/DVT</button>
-        <button class="chip">Malignite</button>
-        <button class="chip">Tiroid hastalığı</button>
-        <button class="chip">Epilepsi</button>
-        <button class="chip">Demans</button>
-        <button class="chip">Parkinson</button>
-        <button class="chip" id="chipPsik">Psikiyatrik hastalık</button>
-        <button class="chip">Romatolojik hastalık</button>
-        <button class="chip">KC hastalığı/siroz</button>
-        <button class="chip">Peptik ülser</button>
-        <button class="chip">Anemi</button>
-        <button class="chip">Geçirilmiş operasyon</button>
-        <button class="chip" id="chipGebelik">Gebelik</button>
-      </div>
-      <div class="mini-row" id="stentBox" style="display:none">
-        Stent sayısı: <input class="txt" id="f_stent_sayi" type="number" min="1" step="1" placeholder="adet">
-      </div>
-      <div class="mini-row" id="diyalizBox" style="display:none">
-        Haftalık diyaliz: <select class="txt" id="f_diyaliz_gun" style="width:auto;min-width:50px;">
-          <option value="">—</option>
-          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-          <option value="7">7</option>
-        </select> / 7
-      </div>
-      <div class="mini-row" id="bypassYearBox" style="display:none">
-        Kaç yıl önce?: <input class="txt" id="f_bypass_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
-      </div>
-      <div class="mini-row" id="svoYearBox" style="display:none">
-        Kaç yıl önce?: <input class="txt" id="f_svo_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
-      </div>
-      <div class="mini-row" id="pedvtYearBox" style="display:none">
-        Kaç yıl önce?: <input class="txt" id="f_pedvt_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
-      </div>
-      <div class="mini-row" id="gebelikBox" style="display:none">
-        Kaç hafta?: <select class="txt" id="f_gebelik_hafta" style="width:auto;min-width:60px;">
-          <option value="">—</option>
-          <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
-          <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
-          <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
-          <option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option>
-          <option value="41">41</option><option value="42">42</option>
-        </select>
-      </div>
-      <div class="chips" id="psikSub" style="display:none;margin-top:7px;">
-        <button class="chip">Depresyon</button>
-        <button class="chip">Bipolar bozukluk</button>
-        <button class="chip">Şizofreni</button>
-        <button class="chip">Anksiyete bozukluğu</button>
-        <button class="chip">Diğer</button>
-      </div>
-      <input class="extra" data-extra placeholder="Diğer / ek bilgi">
-    </div>
-
-    <!-- 05 Alerji -->
-    <div class="section" data-field="alerji">
-      <div class="sec-label"><span class="num">06</span> Alerji</div>
-      <div class="chips">
-        <button class="chip neg" data-clears="true">bilinen alerjisi yok</button>
-        <button class="chip">Penisilin</button>
-        <button class="chip">Aspirin/NSAİİ</button>
-        <button class="chip">Kontrast madde</button>
-        <button class="chip">Sülfonamid</button>
-        <button class="chip">Sefalosporin</button>
-      </div>
-      <input class="extra" data-extra placeholder="Alerji (ilaç/gıda)">
-    </div>
-
-    <!-- 05b Kullanılan İlaçlar -->
-    <div class="section" data-field="ilaclar">
-      <div class="sec-label"><span class="num">06b</span> 💊 Kullanılan İlaçlar</div>
-
-      <div class="exam-sys" id="ilacGrup_diyabet">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Diyabet İlaçları</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Glucophage</button>
-          <button class="chip">Januvia</button>
-          <button class="chip">Galvus</button>
-          <button class="chip">Trajenta</button>
-          <button class="chip">Forxiga</button>
-          <button class="chip">Jardiance</button>
-          <button class="chip">Invokana</button>
-          <button class="chip">Actos</button>
-          <button class="chip">Lantus</button>
-          <button class="chip">Levemir</button>
-          <button class="chip">Toujeo</button>
-          <button class="chip">Tresiba</button>
-          <button class="chip">NovoRapid</button>
-          <button class="chip">Humalog</button>
-          <button class="chip">Apidra</button>
-        </div></div>
-      </div>
-
-      <div class="exam-sys" id="ilacGrup_lipid">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Lipid Düşürücüler</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Crestor</button>
-          <button class="chip">Lipitor</button>
-          <button class="chip">Lescol</button>
-          <button class="chip">Ezetrol</button>
-          <button class="chip">Vytorin</button>
-        </div></div>
-      </div>
-
-      <div class="exam-sys" id="ilacGrup_hta">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Antihipertansifler</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Norvasc</button>
-          <button class="chip">Coversyl</button>
-          <button class="chip">Delix</button>
-          <button class="chip">Co-Diovan</button>
-          <button class="chip">Exforge</button>
-          <button class="chip">Atacand</button>
-          <button class="chip">Micardis</button>
-          <button class="chip">Concor</button>
-          <button class="chip">Beloc</button>
-          <button class="chip">Tenormin</button>
-          <button class="chip">Lopresor</button>
-          <button class="chip">Diovan</button>
-          <button class="chip">Teveten</button>
-          <button class="chip">Aprovel</button>
-        </div></div>
-      </div>
-
-      <div class="exam-sys" id="ilacGrup_antiplat">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Antiplatelet / Antikoagülanlar</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Plavix</button>
-          <button class="chip">Ecopirin</button>
-          <button class="chip">Coraspin</button>
-          <button class="chip">Xarelto</button>
-          <button class="chip">Eliquis</button>
-          <button class="chip">Pradaxa</button>
-          <button class="chip">Coumadin</button>
-        </div></div>
-      </div>
-
-      <div class="exam-sys" id="ilacGrup_tiroid">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Tiroid İlaçları</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Euthyrox</button>
-          <button class="chip">Thyrax</button>
-        </div></div>
-      </div>
-
-      <div class="exam-sys" id="ilacGrup_astim">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Astım / KOAH</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Symbicort</button>
-          <button class="chip">Seretide</button>
-          <button class="chip">Pulmicort</button>
-          <button class="chip">Spiriva</button>
-          <button class="chip">Breo Ellipta</button>
-          <button class="chip">Relvar Ellipta</button>
-          <button class="chip">Singulair</button>
-          <button class="chip">Ventolin</button>
-        </div></div>
-      </div>
-
-      <div class="exam-sys" id="ilacGrup_noro">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Nörolojik / Epilepsi</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Lyrica</button>
-          <button class="chip">Neurontin</button>
-          <button class="chip">Tegretol</button>
-          <button class="chip">Depakin</button>
-          <button class="chip">Keppra</button>
-          <button class="chip">Lamictal</button>
-          <button class="chip">Topamax</button>
-        </div></div>
-      </div>
-
-      <div class="exam-sys" id="ilacGrup_psik">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Psikiyatrik İlaçlar</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Zoloft</button>
-          <button class="chip">Lustral</button>
-          <button class="chip">Cipralex</button>
-          <button class="chip">Prozac</button>
-          <button class="chip">Paxil</button>
-          <button class="chip">Efexor</button>
-          <button class="chip">Cymbalta</button>
-          <button class="chip">Remeron</button>
-          <button class="chip">Wellbutrin</button>
-          <button class="chip">Seroxat</button>
-          <button class="chip">Abilify</button>
-          <button class="chip">Risperdal</button>
-          <button class="chip">Seroquel</button>
-          <button class="chip">Zyprexa</button>
-          <button class="chip">Solian</button>
-        </div></div>
-      </div>
-
-      <div class="exam-sys" id="ilacGrup_dehb">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">DEHB</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Concerta</button>
-          <button class="chip">Ritalin</button>
-          <button class="chip">Strattera</button>
-          <button class="chip">Medikinet</button>
-        </div></div>
-      </div>
-
-      <div class="exam-sys" id="ilacGrup_uro">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Üroloji (BPH)</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Avodart</button>
-          <button class="chip">Proscar</button>
-          <button class="chip">Omnic</button>
-          <button class="chip">Duodart</button>
-        </div></div>
-      </div>
-
-      <div class="exam-sys" id="ilacGrup_osteo">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Osteoporoz</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Fosamax</button>
-          <button class="chip">Actonel</button>
-          <button class="chip">Bonviva</button>
-        </div></div>
-      </div>
-
-      <div class="exam-sys" id="ilacGrup_romato">
-        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Romatoloji / İmmünosupresanlar</span><span class="badge zero">0</span></button>
-        <div class="exam-body"><div class="chips">
-          <button class="chip">Methotrexate</button>
-          <button class="chip">Sulfasalazine</button>
-          <button class="chip">Plaquenil</button>
-          <button class="chip">Enbrel</button>
-          <button class="chip">Humira</button>
-          <button class="chip">Remicade</button>
-        </div></div>
-      </div>
-
-    </div>
-
     <!-- 06 Vital Bulgular + EKG -->
     <div class="section" data-field="vital">
       <div class="sec-label"><span class="num">07</span> Vital Bulgular</div>
@@ -1703,6 +1410,299 @@
       </div>
     </div>
 
+    <!-- 03 Hikaye -->
+    <div class="section" data-field="hikaye">
+      <div class="sec-label"><span class="num">04</span> Hikaye / Anamnez</div>
+      <textarea class="extra" data-extra placeholder="Kısa öykü (opsiyonel)"></textarea>
+
+      <div class="subhead" id="injuryInfoSubhead">Yaralanma bilgileri</div>
+      <div class="grid g3">
+        <div class="field"><label>Yaralanma tarihi</label><input class="txt" id="f_yaralanma_tarih" type="date"></div>
+        <div class="field"><label>Yaralanma saati</label><input class="txt" id="f_yaralanma_saat" type="time"></div>
+        <div class="field"><label>Son yemek zamanı</label><input class="txt" id="f_son_yemek" placeholder="ör. 2 saat önce"></div>
+      </div>
+      <div class="grid g2" style="margin-top:9px;">
+        <div class="field"><label>Yaralanma yeri</label><input class="txt" id="f_yaralanma_yeri" placeholder="ör. Ev/İş/Yol/Diğer"></div>
+        <div class="field"><label>Aktivite (olay anında ne yapıyordu)</label><input class="txt" id="f_aktivite" placeholder="ör. merdivenden iniyordu"></div>
+      </div>
+
+      <div class="subhead">LOC (bilinç kaybı) süresi</div>
+      <div class="chips" data-single="true" id="locSure">
+        <button class="chip">Bilinç kaybı yok</button>
+        <button class="chip" data-full="LOC &lt;5dk">&lt;5dk</button>
+        <button class="chip" data-full="LOC 5-30dk">5-30dk</button>
+        <button class="chip" data-full="LOC &gt;30dk">&gt;30dk</button>
+      </div>
+
+      <div class="subhead">Kafa/Boyun travması var mı</div>
+      <div class="chips" data-single="true" id="kafaBoyunTravma">
+        <button class="chip" data-full="Kafa travması mevcut">Evet</button>
+        <button class="chip" data-full="Kafa travması yok">Hayır</button>
+      </div>
+
+      <div class="subhead">Madde kullanımı</div>
+      <div class="chips" id="maddeKullanimi">
+        <button class="chip">Alkol</button>
+        <button class="chip">İlaç</button>
+        <button class="chip">Madde şüphesi</button>
+      </div>
+    </div>
+
+    <!-- 04 Bilinen Hastalıklar -->
+    <div class="section" data-field="ozgecmis">
+      <div class="sec-label"><span class="num">05</span> Bilinen Hastalıklar</div>
+      <div class="chips">
+        <button class="chip neg" data-clears="true">ek hastalığı yok</button>
+        <button class="chip">HT</button>
+        <button class="chip">DM</button>
+        <button class="chip" data-full="Hiperlipidemi">HL</button>
+        <button class="chip">KAH</button>
+        <button class="chip">Geçirilmiş MI</button>
+        <button class="chip" id="chipStent">Stent</button>
+        <button class="chip" id="chipBypass">Bypass</button>
+        <button class="chip">KKY</button>
+        <button class="chip" data-full="Atriyal fibrilasyon">AF</button>
+        <button class="chip">KOAH</button>
+        <button class="chip">Astım</button>
+        <button class="chip">KBY</button>
+        <button class="chip" id="chipDiyaliz">Diyaliz alıyor</button>
+        <button class="chip" id="chipSvo">SVO öyküsü</button>
+        <button class="chip" id="chipPedvt">Geçirilmiş PE/DVT</button>
+        <button class="chip">Malignite</button>
+        <button class="chip">Tiroid hastalığı</button>
+        <button class="chip">Epilepsi</button>
+        <button class="chip">Demans</button>
+        <button class="chip">Parkinson</button>
+        <button class="chip" id="chipPsik">Psikiyatrik hastalık</button>
+        <button class="chip">Romatolojik hastalık</button>
+        <button class="chip">KC hastalığı/siroz</button>
+        <button class="chip">Peptik ülser</button>
+        <button class="chip">Anemi</button>
+        <button class="chip">Geçirilmiş operasyon</button>
+        <button class="chip" id="chipGebelik">Gebelik</button>
+      </div>
+      <div class="mini-row" id="stentBox" style="display:none">
+        Stent sayısı: <input class="txt" id="f_stent_sayi" type="number" min="1" step="1" placeholder="adet">
+      </div>
+      <div class="mini-row" id="diyalizBox" style="display:none">
+        Haftalık diyaliz: <select class="txt" id="f_diyaliz_gun" style="width:auto;min-width:50px;">
+          <option value="">—</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option>
+        </select> / 7
+      </div>
+      <div class="mini-row" id="bypassYearBox" style="display:none">
+        Kaç yıl önce?: <input class="txt" id="f_bypass_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
+      </div>
+      <div class="mini-row" id="svoYearBox" style="display:none">
+        Kaç yıl önce?: <input class="txt" id="f_svo_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
+      </div>
+      <div class="mini-row" id="pedvtYearBox" style="display:none">
+        Kaç yıl önce?: <input class="txt" id="f_pedvt_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
+      </div>
+      <div class="mini-row" id="gebelikBox" style="display:none">
+        Kaç hafta?: <select class="txt" id="f_gebelik_hafta" style="width:auto;min-width:60px;">
+          <option value="">—</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+          <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+          <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
+          <option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option>
+          <option value="41">41</option><option value="42">42</option>
+        </select>
+      </div>
+      <div class="chips" id="psikSub" style="display:none;margin-top:7px;">
+        <button class="chip">Depresyon</button>
+        <button class="chip">Bipolar bozukluk</button>
+        <button class="chip">Şizofreni</button>
+        <button class="chip">Anksiyete bozukluğu</button>
+        <button class="chip">Diğer</button>
+      </div>
+      <input class="extra" data-extra placeholder="Diğer / ek bilgi">
+    </div>
+
+    <!-- 05 Alerji -->
+    <div class="section" data-field="alerji">
+      <div class="sec-label"><span class="num">06</span> Alerji</div>
+      <div class="chips">
+        <button class="chip neg" data-clears="true">bilinen alerjisi yok</button>
+        <button class="chip">Penisilin</button>
+        <button class="chip">Aspirin/NSAİİ</button>
+        <button class="chip">Kontrast madde</button>
+        <button class="chip">Sülfonamid</button>
+        <button class="chip">Sefalosporin</button>
+      </div>
+      <input class="extra" data-extra placeholder="Alerji (ilaç/gıda)">
+    </div>
+
+    <!-- 05b Kullanılan İlaçlar -->
+    <div class="section" data-field="ilaclar">
+      <div class="sec-label"><span class="num">06b</span> 💊 Kullanılan İlaçlar</div>
+
+      <div class="exam-sys" id="ilacGrup_diyabet">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Diyabet İlaçları</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Glucophage</button>
+          <button class="chip">Januvia</button>
+          <button class="chip">Galvus</button>
+          <button class="chip">Trajenta</button>
+          <button class="chip">Forxiga</button>
+          <button class="chip">Jardiance</button>
+          <button class="chip">Invokana</button>
+          <button class="chip">Actos</button>
+          <button class="chip">Lantus</button>
+          <button class="chip">Levemir</button>
+          <button class="chip">Toujeo</button>
+          <button class="chip">Tresiba</button>
+          <button class="chip">NovoRapid</button>
+          <button class="chip">Humalog</button>
+          <button class="chip">Apidra</button>
+        </div></div>
+      </div>
+
+      <div class="exam-sys" id="ilacGrup_lipid">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Lipid Düşürücüler</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Crestor</button>
+          <button class="chip">Lipitor</button>
+          <button class="chip">Lescol</button>
+          <button class="chip">Ezetrol</button>
+          <button class="chip">Vytorin</button>
+        </div></div>
+      </div>
+
+      <div class="exam-sys" id="ilacGrup_hta">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Antihipertansifler</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Norvasc</button>
+          <button class="chip">Coversyl</button>
+          <button class="chip">Delix</button>
+          <button class="chip">Co-Diovan</button>
+          <button class="chip">Exforge</button>
+          <button class="chip">Atacand</button>
+          <button class="chip">Micardis</button>
+          <button class="chip">Concor</button>
+          <button class="chip">Beloc</button>
+          <button class="chip">Tenormin</button>
+          <button class="chip">Lopresor</button>
+          <button class="chip">Diovan</button>
+          <button class="chip">Teveten</button>
+          <button class="chip">Aprovel</button>
+        </div></div>
+      </div>
+
+      <div class="exam-sys" id="ilacGrup_antiplat">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Antiplatelet / Antikoagülanlar</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Plavix</button>
+          <button class="chip">Ecopirin</button>
+          <button class="chip">Coraspin</button>
+          <button class="chip">Xarelto</button>
+          <button class="chip">Eliquis</button>
+          <button class="chip">Pradaxa</button>
+          <button class="chip">Coumadin</button>
+        </div></div>
+      </div>
+
+      <div class="exam-sys" id="ilacGrup_tiroid">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Tiroid İlaçları</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Euthyrox</button>
+          <button class="chip">Thyrax</button>
+        </div></div>
+      </div>
+
+      <div class="exam-sys" id="ilacGrup_astim">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Astım / KOAH</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Symbicort</button>
+          <button class="chip">Seretide</button>
+          <button class="chip">Pulmicort</button>
+          <button class="chip">Spiriva</button>
+          <button class="chip">Breo Ellipta</button>
+          <button class="chip">Relvar Ellipta</button>
+          <button class="chip">Singulair</button>
+          <button class="chip">Ventolin</button>
+        </div></div>
+      </div>
+
+      <div class="exam-sys" id="ilacGrup_noro">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Nörolojik / Epilepsi</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Lyrica</button>
+          <button class="chip">Neurontin</button>
+          <button class="chip">Tegretol</button>
+          <button class="chip">Depakin</button>
+          <button class="chip">Keppra</button>
+          <button class="chip">Lamictal</button>
+          <button class="chip">Topamax</button>
+        </div></div>
+      </div>
+
+      <div class="exam-sys" id="ilacGrup_psik">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Psikiyatrik İlaçlar</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Zoloft</button>
+          <button class="chip">Lustral</button>
+          <button class="chip">Cipralex</button>
+          <button class="chip">Prozac</button>
+          <button class="chip">Paxil</button>
+          <button class="chip">Efexor</button>
+          <button class="chip">Cymbalta</button>
+          <button class="chip">Remeron</button>
+          <button class="chip">Wellbutrin</button>
+          <button class="chip">Seroxat</button>
+          <button class="chip">Abilify</button>
+          <button class="chip">Risperdal</button>
+          <button class="chip">Seroquel</button>
+          <button class="chip">Zyprexa</button>
+          <button class="chip">Solian</button>
+        </div></div>
+      </div>
+
+      <div class="exam-sys" id="ilacGrup_dehb">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">DEHB</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Concerta</button>
+          <button class="chip">Ritalin</button>
+          <button class="chip">Strattera</button>
+          <button class="chip">Medikinet</button>
+        </div></div>
+      </div>
+
+      <div class="exam-sys" id="ilacGrup_uro">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Üroloji (BPH)</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Avodart</button>
+          <button class="chip">Proscar</button>
+          <button class="chip">Omnic</button>
+          <button class="chip">Duodart</button>
+        </div></div>
+      </div>
+
+      <div class="exam-sys" id="ilacGrup_osteo">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Osteoporoz</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Fosamax</button>
+          <button class="chip">Actonel</button>
+          <button class="chip">Bonviva</button>
+        </div></div>
+      </div>
+
+      <div class="exam-sys" id="ilacGrup_romato">
+        <button type="button" class="exam-head"><span class="tog">+</span><span class="nm">Romatoloji / İmmünosupresanlar</span><span class="badge zero">0</span></button>
+        <div class="exam-body"><div class="chips">
+          <button class="chip">Methotrexate</button>
+          <button class="chip">Sulfasalazine</button>
+          <button class="chip">Plaquenil</button>
+          <button class="chip">Enbrel</button>
+          <button class="chip">Humira</button>
+          <button class="chip">Remicade</button>
+        </div></div>
+      </div>
+
+    </div>
+
     <!-- FAST muayenesi -->
     <div class="section" data-field="fast">
       <div class="sec-label"><span class="num">08</span> FAST Muayenesi</div>
@@ -2018,9 +2018,9 @@
   let currentMode=null;
 
   const sectionFieldsByMode={
-    dahili:['hasta','gks','sikayet','hikaye','ozgecmis','alerji','ilaclar','vital','muayene','tedavi','karar','oneri'],
+    dahili:['hasta','gks','sikayet','vital','hikaye','ozgecmis','alerji','ilaclar','muayene','tedavi','karar','oneri'],
     adli:['adli'],
-    travma:['hasta','gks','primary','sikayet','hikaye','vital','fast','muayene','degerlendirme','tedavi','karar','oneri'],
+    travma:['hasta','gks','primary','sikayet','vital','hikaye','fast','muayene','degerlendirme','tedavi','karar','oneri'],
   };
   const modeLabels={dahili:'Acil Dahili Hasta',adli:'Adli Muayene',travma:'Travma'};
 
@@ -3687,13 +3687,13 @@
       ['Primary Survey (ABCDE)', primarySurveyText()],
       ['Başvuru Şikayeti', sikayetRow],
       ['Şikayet Detayı', detail()],
+      ['Vital Bulgular', vitals()],
+      ['EKG', ekgText()],
       ['Hikaye', sec('hikaye')],
       ['Yaralanma Bilgileri', injuryInfoText()],
       ['Özgeçmiş', ozgecmisText()],
       ['Alerji', sec('alerji')],
       ['Düzenli Kullanılan İlaçlar', ilaclarText()],
-      ['Vital Bulgular', vitals()],
-      ['EKG', ekgText()],
       ['FAST', fastText()],
       ['Fizik Muayene', examText()],
       ['Değerlendirme Bulguları', degerlendirmeText()],
