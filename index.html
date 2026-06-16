@@ -3913,6 +3913,40 @@
       if(score===2)return 'Orta risk - hastane yatışı düşünülmeli';
       return 'Yüksek risk - hastane yatışı (skor 4-5: YBÜ değerlendir)';
     }},
+    {id:'psi',name:'PSI / PORT (Pnömoni)',fields:[
+      {key:'age',label:'Yaş (yıl) — erkekte yaş, kadında yaş−10 puan',type:'number',placeholder:'65'},
+      {key:'sex',label:'Cinsiyet',type:'select',options:[{label:'Erkek',value:'M'},{label:'Kadın',value:'F'}]},
+      {key:'nursing',label:'Bakımevi sakini (+10)',type:'check'},
+      {key:'neoplasm',label:'Neoplastik hastalık (+30)',type:'check'},
+      {key:'liver',label:'Karaciğer hastalığı (+20)',type:'check'},
+      {key:'chf',label:'Konjestif kalp yetmezliği (+10)',type:'check'},
+      {key:'cva',label:'Serebrovasküler hastalık (+10)',type:'check'},
+      {key:'renal',label:'Böbrek hastalığı (+10)',type:'check'},
+      {key:'ams',label:'Mental durum değişikliği (+20)',type:'check'},
+      {key:'rr',label:'Solunum sayısı ≥30/dk (+20)',type:'check'},
+      {key:'sbp',label:'Sistolik KB <90 mmHg (+20)',type:'check'},
+      {key:'temp',label:'Ateş <35°C veya ≥40°C (+15)',type:'check'},
+      {key:'pulse',label:'Nabız ≥125/dk (+10)',type:'check'},
+      {key:'ph',label:'Arteriyel pH <7,35 (+30)',type:'check'},
+      {key:'bun',label:'BUN ≥30 mg/dL / üre ≥11 mmol/L (+20)',type:'check'},
+      {key:'na',label:'Sodyum <130 mmol/L (+20)',type:'check'},
+      {key:'glucose',label:'Glukoz ≥250 mg/dL / ≥14 mmol/L (+10)',type:'check'},
+      {key:'hct',label:'Hematokrit < %30 (+10)',type:'check'},
+      {key:'o2',label:'PaO₂ <60 mmHg veya SpO₂ < %90 (+10)',type:'check'},
+      {key:'effusion',label:'Plevral efüzyon (radyografi) (+10)',type:'check'},
+    ],compute:(v)=>{
+      let s=0;
+      const age=parseInt(v.age);
+      if(!isNaN(age))s+=(v.sex==='F'?age-10:age);
+      const pts={nursing:10,neoplasm:30,liver:20,chf:10,cva:10,renal:10,ams:20,rr:20,sbp:20,temp:15,pulse:10,ph:30,bun:20,na:20,glucose:10,hct:10,o2:10,effusion:10};
+      for(const k in pts)if(v[k])s+=pts[k];
+      return s;
+    },interpret:(score)=>{
+      if(score<=70)return 'Sınıf I-II (düşük risk, 30 gün mortalite ~%0,1-0,7) — genellikle ayaktan tedavi';
+      if(score<=90)return 'Sınıf III (mortalite ~%0,9-2,8) — kısa gözlem / dikkatli ayaktan tedavi';
+      if(score<=130)return 'Sınıf IV (mortalite ~%8-9,3) — hastane yatışı önerilir';
+      return 'Sınıf V (mortalite ~%27-31) — hastane yatışı (YBÜ değerlendir)';
+    }},
     {id:'qsofa',name:'qSOFA',fields:[
       {key:'rr',label:'Solunum sayısı ≥22/dk',type:'check',points:1},
       {key:'mental',label:'Bilinç değişikliği (GKS <15)',type:'check',points:1},
@@ -3985,6 +4019,74 @@
       const dichot=score<2?'DVT olası değil — D-dimer ile ekarte edilebilir':'DVT olası — kompresyon USG önerilir';
       return `${tier}. ${dichot} (basitleştirilmiş eşik: 2)`;
     }},
+    {id:'nexus',name:'NEXUS (Servikal)',decision:true,fields:[
+      {key:'tender',label:'Orta hat servikal vertebral hassasiyet',type:'check',points:1},
+      {key:'deficit',label:'Fokal nörolojik defisit',type:'check',points:1},
+      {key:'alert',label:'Bilinç / uyanıklık düzeyinde değişiklik',type:'check',points:1},
+      {key:'intox',label:'İntoksikasyon bulgusu',type:'check',points:1},
+      {key:'distract',label:'Dikkat dağıtan (distracting) ağrılı yaralanma',type:'check',points:1},
+    ],interpret:(score)=>{
+      if(score===0)return 'Tüm 5 düşük-risk kriter karşılandı (pozitif bulgu yok) — servikal görüntülemeye gerek yok (duyarlılık ~%99)';
+      return `${score} pozitif bulgu — servikal omurga görüntülemesi (BT) endike`;
+    }},
+    {id:'ccr',name:'Canadian C-Spine (alert/stabil)',decision:true,compute:()=>0,fields:[
+      {key:'hrAge',label:'YÜKSEK RİSK: Yaş ≥ 65',type:'check'},
+      {key:'hrMech',label:'YÜKSEK RİSK: Tehlikeli mekanizma (>1m / 5 basamak düşme, aksiyel yük, hızlı MVC / takla / fırlama, motorlu eğlence aracı, bisiklet çarpması)',type:'check'},
+      {key:'hrParesth',label:'YÜKSEK RİSK: Ekstremitelerde parestezi',type:'check'},
+      {key:'lrRearend',label:'DÜŞÜK RİSK: Basit arkadan çarpma',type:'check'},
+      {key:'lrSitting',label:'DÜŞÜK RİSK: Acilde oturur pozisyonda',type:'check'},
+      {key:'lrAmbul',label:'DÜŞÜK RİSK: Herhangi bir zaman ayakta durmuş / yürümüş',type:'check'},
+      {key:'lrDelayed',label:'DÜŞÜK RİSK: Gecikmiş boyun ağrısı başlangıcı',type:'check'},
+      {key:'lrNoTender',label:'DÜŞÜK RİSK: Orta hat servikal hassasiyet YOK',type:'check'},
+      {key:'rom',label:'Boynunu aktif olarak 45° sağa VE sola çevirebiliyor',type:'check'},
+    ],interpret:(s,v)=>{
+      const high=v.hrAge||v.hrMech||v.hrParesth;
+      const low=v.lrRearend||v.lrSitting||v.lrAmbul||v.lrDelayed||v.lrNoTender;
+      if(high)return 'Yüksek riskli faktör mevcut → servikal radyografi endike';
+      if(!low)return 'Güvenli hareket açıklığı değerlendirmesine izin veren düşük-risk faktörü yok → radyografi endike';
+      if(v.rom)return 'Düşük-risk var + boyun 45° sağ-sol dönüyor → görüntülemeye gerek yok';
+      return 'Boyun 45° çevrilemiyor → radyografi endike';
+    }},
+    {id:'pecarn2',name:'PECARN Kafa (<2 yaş)',decision:true,compute:()=>0,fields:[
+      {key:'gcs',label:'GKS ≤14 veya mental durum değişikliği (ajitasyon, somnolans, tekrarlayan soru, yavaş yanıt)',type:'check'},
+      {key:'fracture',label:'Palpabl kafatası kırığı',type:'check'},
+      {key:'hematoma',label:'Oksipital / paryetal / temporal saçlı deri hematomu',type:'check'},
+      {key:'loc',label:'Bilinç kaybı ≥ 5 saniye',type:'check'},
+      {key:'mech',label:'Ağır mekanizma (MVC fırlama/ölüm/takla, kasksız yaya-bisikletliye araç çarpması, >0,9 m düşme, yüksek-etkili nesne)',type:'check'},
+      {key:'parent',label:'Ebeveyne göre normal davranmıyor',type:'check'},
+    ],interpret:(s,v)=>{
+      if(v.gcs||v.fracture)return 'BT önerilir (ciTBI riski ~%4,4)';
+      if(v.hematoma||v.loc||v.mech||v.parent)return 'Gözlem vs BT — klinik deneyim, izole/çoklu bulgu, kötüleşme, yaş <3 ay, ebeveyn tercihine göre';
+      return 'BT önerilmez (ciTBI riski <%0,02)';
+    }},
+    {id:'pecarnOlder',name:'PECARN Kafa (≥2 yaş)',decision:true,compute:()=>0,fields:[
+      {key:'gcs',label:'GKS ≤14 veya mental durum değişikliği',type:'check'},
+      {key:'basilar',label:'Bazal kafatası kırığı bulgusu (rakun gözü, Battle bulgusu, hemotimpanum, BOS otore/rinore)',type:'check'},
+      {key:'loc',label:'Bilinç kaybı öyküsü',type:'check'},
+      {key:'vomit',label:'Kusma',type:'check'},
+      {key:'mech',label:'Ağır mekanizma (MVC fırlama/ölüm/takla, kasksız yaya-bisikletliye araç çarpması, >1,5 m düşme, yüksek-etkili nesne)',type:'check'},
+      {key:'headache',label:'Şiddetli baş ağrısı',type:'check'},
+    ],interpret:(s,v)=>{
+      if(v.gcs||v.basilar)return 'BT önerilir (ciTBI riski ~%4,3)';
+      if(v.loc||v.vomit||v.mech||v.headache)return 'Gözlem vs BT — klinik deneyim, izole/çoklu bulgu, kötüleşme, ebeveyn tercihine göre';
+      return 'BT önerilmez (ciTBI riski <%0,05)';
+    }},
+    {id:'centor',name:'Centor / McIsaac (Boğaz)',fields:[
+      {key:'exudate',label:'Tonsiller eksuda / şişlik',type:'check',points:1},
+      {key:'nodes',label:'Hassas ön servikal lenfadenopati',type:'check',points:1},
+      {key:'fever',label:'Ateş > 38°C (öyküde)',type:'check',points:1},
+      {key:'cough',label:'Öksürük YOK',type:'check',points:1},
+      {key:'age',label:'Yaş grubu',type:'select',options:[
+        {label:'15-44 yaş (0)',value:0},
+        {label:'3-14 yaş (+1)',value:1},
+        {label:'≥45 yaş (-1)',value:-1}]},
+    ],interpret:(score)=>{
+      if(score<=0)return 'A grubu strep olasılığı ~%1-2,5 — test/antibiyotik gereksiz';
+      if(score===1)return 'Olasılık ~%5-10 — test/antibiyotik genellikle gereksiz';
+      if(score===2)return 'Olasılık ~%11-17 — RADT / boğaz kültürü, pozitifse tedavi';
+      if(score===3)return 'Olasılık ~%28-35 — RADT / boğaz kültürü, pozitifse tedavi';
+      return 'Olasılık ~%51-53 — RADT / kültür veya ampirik tedavi düşün';
+    }},
   ];
 
   function defaultScoreCompute(def,v){
@@ -4032,7 +4134,7 @@
           else v[f.key]=el.value;
         });
         const score=def.compute?def.compute(v):defaultScoreCompute(def,v);
-        result.textContent=`Skor: ${score} — ${def.interpret(score,v)}`;
+        result.textContent=def.decision?def.interpret(score,v):`Skor: ${score} — ${def.interpret(score,v)}`;
       }
       body.querySelectorAll('[data-key]').forEach(el=>{
         el.addEventListener('input',recalc);
