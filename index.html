@@ -1202,6 +1202,7 @@
       mekanizmaPlaceholder.parentNode.insertBefore(mekanizmaSection, mekanizmaPlaceholder);
       mekanizmaSection.classList.remove('nested');
       adliMekanizmaSubhead.style.display='none';
+      mekanizmaSection.style.display=visible.includes('mekanizma')?'':'none';
     }
     // "Yaralanma bilgileri" bloğu sadece Travma ve Adli Muayene modlarında görünsün
     if(injuryInfoSubhead){
