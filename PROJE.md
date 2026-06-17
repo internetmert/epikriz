@@ -20,6 +20,7 @@
 - Bölümler (dahili sırası): Hasta, GKS, Başvuru Şikayeti, Vital Bulgular (+EKG), Hikaye, Özgeçmiş, Alerji, Düzenli İlaçlar, Fizik Muayene, Uygulanan Tedavi, Karar, Öneriler. *(Vital, başvuru şikayetinin hemen ardında.)*
 - **Dinamik detay panelleri:** bir şikayet seçilince (ör. göğüs ağrısı) altında ona özel sorular açılıyor (süre, nitelik, efor ilişkisi vb.). Veri yapısı `followups` objesinde; yeni şikayet eklemek kolay.
 - **Şikayet kategorileri katlanabilir:** her sistem (Kardiyak, Solunum, Nörolojik…) varsayılan KAPALI; başlığa basınca o sistemin şikayetleri açılır. Başlıkta aktif seçim sayısı rozeti — kapalıyken bile görünür. Runtime'da `makeComplaintsCollapsible()` gruplandırır.
+- **Alt seçenekler tek-pencere mini popover'da:** alt seçimi olan bir kutucuk (fizik muayene lokalizasyonları, nöbet/alkol/madde) seçilince chip'in hemen altında yüzen bir mini pencere açılır — chip akışını itmez, üstüne biner. Dışarı tıkla / başka kutucuğa geç → kapanır, seçim korunur; aynı anda yalnızca **tek** pencere açık olur; aktif kutucuğa yeniden tıkla → pencere tekrar açılır. Altyapı: `.subpop` CSS (win98 çerçeve + caret), `chipToPanel` registry, `openSubPop/closeSubPop/positionPop/repositionPop` + dışarı-tıkla handler; `updateExamExtras`/`updateSikayetExtras` yalnızca konumlandırır.
 - "Karar" seçimi otomatik tam cümle kuruyor (taburcu/yatış/sevk/konsültasyon).
 - Kopyala (HBYS'ye yapıştırmak için) ve Yazdır butonları var.
 - **3 mod:** Acil Dahili / Adli Muayene / Travma (her mod farklı bölümleri gösterir).
