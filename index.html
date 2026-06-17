@@ -76,6 +76,16 @@
     box-shadow:inset 1px 1px 0 var(--shadow),inset -1px -1px 0 var(--hl);}
   .mode-btn .icon{font-size:32px;line-height:1;}
   .mode-btn .desc{font-size:11px;font-weight:400;color:#333;}
+  .test-login-btn{margin-top:10px;border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);background:#c0c0c0;font:700 13px Arial;padding:6px 26px;cursor:pointer;}
+  .test-login-btn:active{border-color:var(--dark) var(--light) var(--light) var(--dark);}
+  .login-panel{width:280px;background:#c0c0c0;border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);box-shadow:inset 1px 1px 0 var(--hl);padding:18px 20px;text-align:left;}
+  .login-panel h2{font-size:15px;margin:0 0 10px;text-align:center;}
+  .login-panel label{display:block;font-size:12px;font-weight:700;margin:9px 0 3px;}
+  .login-panel input{width:100%;box-sizing:border-box;border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);padding:5px 7px;font-size:13px;}
+  .login-actions{display:flex;gap:8px;margin-top:14px;}
+  .login-actions button{flex:1;border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);background:#c0c0c0;font:700 13px Arial;padding:6px;cursor:pointer;}
+  .login-actions button:active{border-color:var(--dark) var(--light) var(--light) var(--dark);}
+  .login-err{color:#b00020;font-size:12px;margin-top:8px;min-height:15px;}
 
   .mode-switch-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;text-transform:none;}
   .mode-switch-row .mode-label{font-size:11px;font-weight:700;background:#c0c0c0;padding:3px 8px;
@@ -461,6 +471,7 @@
       <span class="desc">Tüm travma değerlendirme formu</span>
     </button>
   </div>
+  <button type="button" class="test-login-btn" onclick="showTestLogin()">test</button>
   <p>Daha sonra formun üstündeki "Mod değiştir" butonu ile seçimi değiştirebilirsiniz.</p>
   <div class="info-box">
     <p>Acil servis hekimlerinin hasta notlarını hızlı, standart ve düzenli biçimde oluşturup HBYS'ye aktarmasını sağlayan bir dokümantasyon aracıdır.</p>
@@ -478,6 +489,25 @@
     <button type="button" class="feedback-send" onclick="sendFeedback()">Gönder</button>
     <div class="feedback-status" id="feedbackStatus"></div>
   </div>
+</div>
+
+<div class="landing" id="testLogin" style="display:none;">
+  <div class="login-panel">
+    <h2>Giriş</h2>
+    <label for="loginUser">Kullanıcı adı</label>
+    <input type="text" id="loginUser" autocomplete="username">
+    <label for="loginPass">Şifre</label>
+    <input type="password" id="loginPass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doTestLogin()">
+    <div class="login-err" id="loginErr"></div>
+    <div class="login-actions">
+      <button type="button" onclick="backToLanding()">← Geri</button>
+      <button type="button" onclick="doTestLogin()">Giriş</button>
+    </div>
+  </div>
+</div>
+
+<div class="landing" id="testLanding" style="display:none;">
+  <button type="button" class="test-login-btn" onclick="backToLanding()">← Çıkış</button>
 </div>
 
 <div class="app-body" id="appBody" style="display:none;">
@@ -12469,6 +12499,31 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     document.getElementById('btnSenkron').style.display='none';
   };
   // ---- /Mod secimi ----
+
+  // ---- Test girişi: kullanıcı adı/şifre (istemci-tarafı veritabanı — prototip, gerçek güvenlik değil) ----
+  const TEST_USERS=(function(){try{return JSON.parse(localStorage.getItem('epikriz_users'))||null;}catch(e){return null;}})()||[{username:'test',password:'test'}];
+  window.showTestLogin=function(){
+    landing.style.display='none';
+    const u=document.getElementById('loginUser'),p=document.getElementById('loginPass'),e=document.getElementById('loginErr');
+    if(u)u.value=''; if(p)p.value=''; if(e)e.textContent='';
+    document.getElementById('testLogin').style.display='flex';
+    if(u)u.focus();
+  };
+  window.backToLanding=function(){
+    document.getElementById('testLogin').style.display='none';
+    document.getElementById('testLanding').style.display='none';
+    landing.style.display='flex';
+  };
+  window.doTestLogin=function(){
+    const u=document.getElementById('loginUser').value.trim();
+    const p=document.getElementById('loginPass').value;
+    if(TEST_USERS.some(x=>x.username===u&&x.password===p)){
+      document.getElementById('testLogin').style.display='none';
+      document.getElementById('testLanding').style.display='flex';
+    }else{
+      document.getElementById('loginErr').textContent='Hatalı kullanıcı adı veya şifre.';
+    }
+  };
 
   const followups={
     "göğüs ağrısı":[
