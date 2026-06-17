@@ -12610,7 +12610,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     let total=0;
     MORSE_ITEMS.forEach(it=>{const sel=document.querySelector(`input[name="morse_${it.key}"]:checked`); if(sel)total+=+sel.value;});
     let risk,cls,rec;
-    if(total<=24){risk='Risk yok';cls='ok';rec='Temel hemşirelik bakımı.';}
+    if(total<=24){risk='Risk yok';cls='ok';rec='';}
     else if(total<=50){risk='Düşük risk';cls='warn';rec='Standart düşme önleme girişimleri.';}
     else{risk='Yüksek risk';cls='high';rec='Yüksek riskli düşme önleme girişimleri.';}
     document.getElementById('morseResult').innerHTML=`<div class="morse-total">Toplam: <b>${total}</b> / 125</div><div class="morse-risk ${cls}">${risk}</div><div class="morse-rec">${rec}</div>`;
@@ -12643,7 +12643,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     let total=0; const sc={};
     MORSE_ITEMS.forEach(it=>{const s=document.querySelector(`input[name="morse_${it.key}"]:checked`);sc[it.key]=+s.value;total+=+s.value;});
     const risk=total<=24?'Risk yok':total<=50?'Düşük risk':'Yüksek risk';
-    const rec={kabul_no:kabul,dusme_oykusu:sc.history,ikincil_tani:sc.secondary,yurume_yardimcisi:sc.aid,iv_heparin:sc.iv,yuruyus:sc.gait,mental:sc.mental,total,risk};
+    let ekleyen='';
+    try{const s=JSON.parse(localStorage.getItem('epikriz_session')); if(s&&s.user&&s.user.email){const e=s.user.email; ekleyen=e.endsWith(AUTH_DOMAIN)?e.slice(0,-AUTH_DOMAIN.length):e;}}catch(e){}
+    const rec={kabul_no:kabul,dusme_oykusu:sc.history,ikincil_tani:sc.secondary,yurume_yardimcisi:sc.aid,iv_heparin:sc.iv,yuruyus:sc.gait,mental:sc.mental,total,risk,ekleyen};
     status.style.color='#333';status.textContent='Gönderiliyor…';
     try{
       const res=await fetch(`${SUPABASE_URL}/rest/v1/falls_records`,{method:'POST',headers:{...fallsAuthHeaders(),'Prefer':'return=minimal'},body:JSON.stringify(rec)});
@@ -12659,7 +12661,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(!res.ok){const d=await res.json().catch(()=>({}));status.style.color='#b00020';status.textContent='Alınamadı: '+(d.message||('HTTP '+res.status));return;}
       const recs=await res.json();
       if(!recs.length){status.style.color='#333';status.textContent='Henüz kayıt yok.';return;}
-      const cols=[['created_at','Tarih'],['kabul_no','Kabul No'],['dusme_oykusu','Düşme öyküsü'],['ikincil_tani','İkincil tanı'],['yurume_yardimcisi','Yürüme yardımcısı'],['iv_heparin','IV/Heparin'],['yuruyus','Yürüyüş'],['mental','Mental'],['total','Toplam'],['risk','Risk']];
+      const cols=[['created_at','Tarih'],['kabul_no','Kabul No'],['ekleyen','Ekleyen'],['dusme_oykusu','Düşme öyküsü'],['ikincil_tani','İkincil tanı'],['yurume_yardimcisi','Yürüme yardımcısı'],['iv_heparin','IV/Heparin'],['yuruyus','Yürüyüş'],['mental','Mental'],['total','Toplam'],['risk','Risk']];
       const esc=v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`;
       const lines=[cols.map(c=>esc(c[1])).join(';')];
       recs.forEach(r=>lines.push(cols.map(c=>esc(r[c[0]])).join(';')));
