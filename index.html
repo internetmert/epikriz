@@ -173,6 +173,7 @@
   .bm-line{fill:none;stroke:#b59a78;stroke-width:.9;}
   .bm-face{fill:none;stroke:#8a6d4a;stroke-width:.8;stroke-linecap:round;stroke-linejoin:round;}
   .bm-face-fill{fill:#8a6d4a;stroke:none;}
+  .bm-tongue{fill:#d98a8a;stroke:#8a6d4a;stroke-width:.7;}
   .bm-zone{fill:#d0021b;fill-opacity:.7;stroke:#fff;stroke-width:.4;cursor:pointer;transition:fill-opacity .08s;}
   .bm-zone:hover{fill:#1c5fbf;fill-opacity:1;}
   .bm-zone.sel{fill:#0a3a8c;fill-opacity:1;stroke-width:.6;}
@@ -13565,7 +13566,23 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     });
   }
 
-  // Anatomik bölge haritası: 149 bölge. p()=çift taraflı (Sağ/Sol), m()=orta hat.
+  // Açık (yelpaze) el geometrisi — çizim ve zone aynı noktaları kullanır.
+  function handFingers(wx){
+    const mir=wx<100?1:-1, X=dx=>wx+mir*dx, by=318;
+    const defs=[{n:2,bdx:7,ang:-7,len:64},{n:3,bdx:2,ang:-17,len:70},{n:4,bdx:-3,ang:-27,len:66},{n:5,bdx:-8,ang:-38,len:56}];
+    return defs.map(d=>{
+      const bx=X(d.bdx), a=mir*d.ang*Math.PI/180, tx=bx+Math.sin(a)*d.len, ty=by+Math.cos(a)*d.len;
+      const at=f=>({x:bx+(tx-bx)*f,y:by+(ty-by)*f});
+      return {n:d.n,bx,by,tx,ty,prox:at(0.20),pip:at(0.40),mid:at(0.56),dip:at(0.72),dist:at(0.89)};
+    });
+  }
+  function handThumb(wx){
+    const mir=wx<100?1:-1, X=dx=>wx+mir*dx, bx=X(-9), by=308, a=mir*-66*Math.PI/180, len=38;
+    const tx=bx+Math.sin(a)*len, ty=by+Math.cos(a)*len, at=f=>({x:bx+(tx-bx)*f,y:by+(ty-by)*f});
+    return {bx,by,tx,ty,prox:at(0.25),ip:at(0.55),dist:at(0.86)};
+  }
+
+  // Anatomik bölge haritası. p()=çift taraflı (Sağ/Sol), m()=orta hat.
   // Laterality: ÖN'de Sağ izleyenin solunda; ARKA'da Sağ izleyenin sağında.
   const BM_DATA=(function(){
     const out=[];
@@ -13576,28 +13593,29 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const m=(v,rap,dy,r,hint)=>out.push({v,rap,ad:rap+(hint?' ('+hint+')':''),x:100,y:dy,r:r});
     // Büyütülmüş el (homunculus): falanks + interfalangial eklem düzeyi. wx<100 izleyen-solu, >100 izleyen-sağı.
     function pushHand(view,side,wx){
-      const mir=wx<100?1:-1, X=dx=>wx+mir*dx, wy=300;
+      const X=dx=>wx+(wx<100?1:-1)*dx;
       const sd=side==='R'?'Sağ':'Sol', yuz=view==='on'?'palmar':'dorsal', yz=view==='on'?'ayası':'sırtı';
-      const z=(rap,x,y,r)=>out.push({v:view,rap,ad:rap,x,y,r});
-      z(`${sd} el bileği ${yuz} yüzü`,X(0),wy-7,4);
-      z(`${sd} el ${yz}`,X(0),wy+9,5);
-      [{n:2,dx:11},{n:3,dx:3.7},{n:4,dx:-3.7},{n:5,dx:-11}].forEach(f=>{const fx=X(f.dx);
-        z(`${sd} el ${f.n}. parmak proksimal falanks ${yuz} yüzü`,fx,wy+30,3);
-        z(`${sd} el ${f.n}. parmak PIP eklemi`,fx,wy+42,2.6);
-        z(`${sd} el ${f.n}. parmak orta falanks ${yuz} yüzü`,fx,wy+52,3);
-        z(`${sd} el ${f.n}. parmak DIP eklemi`,fx,wy+62,2.6);
-        z(`${sd} el ${f.n}. parmak distal falanks ${yuz} yüzü`,fx,wy+72,3);
+      const z=(rap,p,r)=>out.push({v:view,rap,ad:rap,x:p.x,y:p.y,r});
+      z(`${sd} el bileği ${yuz} yüzü`,{x:X(0),y:294},4);
+      z(`${sd} el ${yz}`,{x:X(0),y:308},5);
+      handFingers(wx).forEach(f=>{
+        z(`${sd} el ${f.n}. parmak proksimal falanks ${yuz} yüzü`,f.prox,3);
+        z(`${sd} el ${f.n}. parmak PIP eklemi`,f.pip,2.6);
+        z(`${sd} el ${f.n}. parmak orta falanks ${yuz} yüzü`,f.mid,3);
+        z(`${sd} el ${f.n}. parmak DIP eklemi`,f.dip,2.6);
+        z(`${sd} el ${f.n}. parmak distal falanks ${yuz} yüzü`,f.dist,3);
       });
-      z(`${sd} el başparmak proksimal falanks ${yuz} yüzü`,X(-18),wy+24,3);
-      z(`${sd} el başparmak IP eklemi`,X(-18),wy+33,2.6);
-      z(`${sd} el başparmak distal falanks ${yuz} yüzü`,X(-18),wy+41,3);
+      const t=handThumb(wx);
+      z(`${sd} el başparmak proksimal falanks ${yuz} yüzü`,t.prox,3);
+      z(`${sd} el başparmak IP eklemi`,t.ip,2.6);
+      z(`${sd} el başparmak distal falanks ${yuz} yüzü`,t.dist,3);
     }
     // ===== ÖN =====
-    p('on','frontal bölge',11,34,4); p('on','temporal bölge',27,43,4); p('on','periorbital bölge',15,48,3.5);
-    p('on','zigomatik bölge',22,59,3.5); m('on','Nazal bölge',55,3); p('on','bukkal bölge',20,65,3.5);
-    m('on','Üst dudak',70,3); m('on','Alt dudak',76,3); m('on','Mental bölge',82,3.5); p('on','mandibular bölge',20,76,3.5);
-    p('on','aurikular bölge',34,54,3.5,'kulak');
-    m('on','Anterior servikal bölge',94,4); p('on','lateral servikal bölge',10,89,4);
+    p('on','frontal bölge',12,35,4); p('on','temporal bölge',29,44,4); p('on','periorbital bölge',16,49,3.5);
+    p('on','zigomatik bölge',23,61,3.5); m('on','Nazal bölge',57,3); p('on','bukkal bölge',21,67,3.5);
+    m('on','Üst dudak',73,3); m('on','Alt dudak',79,3); m('on','Dil',84,3); m('on','Mental bölge',88,3.5); p('on','mandibular bölge',21,79,3.5);
+    p('on','aurikular bölge',36,56,3.5,'kulak');
+    m('on','Anterior servikal bölge',95,4); p('on','lateral servikal bölge',11,91,4);
     p('on','klavikular bölge',17,96,4); p('on','omuz ön yüzü',39,104,6); m('on','Presternal bölge',117,5);
     p('on','pektoral (meme) bölge',16,129,6); p('on','aksiller bölge',33,121,4,'koltuk altı');
     m('on','Epigastrik bölge',159,6); p('on','hipokondriyak bölge',19,160,5); m('on','Umbilikal bölge',189,5);
@@ -13610,8 +13628,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     p('on','ayak başparmağı',12,535,2.5); p('on','ayak 2. parmak',16,536,2.5); p('on','ayak 3. parmak',20,536,2.5);
     p('on','ayak 4. parmak',24,536,2.5); p('on','ayak 5. parmak',28,535,2.5);
     // ===== ARKA =====
-    m('arka','Verteks bölgesi',12,4); p('arka','parietal bölge',15,33,4); p('arka','oksipital bölge',14,52,4);
-    p('arka','mastoid bölge',26,61,3.5); m('arka','Nukal bölge',75,4); p('arka','posterior servikal bölge',13,89,4);
+    m('arka','Verteks bölgesi',11,4); p('arka','parietal bölge',16,33,4); p('arka','oksipital bölge',15,54,4);
+    p('arka','mastoid bölge',28,64,3.5); m('arka','Nukal bölge',78,4); p('arka','posterior servikal bölge',13,92,4);
     p('arka','skapular bölge',22,120,6); m('arka','İnterskapular bölge',120,5); p('arka','infraskapular bölge',20,150,5);
     p('arka','lateral torakal bölge',34,140,5,'yan göğüs'); m('arka','Torakal vertebral bölge',150,4);
     p('arka','lomber bölge',28,196,5,'bel'); m('arka','Lomber vertebral bölge',200,4); p('arka','krista iliaka bölgesi',30,226,5);
@@ -13629,25 +13647,28 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   })();
 
   function bodyFigure(view){
-    const head='M100,3 C121,3 134,18 134,45 C134,63 126,76 112,81 C108,83 104,84 100,84 C96,84 92,83 88,81 C74,76 66,63 66,45 C66,18 79,3 100,3 Z';
-    const neck='M91,81 L89,99 L111,99 L109,81 C106,84 94,84 91,81 Z';
-    const earL='M67,48 C58,48 58,63 67,62';
-    const eyeL='M78,48 Q85,43 92,48 Q85,52.5 78,48 Z';
-    const hairline='M68,31 Q100,14 132,31';
-    const nose='M100,48 L100,64 M94,64 Q100,68 106,64';
-    const mouth='M86,73 Q100,79 114,73';
-    const napeHair='M70,75 Q100,85 130,75';
+    const head='M100,1 C124,1 139,17 139,44 C139,63 130,78 115,84 C110,86 105,87 100,87 C95,87 90,86 85,84 C70,78 61,63 61,44 C61,17 76,1 100,1 Z';
+    const neck='M88,84 L85,100 L115,100 L112,84 C108,87 92,87 88,84 Z';
+    const earL='M62,49 C53,49 53,65 62,64';
+    const eyeL='M75,49 Q83,43.5 91,49 Q83,54 75,49 Z';
+    const hairline='M64,30 Q100,12 136,30';
+    const nose='M100,49 L100,66 M93,66 Q100,71 107,66';
+    const mouth='M84,74 Q100,81 116,74';
+    const tongue='M94,78 Q100,75 106,78 Q108,87 100,90 Q92,87 94,78 Z';
+    const napeHair='M65,77 Q100,88 135,77';
     const torso='M91,85 C82,86 70,90 60,99 C57,109 58,123 59,141 C60,163 62,186 66,206 C69,221 72,233 76,243 C80,253 84,259 90,263 L100,267 L110,263 C116,259 120,253 124,243 C128,233 131,221 134,206 C138,186 140,163 141,141 C142,123 143,109 140,99 C130,90 118,86 109,85 Z';
     const arm='M61,96 C50,100 45,117 44,141 C43,161 42,181 42,201 C42,226 43,256 46,286 C46,293 47,298 49,301 C53,302 56,302 59,300 C61,286 62,259 63,233 C64,213 64,196 65,179 C66,156 67,131 70,117 C72,108 74,101 77,97 Z';
     const handShape=(wx)=>{
-      const hm=wx<100?1:-1, X=dx=>wx+hm*dx, wy=300;
-      const bar=(cx,top,bot,hw)=>`M${cx-hw},${top+hw} Q${cx-hw},${top} ${cx},${top} Q${cx+hw},${top} ${cx+hw},${top+hw} L${cx+hw},${bot-hw} Q${cx+hw},${bot} ${cx},${bot} Q${cx-hw},${bot} ${cx-hw},${bot-hw} Z`;
-      let s=`<path d="${bar(X(0),wy-9,wy+22,11)}"/>`;
-      [11,3.7,-3.7,-11].forEach(dx=>{s+=`<path d="${bar(X(dx),wy+18,wy+76,3.6)}"/>`;});
-      s+=`<path d="${bar(X(-18),wy+12,wy+45,3.6)}"/>`;
-      [11,3.7,-3.7,-11].forEach(dx=>{const fx=X(dx);
-        s+=`<line x1="${fx-3.4}" y1="${wy+42}" x2="${fx+3.4}" y2="${wy+42}" class="bm-line"/><line x1="${fx-3.4}" y1="${wy+62}" x2="${fx+3.4}" y2="${wy+62}" class="bm-line"/>`;});
-      s+=`<line x1="${X(-18)-3.4}" y1="${wy+33}" x2="${X(-18)+3.4}" y2="${wy+33}" class="bm-line"/>`;
+      const X=dx=>wx+(wx<100?1:-1)*dx, wy=300;
+      const fbar=(a,b,hw)=>{const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1,nx=-dy/len*hw,ny=dx/len*hw,ex=dx/len*hw,ey=dy/len*hw;
+        return `M${a.x+nx-ex},${a.y+ny-ey} L${b.x+nx+ex},${b.y+ny+ey} L${b.x-nx+ex},${b.y-ny+ey} L${a.x-nx-ex},${a.y-ny-ey} Z`;};
+      const crease=(p,a,hw)=>`<line x1="${p.x-Math.cos(a)*hw}" y1="${p.y-Math.sin(a)*hw}" x2="${p.x+Math.cos(a)*hw}" y2="${p.y+Math.sin(a)*hw}" class="bm-line"/>`;
+      let s=`<path d="M${X(-13)},${wy-6} Q${X(-14)},${wy+14} ${X(-6)},${wy+20} L${X(8)},${wy+20} Q${X(14)},${wy+14} ${X(13)},${wy-6} Q${X(10)},${wy-12} ${X(0)},${wy-12} Q${X(-10)},${wy-12} ${X(-13)},${wy-6} Z"/>`;
+      const figs=handFingers(wx), t=handThumb(wx);
+      figs.forEach(f=>{ s+=`<path d="${fbar({x:f.bx,y:f.by},{x:f.tx,y:f.ty},4)}"/>`; });
+      s+=`<path d="${fbar({x:t.bx,y:t.by},{x:t.tx,y:t.ty},4.2)}"/>`;
+      figs.forEach(f=>{ const a=Math.atan2(f.ty-f.by,f.tx-f.bx)+Math.PI/2; s+=crease(f.pip,a,3.6)+crease(f.dip,a,3.6); });
+      s+=crease(t.ip,Math.atan2(t.ty-t.by,t.tx-t.bx)+Math.PI/2,3.8);
       return s;
     };
     const leg='M78,251 C70,257 65,273 64,301 C63,331 63,361 65,387 C66,416 66,456 69,491 C70,501 71,509 73,515 C76,517 80,517 83,514 C85,509 86,501 87,491 C89,456 89,419 90,389 C91,361 92,331 92,303 C93,286 94,269 92,255 Z';
@@ -13664,8 +13685,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const mir='matrix(-1 0 0 1 200 0)';
     const dual=(d,cls)=>`<path d="${d}" class="${cls}"/><g transform="${mir}"><path d="${d}" class="${cls}"/></g>`;
     const faceOn=`<path d="${hairline}" class="bm-face"/>`+dual(eyeL,'bm-face')
-      +`<circle cx="85" cy="48" r="1.5" class="bm-face-fill"/><circle cx="115" cy="48" r="1.5" class="bm-face-fill"/>`
-      +`<path d="${nose}" class="bm-face"/><path d="${mouth}" class="bm-face"/>`+dual(earL,'bm-face');
+      +`<circle cx="83" cy="49" r="1.6" class="bm-face-fill"/><circle cx="117" cy="49" r="1.6" class="bm-face-fill"/>`
+      +`<path d="${nose}" class="bm-face"/><path d="${mouth}" class="bm-face"/><path d="${tongue}" class="bm-tongue"/>`+dual(earL,'bm-face');
     const faceArka=dual(earL,'bm-face')+`<path d="${napeHair}" class="bm-face"/>`;
     let inner='';
     if(view==='on'){
