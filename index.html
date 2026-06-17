@@ -13215,18 +13215,23 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       }
       chip.classList.toggle('active');
     }
-    // Lezyon kartında "Lezyon tipi" "Yanık" seçilince derece alt seçeneklerini göster
+    // Lezyon kartında "Lezyon tipi" seçimine göre koşullu alt alanlar (Yanık→derece, Ekimoz→renk)
     if(group.dataset.role==='tip'){
       const card=chip.closest('.lezyon-card');
       if(card){
-        const yanikActive=chip.classList.contains('active')&&chip.textContent.trim()==='Yanık';
-        const dereceGroup=card.querySelector('[data-role="yanikDerece"]');
-        const dereceLabel=card.querySelector('[data-role="yanik-label"]');
-        if(dereceGroup&&dereceLabel){
-          dereceGroup.style.display=yanikActive?'flex':'none';
-          dereceLabel.style.display=yanikActive?'block':'none';
-          if(!yanikActive)dereceGroup.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
-        }
+        const activeTip=card.querySelector('[data-role="tip"] .chip.active');
+        const t=activeTip?activeTip.textContent.trim():'';
+        const toggleCond=(role,labelRole,show)=>{
+          const g=card.querySelector(`[data-role="${role}"]`);
+          const l=card.querySelector(`[data-role="${labelRole}"]`);
+          if(g&&l){
+            g.style.display=show?'flex':'none';
+            l.style.display=show?'block':'none';
+            if(!show)g.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+          }
+        };
+        toggleCond('yanikDerece','yanik-label', t==='Yanık');
+        toggleCond('renk','renk-label', t==='Ekimoz');
       }
     }
     if(chipToPanel.has(chip)){
@@ -13642,19 +13647,66 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       <div class="sub">Lezyon tipi</div>
       <div class="chips" data-single="true" data-role="tip">
         <button class="chip">Ekimoz</button>
-        <button class="chip">Hiperemi</button>
-        <button class="chip">Abrazyon</button>
+        <button class="chip">Sıyrık</button>
         <button class="chip">Laserasyon</button>
         <button class="chip">Kesi</button>
-        <button class="chip">Ödem</button>
-        <button class="chip">Hematom</button>
+        <button class="chip">ASY giriş</button>
+        <button class="chip">ASY çıkış</button>
         <button class="chip">Yanık</button>
+        <button class="chip">Hematom</button>
+        <button class="chip">Ödem</button>
+        <button class="chip">Şişlik</button>
+        <button class="chip">Hassasiyet</button>
+        <button class="chip">Hiperemi</button>
+        <button class="chip">Dikiş izi</button>
+        <button class="chip">Isırık</button>
+        <button class="chip">Tırnak izi</button>
       </div>
       <div class="sub" data-role="yanik-label" style="display:none;">Yanık derecesi</div>
       <div class="chips" data-single="true" data-role="yanikDerece" style="display:none;">
         <button class="chip">1. derece</button>
         <button class="chip">2. derece</button>
         <button class="chip">3. derece yanık uyumlu görünüm</button>
+      </div>
+      <div class="sub" data-role="renk-label" style="display:none;">Renk (ekimoz)</div>
+      <div class="chips" data-single="true" data-role="renk" style="display:none;">
+        <button class="chip">Kırmızı-mor</button>
+        <button class="chip">Mavi-mor</button>
+        <button class="chip">Yeşil</button>
+        <button class="chip">Sarı-kahverengi</button>
+      </div>
+      <div class="sub">Adet</div>
+      <div class="chips" data-single="true" data-role="adet">
+        <button class="chip">Tek</button>
+        <button class="chip">2</button>
+        <button class="chip">3</button>
+        <button class="chip">4</button>
+        <button class="chip">5</button>
+        <button class="chip">Multipl</button>
+      </div>
+      <div class="sub">Şekil</div>
+      <div class="chips" data-single="true" data-role="sekil">
+        <button class="chip">Lineer</button>
+        <button class="chip">Oval</button>
+        <button class="chip">Yuvarlak</button>
+        <button class="chip">Düzensiz</button>
+        <button class="chip">Yıldızvari</button>
+        <button class="chip">Yarım ay</button>
+      </div>
+      <div class="sub">Yön</div>
+      <div class="chips" data-single="true" data-role="yon">
+        <button class="chip">Longitudinal</button>
+        <button class="chip">Transvers</button>
+        <button class="chip">Oblik</button>
+      </div>
+      <div class="sub">Özellikler</div>
+      <div class="chips" data-role="ozellik">
+        <button class="chip">Düzgün kenarlı</button>
+        <button class="chip">Düzensiz kenarlı</button>
+        <button class="chip">Kabuklu</button>
+        <button class="chip">Sütüre</button>
+        <button class="chip">Sıyrık tarzı</button>
+        <button class="chip">Enfekte</button>
       </div>
       <div class="sub">Boyut (cm)</div>
       <div class="mini-row">
@@ -13728,28 +13780,36 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(!sel.length)return '';   // bölge seçilmemişse (konumsuz) çıktı üretme
     const x=card.querySelector('[data-role="x"]').value.trim();
     const y=card.querySelector('[data-role="y"]').value.trim();
+    const active=role=>{const a=card.querySelector(`[data-role="${role}"] .chip.active`);return a?a.textContent.trim():'';};
 
-    let parts=[];
-    if(sel.length===2&&sel[0]!==sel[1]){
-      parts.push(`${lc(BM_DATA[sel[0]].rap)} ile ${lc(BM_DATA[sel[1]].rap)} arasında uzanan`);
-    }else if(sel.length>=1){
-      parts.push(lokatif(lc(BM_DATA[sel[0]].rap)));
-    }
-    if(x&&y)parts.push(`${x}x${y} cm boyutunda`);
-    else if(x||y)parts.push(`${x||y} cm uzunluğunda`);
+    // Lokalizasyon
+    let loc;
+    if(sel.length===2&&sel[0]!==sel[1])loc=`${lc(BM_DATA[sel[0]].rap)} ile ${lc(BM_DATA[sel[1]].rap)} arasında uzanan`;
+    else loc=lokatif(lc(BM_DATA[sel[0]].rap));
 
-    let tipText=tip?lc(tip.textContent.trim()):'lezyon';
-    if(tip&&tip.textContent.trim()==='Yanık'){
-      const derece=card.querySelector('[data-role="yanikDerece"] .chip.active');
-      if(derece){
-        const d=derece.textContent.trim();
-        tipText=d.toLocaleLowerCase('tr').includes('yanık')?d.toLocaleLowerCase('tr'):`${d} yanık`;
-      }else{
-        tipText='yanık';
-      }
+    // Tanımlayıcılar (sıra: adet · boyut · şekil · yön · renk · özellikler)
+    const desc=[];
+    const adet=active('adet');
+    if(adet&&adet!=='Tek')desc.push(adet==='Multipl'?'multipl':`${adet} adet`);
+    if(x&&y)desc.push(`${x}x${y} cm boyutunda`);
+    else if(x||y)desc.push(`${x||y} cm uzunluğunda`);
+    const sekil=active('sekil'); if(sekil)desc.push(lc(sekil));
+    const yon=active('yon'); if(yon)desc.push(`${lc(yon)} seyirli`);
+    const tname=tip?tip.textContent.trim():'';
+    const renk=active('renk'); if(renk&&tname==='Ekimoz')desc.push(`${lc(renk)} renkli`);
+    [...card.querySelectorAll('[data-role="ozellik"] .chip.active')].forEach(c=>desc.push(lc(c.textContent.trim())));
+
+    // Tip
+    let tipText;
+    if(!tip)tipText='lezyon';
+    else if(tname==='Yanık'){
+      const d=active('yanikDerece');
+      tipText=d?(d.toLocaleLowerCase('tr').includes('yanık')?d.toLocaleLowerCase('tr'):`${d.toLocaleLowerCase('tr')} yanık`):'yanık';
     }
-    parts.push(tipText);
-    return parts.join(' ');
+    else if(tname.startsWith('ASY'))tipText=tname;   // kısaltma korunur
+    else tipText=lc(tname);
+
+    return loc+' '+(desc.length?desc.join(', ')+' ':'')+tipText;
   }
 
   function lezyonlarText(){
@@ -14031,7 +14091,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const yEl=card.querySelector('[data-role="y"]');
       return {
         sel:(card._sel||[]).slice(),
-        tip:get('tip'), yanikDerece:get('yanikDerece'),
+        tip:get('tip'), yanikDerece:get('yanikDerece'), renk:get('renk'),
+        adet:get('adet'), sekil:get('sekil'), yon:get('yon'),
+        ozellik:[...card.querySelectorAll('[data-role="ozellik"] .chip.active')].map(c=>c.textContent.trim()),
         x:xEl?xEl.value:'', y:yEl?yEl.value:'',
       };
     });
@@ -14060,6 +14122,22 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
         dereceGroup.style.display=yanikActive?'flex':'none';
         dereceLabel.style.display=yanikActive?'block':'none';
         setChipActive(dereceGroup, yanikActive?st.yanikDerece:null);
+      }
+      const ekimozActive=st.tip==='Ekimoz';
+      const renkGroup=card.querySelector('[data-role="renk"]');
+      const renkLabel=card.querySelector('[data-role="renk-label"]');
+      if(renkGroup&&renkLabel){
+        renkGroup.style.display=ekimozActive?'flex':'none';
+        renkLabel.style.display=ekimozActive?'block':'none';
+        setChipActive(renkGroup, ekimozActive?st.renk:null);
+      }
+      setChipActive(card.querySelector('[data-role="adet"]'), st.adet);
+      setChipActive(card.querySelector('[data-role="sekil"]'), st.sekil);
+      setChipActive(card.querySelector('[data-role="yon"]'), st.yon);
+      const ozelG=card.querySelector('[data-role="ozellik"]');
+      if(ozelG){
+        const set=new Set(st.ozellik||[]);
+        ozelG.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', set.has(c.textContent.trim())));
       }
       const xEl=card.querySelector('[data-role="x"]');
       const yEl=card.querySelector('[data-role="y"]');
