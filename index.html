@@ -507,7 +507,7 @@
 </div>
 
 <div class="landing" id="testLanding" style="display:none;">
-  <button type="button" class="test-login-btn" onclick="backToLanding()">← Çıkış</button>
+  <button type="button" class="test-login-btn" onclick="testLogout()">← Çıkış</button>
 </div>
 
 <div class="app-body" id="appBody" style="display:none;">
@@ -12500,8 +12500,24 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   };
   // ---- /Mod secimi ----
 
-  // ---- Test girişi: kullanıcı adı/şifre (istemci-tarafı veritabanı — prototip, gerçek güvenlik değil) ----
-  const TEST_USERS=(function(){try{return JSON.parse(localStorage.getItem('epikriz_users'))||null;}catch(e){return null;}})()||[{username:'test',password:'test'}];
+  // ---- Giriş: Supabase Auth (gerçek sunucu-tarafı doğrulama; kullanıcı adı dahili e-postaya eşlenir) ----
+  const AUTH_DOMAIN='@epikriz.app';  // Supabase Auth e-posta ister; kullanıcı adı bu alana eşlenir
+  async function supabaseLogin(username,password){
+    const email=username.includes('@')?username:username+AUTH_DOMAIN;
+    try{
+      const res=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{
+        method:'POST',
+        headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({email,password})
+      });
+      const data=await res.json().catch(()=>({}));
+      if(res.ok&&data.access_token){
+        localStorage.setItem('epikriz_session',JSON.stringify({access_token:data.access_token,refresh_token:data.refresh_token,user:data.user}));
+        return {ok:true};
+      }
+      return {ok:false,error:data.error_description||data.msg||'auth'};
+    }catch(e){ return {ok:false,error:'network'}; }
+  }
   window.showTestLogin=function(){
     landing.style.display='none';
     const u=document.getElementById('loginUser'),p=document.getElementById('loginPass'),e=document.getElementById('loginErr');
@@ -12514,15 +12530,26 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     document.getElementById('testLanding').style.display='none';
     landing.style.display='flex';
   };
-  window.doTestLogin=function(){
+  window.doTestLogin=async function(){
     const u=document.getElementById('loginUser').value.trim();
     const p=document.getElementById('loginPass').value;
-    if(TEST_USERS.some(x=>x.username===u&&x.password===p)){
+    const err=document.getElementById('loginErr');
+    if(!u||!p){err.textContent='Kullanıcı adı ve şifre girin.';return;}
+    err.textContent='Giriş yapılıyor…';
+    const r=await supabaseLogin(u,p);
+    if(r.ok){
+      err.textContent='';
       document.getElementById('testLogin').style.display='none';
       document.getElementById('testLanding').style.display='flex';
     }else{
-      document.getElementById('loginErr').textContent='Hatalı kullanıcı adı veya şifre.';
+      err.textContent = r.error==='network' ? 'Bağlantı hatası, tekrar deneyin.' : 'Hatalı kullanıcı adı veya şifre.';
     }
+  };
+  window.testLogout=function(){
+    localStorage.removeItem('epikriz_session');
+    document.getElementById('testLanding').style.display='none';
+    document.getElementById('testLogin').style.display='none';
+    landing.style.display='flex';
   };
 
   const followups={
