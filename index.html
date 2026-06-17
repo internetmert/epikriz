@@ -178,6 +178,9 @@
   .bm-zone.sel{fill:#0a3a8c;fill-opacity:1;stroke-width:.6;}
   .bm-badge circle{fill:#0a3a8c;stroke:#fff;stroke-width:1;}
   .bm-badge text{fill:#fff;font-size:9px;font-weight:700;text-anchor:middle;dominant-baseline:central;}
+  .bm-arrow{pointer-events:none;}
+  .bm-arrow line{stroke:#0a3a8c;stroke-width:1.6;}
+  .bm-arrow polygon{fill:#0a3a8c;}
   .bm-tools{display:flex;align-items:center;gap:8px;margin:3px 0;}
   .bm-readout{flex:1;font-size:11px;color:#000;background:#fff;border:1px solid #808080;padding:3px 6px;min-height:18px;line-height:1.3;}
   .bm-clear{border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);background:#c0c0c0;font-size:11px;padding:2px 9px;cursor:pointer;white-space:nowrap;}
@@ -2128,18 +2131,18 @@
 
       <div class="subhead">Mekanizma / olay tipi</div>
       <div class="chips" data-single="true" id="mekanizmaTipi">
-        <button class="chip">Başka bir şahıs tarafından darp edilmiş</button>
+        <button class="chip">Darp</button>
         <button class="chip">İş kazası</button>
-        <button class="chip">Ateşli silahla yaralanma</button>
-        <button class="chip">Kesici/Delici aletle yaralanma</button>
+        <button class="chip">Ateşli silah yaralanması</button>
+        <button class="chip">Kesici delici alet yaralanması</button>
         <button class="chip" id="chipTrafikKazasi">Trafik kazası</button>
         <button class="chip" id="chipDusme">Düşme</button>
-        <button class="chip">Cisim çarpması/düşmesi</button>
+        <button class="chip">Üzerine cisim düşmesi</button>
         <button class="chip">Cinsel saldırı</button>
-        <button class="chip">Künt travma (diğer)</button>
-        <button class="chip">Boğulma/asfiksi</button>
+        <button class="chip">Künt travma</button>
+        <button class="chip">Asfiksi</button>
         <button class="chip">Yanık</button>
-        <button class="chip">Zehirlenme/intoksikasyon</button>
+        <button class="chip">Zehirlenme</button>
       </div>
 
       <div class="chips" data-single="true" id="trafikSub" style="display:none;margin-top:7px;">
@@ -2164,9 +2167,9 @@
       <div class="subhead">Niyet</div>
       <div class="chips" data-single="true" id="mekanizmaNiyet">
         <button class="chip">Kazara</button>
-        <button class="chip">Kasıtlı - Kendine zarar</button>
-        <button class="chip">Kasıtlı - Başkası tarafından</button>
-        <button class="chip">Yasal müdahale/Savaş</button>
+        <button class="chip">Kendine zarar</button>
+        <button class="chip">Başkası tarafından</button>
+        <button class="chip">Yasal müdahale</button>
         <button class="chip">Bilinmiyor</button>
       </div>
     </div>
@@ -13479,27 +13482,57 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     dusmeYukseklikBox.style.display=chipDusme.classList.contains('active')?'flex':'none';
   }
 
-  function mekanizmaText(){
-    const tipChip=document.querySelector('#mekanizmaTipi .chip.active');
+  // Mekanizma olay tipi / niyet → anlamlı adli cümle haritaları
+  const MEK_OLAY={
+    'Darp':'darp edilmiştir',
+    'İş kazası':'iş kazası geçirmiştir',
+    'Ateşli silah yaralanması':'ateşli silahla yaralanmıştır',
+    'Kesici delici alet yaralanması':'kesici delici aletle yaralanmıştır',
+    'Trafik kazası':'trafik kazası geçirmiştir',
+    'Düşme':'düşmüştür',
+    'Üzerine cisim düşmesi':'üzerine cisim düşmüştür',
+    'Cinsel saldırı':'cinsel saldırıya uğramıştır',
+    'Künt travma':'künt travmaya maruz kalmıştır',
+    'Asfiksi':'asfiksiye maruz kalmıştır',
+    'Yanık':'yanık oluşmuştur',
+    'Zehirlenme':'zehirlenmiştir',
+  };
+  const MEK_NIYET={
+    'Kazara':'kazara',
+    'Kendine zarar':'kendisine zarar verme amacıyla',
+    'Başkası tarafından':'üçüncü bir şahıs tarafından',
+    'Yasal müdahale':'yasal müdahale sırasında',
+    'Bilinmiyor':'',
+  };
+  const MEK_TRAFIK_ROL={
+    'Sürücü':'araç sürücüsü olarak','Yolcu':'araç yolcusu olarak','Yaya':'yaya olarak',
+    'Motosiklet sürücüsü':'motosiklet sürücüsü olarak','Motosiklet yolcusu':'motosiklet yolcusu olarak',
+  };
+  const MEK_TRAFIK_EK={
+    'Emniyet kemeri var':'emniyet kemeri takılıydı','Emniyet kemeri yok':'emniyet kemeri takılı değildi',
+    'Kask var':'kask takılıydı','Kask yok':'kask takılı değildi','Hava yastığı açıldı':'hava yastığı açıldı',
+  };
+
+  // Olay tipi + niyetten anlamlı "Beyanına göre …" cümlesi (+ varsa ek detay cümlesi) üretir
+  function mekanizmaCumlesi(){
+    const olayChip=document.querySelector('#mekanizmaTipi .chip.active');
     const niyetChip=document.querySelector('#mekanizmaNiyet .chip.active');
-    if(!tipChip&&!niyetChip)return '';
-    let parts=[];
-    if(tipChip){
-      let t=tipChip.textContent.trim();
-      if(tipChip===chipTrafikKazasi){
-        const sub=trafikSub.querySelector('.chip.active');
-        if(sub)t+=` (${sub.textContent.trim()})`;
-        const ekParts=[];
-        trafikEkSub.querySelectorAll('.chip.active').forEach(c=>ekParts.push(c.textContent.trim()));
-        if(ekParts.length)t+=` — ${ekParts.join(', ')}`;
-      }else if(tipChip===chipDusme){
-        const h=val('f_dusme_yukseklik');
-        if(h)t+=` (Yükseklik: ${h} m)`;
-      }
-      parts.push(t);
+    if(!olayChip)return {beyan:'',ek:''};
+    const t=olayChip.textContent.trim();
+    let verb=MEK_OLAY[t]||lc(t);
+    let ek='';
+    if(olayChip===chipTrafikKazasi){
+      const sub=trafikSub.querySelector('.chip.active');
+      const rol=sub?MEK_TRAFIK_ROL[sub.textContent.trim()]:'';
+      if(rol)verb=`${rol} ${verb}`;
+      const ekList=[...trafikEkSub.querySelectorAll('.chip.active')].map(c=>MEK_TRAFIK_EK[c.textContent.trim()]).filter(Boolean);
+      if(ekList.length)ek=`Kaza sırasında ${ekList.join(', ')}.`;
+    }else if(olayChip===chipDusme){
+      const h=val('f_dusme_yukseklik');
+      if(h)verb=`${h} metre yükseklikten düşmüştür`;
     }
-    if(niyetChip)parts.push(`Niyet: ${niyetChip.textContent.trim()}`);
-    return parts.join(', ');
+    const niyet=niyetChip?(MEK_NIYET[niyetChip.textContent.trim()]||''):'';
+    return {beyan:`Beyanına göre ${niyet?niyet+' ':''}${verb}.`, ek};
   }
 
   // --- Adli Rapor: Lezyon ekleyici ---
@@ -13542,11 +13575,11 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       out.push({v,rap:'Sol '+base,ad:'Sol '+base+h,x:xC(v,'L',dx),y:dy,r:r});};
     const m=(v,rap,dy,r,hint)=>out.push({v,rap,ad:rap+(hint?' ('+hint+')':''),x:100,y:dy,r:r});
     // ===== ÖN =====
-    p('on','frontal bölge',11,37,4); p('on','temporal bölge',24,44,4); p('on','periorbital bölge',13,50,3.5);
-    p('on','zigomatik bölge',20,62,3.5); m('on','Nazal bölge',58,3); p('on','bukkal bölge',18,68,3.5);
-    m('on','Üst dudak',73,3); m('on','Alt dudak',79,3); m('on','Mental bölge',85,3.5); p('on','mandibular bölge',18,80,3.5);
-    p('on','aurikular bölge',31,56,3.5,'kulak');
-    m('on','Anterior servikal bölge',95,4); p('on','lateral servikal bölge',12,93,4);
+    p('on','frontal bölge',11,38,4); p('on','temporal bölge',27,47,4); p('on','periorbital bölge',15,52,3.5);
+    p('on','zigomatik bölge',22,65,3.5); m('on','Nazal bölge',61,3); p('on','bukkal bölge',20,72,3.5);
+    m('on','Üst dudak',77,3); m('on','Alt dudak',83,3); m('on','Mental bölge',89,3.5); p('on','mandibular bölge',20,83,3.5);
+    p('on','aurikular bölge',34,59,3.5,'kulak');
+    m('on','Anterior servikal bölge',98,4); p('on','lateral servikal bölge',14,92,4);
     p('on','klavikular bölge',17,96,4); p('on','omuz ön yüzü',39,104,6); m('on','Presternal bölge',117,5);
     p('on','pektoral (meme) bölge',16,129,6); p('on','aksiller bölge',33,121,4,'koltuk altı');
     m('on','Epigastrik bölge',159,6); p('on','hipokondriyak bölge',19,160,5); m('on','Umbilikal bölge',189,5);
@@ -13562,8 +13595,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     p('on','ayak başparmağı',12,535,2.5); p('on','ayak 2. parmak',16,536,2.5); p('on','ayak 3. parmak',20,536,2.5);
     p('on','ayak 4. parmak',24,536,2.5); p('on','ayak 5. parmak',28,535,2.5);
     // ===== ARKA =====
-    m('arka','Verteks bölgesi',13,4); p('arka','parietal bölge',14,34,4); p('arka','oksipital bölge',13,54,4);
-    p('arka','mastoid bölge',24,64,3.5); m('arka','Nukal bölge',78,4); p('arka','posterior servikal bölge',12,90,4);
+    m('arka','Verteks bölgesi',12,4); p('arka','parietal bölge',15,35,4); p('arka','oksipital bölge',14,57,4);
+    p('arka','mastoid bölge',26,67,3.5); m('arka','Nukal bölge',81,4); p('arka','posterior servikal bölge',13,93,4);
     p('arka','skapular bölge',22,120,6); m('arka','İnterskapular bölge',120,5); p('arka','infraskapular bölge',20,150,5);
     p('arka','lateral torakal bölge',34,140,5,'yan göğüs'); m('arka','Torakal vertebral bölge',150,4);
     p('arka','lomber bölge',28,196,5,'bel'); m('arka','Lomber vertebral bölge',200,4); p('arka','krista iliaka bölgesi',30,226,5);
@@ -13578,18 +13611,20 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     p('arka','trokanterik bölge',26,256,5,'kalça yan'); p('arka','uyluk arka yüzü',18,320,7);
     p('arka','popliteal bölge',18,388,5,'diz arkası'); p('arka','baldır (sural bölge)',18,450,6);
     p('arka','Aşil bölgesi',18,495,3.5); p('arka','topuk bölgesi',17,515,4); p('arka','ayak tabanı',17,528,4);
+    // Trapez (boyun-omuz geçişi) — hem önden hem arkadan erişilebilir; en sona eklenir ki indeksler kaymasın
+    p('on','trapez bölgesi',26,102,5); p('arka','trapez bölgesi',26,106,5);
     return out;
   })();
 
   function bodyFigure(view){
-    const head='M100,6 C118,6 130,20 130,44 C130,61 124,74 113,81 C109,84 105,86 100,86 C95,86 91,84 87,81 C76,74 70,61 70,44 C70,20 82,6 100,6 Z';
-    const neck='M92,82 L91,99 L109,99 L108,82 C105,86 95,86 92,82 Z';
-    const earL='M70,50 C62,50 62,63 70,62';
-    const eyeL='M81,50 Q87,45.5 93,50 Q87,54 81,50 Z';
-    const hairline='M72,31 Q100,17 128,31';
-    const nose='M100,50 L100,65 M96,65 Q100,69 104,65';
-    const mouth='M89,75 Q100,80 111,75';
-    const napeHair='M74,77 Q100,86 126,77';
+    const head='M100,3 C121,3 134,18 134,46 C134,65 127,80 114,87 C109,89 105,90 100,90 C95,90 91,89 86,87 C73,80 66,65 66,46 C66,18 79,3 100,3 Z';
+    const neck='M87,86 L84,101 L116,101 L113,86 C109,90 91,90 87,86 Z';
+    const earL='M66,52 C57,52 57,67 66,66';
+    const eyeL='M78,52 Q85,46.5 92,52 Q85,57 78,52 Z';
+    const hairline='M68,33 Q100,15 132,33';
+    const nose='M100,52 L100,69 M94,69 Q100,74 106,69';
+    const mouth='M86,78 Q100,84 114,78';
+    const napeHair='M70,81 Q100,92 130,81';
     const torso='M91,85 C82,86 70,90 60,99 C57,109 58,123 59,141 C60,163 62,186 66,206 C69,221 72,233 76,243 C80,253 84,259 90,263 L100,267 L110,263 C116,259 120,253 124,243 C128,233 131,221 134,206 C138,186 140,163 141,141 C142,123 143,109 140,99 C130,90 118,86 109,85 Z';
     const arm='M61,96 C50,100 45,117 44,141 C43,161 42,181 42,201 C42,226 43,256 46,286 C46,293 47,298 49,301 C53,302 56,302 59,300 C61,286 62,259 63,233 C64,213 64,196 65,179 C66,156 67,131 70,117 C72,108 74,101 77,97 Z';
     const hand='M49,301 C44,304 42,311 42,319 C42,327 44,333 50,334 C55,334 58,329 58,320 C58,312 56,305 52,301 Z';
@@ -13608,7 +13643,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const mir='matrix(-1 0 0 1 200 0)';
     const dual=(d,cls)=>`<path d="${d}" class="${cls}"/><g transform="${mir}"><path d="${d}" class="${cls}"/></g>`;
     const faceOn=`<path d="${hairline}" class="bm-face"/>`+dual(eyeL,'bm-face')
-      +`<circle cx="87" cy="50" r="1.5" class="bm-face-fill"/><circle cx="113" cy="50" r="1.5" class="bm-face-fill"/>`
+      +`<circle cx="85" cy="52" r="1.5" class="bm-face-fill"/><circle cx="115" cy="52" r="1.5" class="bm-face-fill"/>`
       +`<path d="${nose}" class="bm-face"/><path d="${mouth}" class="bm-face"/>`+dual(earL,'bm-face');
     const faceArka=dual(earL,'bm-face')+`<path d="${napeHair}" class="bm-face"/>`;
     let inner='';
@@ -13751,8 +13786,14 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const card=zone.closest('.lezyon-card');
       if(card){
         let sel=card._sel||[];
-        if(sel.length>=2)sel=[];           // 3. tıkta yeniden başla
-        sel.push(+zone.dataset.zi);
+        const zi=+zone.dataset.zi;
+        if(sel.length>=2){
+          // İki nokta seçiliyken: seçili noktalardan birine bas → o noktada lokalize (düzeltme);
+          // yeni bir noktaya bas → baştan başla
+          sel=sel.includes(zi)?[zi,zi]:[zi];
+        }else{
+          sel.push(zi);
+        }
         card._sel=sel;
         bmRefresh(card);
         render();
@@ -13768,13 +13809,14 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   }
   function bmRefresh(card){
     const sel=card._sel||[];
+    const ns='http://www.w3.org/2000/svg';
     card.querySelectorAll('.bm-zone.sel').forEach(z=>z.classList.remove('sel'));
     card.querySelectorAll('.bm-badge').forEach(b=>b.remove());
+    card.querySelectorAll('.bm-arrow').forEach(a=>a.remove());
     const localized=sel.length===2&&sel[0]===sel[1];
     [...new Set(sel)].forEach(zi=>{
       card.querySelectorAll('.bm-zone[data-zi="'+zi+'"]').forEach(z=>{
         z.classList.add('sel');
-        const ns='http://www.w3.org/2000/svg';
         const g=document.createElementNS(ns,'g');g.setAttribute('class','bm-badge');
         const c=document.createElementNS(ns,'circle');c.setAttribute('cx',z.getAttribute('cx'));c.setAttribute('cy',z.getAttribute('cy'));c.setAttribute('r','5.5');
         const t=document.createElementNS(ns,'text');t.setAttribute('x',z.getAttribute('cx'));t.setAttribute('y',z.getAttribute('cy'));
@@ -13782,6 +13824,24 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
         g.appendChild(c);g.appendChild(t);z.parentNode.appendChild(g);
       });
     });
+    // Uzanan lezyon: iki nokta arasına yön oku (aynı figürdeyse)
+    if(sel.length===2&&sel[0]!==sel[1]){
+      const z1=card.querySelector('.bm-zone[data-zi="'+sel[0]+'"]');
+      const z2=card.querySelector('.bm-zone[data-zi="'+sel[1]+'"]');
+      if(z1&&z2&&z1.ownerSVGElement&&z1.ownerSVGElement===z2.ownerSVGElement){
+        const x1=+z1.getAttribute('cx'),y1=+z1.getAttribute('cy'),x2=+z2.getAttribute('cx'),y2=+z2.getAttribute('cy');
+        const ang=Math.atan2(y2-y1,x2-x1),r2=(+z2.getAttribute('r')||4)+1.5;
+        const ex=x2-Math.cos(ang)*r2,ey=y2-Math.sin(ang)*r2;
+        const ah=6,aw=3.4,bx=ex-Math.cos(ang)*ah,by=ey-Math.sin(ang)*ah,px=-Math.sin(ang)*aw,py=Math.cos(ang)*aw;
+        const g=document.createElementNS(ns,'g');g.setAttribute('class','bm-arrow');
+        const line=document.createElementNS(ns,'line');
+        line.setAttribute('x1',x1);line.setAttribute('y1',y1);line.setAttribute('x2',ex);line.setAttribute('y2',ey);
+        const tri=document.createElementNS(ns,'polygon');
+        tri.setAttribute('points',`${ex},${ey} ${bx+px},${by+py} ${bx-px},${by-py}`);
+        g.appendChild(line);g.appendChild(tri);
+        z1.ownerSVGElement.appendChild(g);
+      }
+    }
     const ro=card.querySelector('[data-role="readout"]');
     if(ro)ro.textContent=bmReadoutText(sel);
   }
@@ -13843,19 +13903,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     // Bölümle hiç etkileşime girilmediyse çıktı üretme
     if(!olayChip && !patoloji && !radyoActive && !giderChip && !hayatiChip && !bilincChip)return '';
 
-    let olay='';
-    if(olayChip){
-      olay=olayChip.textContent.trim();
-      if(olayChip===chipTrafikKazasi){
-        const sub=trafikSub.querySelector('.chip.active');
-        if(sub)olay+=` (${sub.textContent.trim()})`;
-      }else if(olayChip===chipDusme){
-        const h=val('f_dusme_yukseklik');
-        if(h)olay+=` (${h} m yükseklikten)`;
-      }
-    }
-    const niyetChip=document.querySelector('#mekanizmaNiyet .chip.active');
-    if(niyetChip)olay=olay?`${olay}, ${lc(niyetChip.textContent.trim())}`:lc(niyetChip.textContent.trim());
+    const mek=mekanizmaCumlesi();
 
     // 02 GKS bölümü görünürse onun değerini, gizliyse Adli Rapor'un kendi GKS girişini kullan
     const gksSectionVisible=(sectionFieldsByMode[currentMode]||[]).includes('gks');
@@ -13873,15 +13921,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     }
     sentences.push(bilincPhrase?`${bilincPhrase}, GKS ${gks} olarak değerlendirildi.`:`GKS ${gks} olarak değerlendirildi.`);
 
-    if(olay&&patoloji){
-      sentences.push(`Beyanına göre ${olay}; yapılan fiziki muayenede ${patoloji} izlendi.`);
-    }else if(olay&&!patoloji){
-      sentences.push(`Beyanına göre ${olay}; yapılan fiziki muayenede herhangi bir patolojik bulgu izlenmedi.`);
-    }else if(!olay&&patoloji){
-      sentences.push(`Yapılan fiziki muayenede ${patoloji} izlendi.`);
-    }else{
-      sentences.push('Yapılan fiziki muayenede herhangi bir patolojik bulgu izlenmedi.');
-    }
+    if(mek.beyan)sentences.push(mek.beyan);
+    if(mek.ek)sentences.push(mek.ek);
+    if(patoloji)sentences.push(`Yapılan fiziki muayenede ${patoloji} izlendi.`);
+    else sentences.push('Yapılan fiziki muayenede herhangi bir patolojik bulgu izlenmedi.');
 
     if(radyoActive){
       const detay=val('f_adli_radyo_detay');
