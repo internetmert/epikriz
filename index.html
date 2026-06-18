@@ -12761,10 +12761,13 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   window.showLanding=function(){
     landing.style.display='flex';
     appBody.style.display='none';
+    document.getElementById('testLogin').style.display='none';
+    document.getElementById('testLanding').style.display='none';
     document.getElementById('btnYeniHasta').style.display='none';
     document.getElementById('btnKopyala').style.display='none';
     document.getElementById('btnYazdir').style.display='none';
     document.getElementById('btnSenkron').style.display='none';
+    if(location.hash==='#login') history.replaceState(null,'',location.pathname+location.search);
   };
   // ---- /Mod secimi ----
 
@@ -12791,13 +12794,24 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const u=document.getElementById('loginUser'),p=document.getElementById('loginPass'),e=document.getElementById('loginErr');
     if(u)u.value=''; if(p)p.value=''; if(e)e.textContent='';
     document.getElementById('testLogin').style.display='flex';
+    if(location.hash!=='#login') location.hash='login';
     if(u)u.focus();
   };
+  function clearLoginHash(){ if(location.hash==='#login') history.replaceState(null,'',location.pathname+location.search); }
   window.backToLanding=function(){
     document.getElementById('testLogin').style.display='none';
     document.getElementById('testLanding').style.display='none';
     landing.style.display='flex';
+    clearLoginHash();
   };
+  // #login route: hash değişince (geri/ileri tuşu, doğrudan URL) görünümü eşitle
+  function syncLoginRoute(){
+    const onLogin=document.getElementById('testLogin').style.display!=='none';
+    if(location.hash==='#login'){ if(!onLogin) window.showTestLogin(); }
+    else if(onLogin){ window.backToLanding(); }
+  }
+  window.addEventListener('hashchange',syncLoginRoute);
+  if(location.hash==='#login') window.showTestLogin();
   window.doTestLogin=async function(){
     const u=document.getElementById('loginUser').value.trim();
     const p=document.getElementById('loginPass').value;
@@ -12809,6 +12823,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       err.textContent='';
       document.getElementById('testLogin').style.display='none';
       document.getElementById('testLanding').style.display='flex';
+      clearLoginHash();
     }else if(r.error==='network'){
       err.textContent='Bağlantı hatası, tekrar deneyin.';
     }else{
