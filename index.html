@@ -95,7 +95,7 @@
   .login-panel{position:relative;}
   #gandalf{position:absolute;left:50%;bottom:calc(100% + 2px);transform:translateX(-50%);display:none;flex-direction:column;align-items:center;pointer-events:none;}
   #gandalf .gx-inner{display:flex;flex-direction:column;align-items:center;animation:gx-shake 1.6s infinite;}
-  .gx-svg{width:104px;height:auto;image-rendering:pixelated;filter:drop-shadow(0 3px 0 rgba(0,0,0,.45));}
+  .gx-svg{width:84px;height:auto;image-rendering:pixelated;filter:drop-shadow(0 2px 0 rgba(0,0,0,.5));}
   .g-staff{animation:gx-slam 1.6s infinite;}
   .g-staff-glow{animation:gx-glow 1.6s infinite;}
   .gx-text{margin-top:1px;font:800 12px 'Courier New',monospace;color:#ffe9a8;letter-spacing:.5px;text-shadow:1px 1px 0 #000;white-space:nowrap;animation:gx-textpulse 1.6s infinite;}
@@ -541,10 +541,11 @@ html[data-theme="light"] .feedback-status,html[data-theme="light"] .feedback-cou
 <body>
 
 <div class="topbar">
-  <div class="brand" aria-label="Acil Epikriz" role="button" tabindex="0" title="Ana sayfaya dön" onclick="showLanding()" style="cursor:pointer;"><span class="dot"></span> <span class="brand-emoji">👨🏻‍⚕️🩺👩🏻‍⚕️</span> 𝔄𝔠𝔦𝔩 𝔈𝔭𝔦𝔨𝔯𝔦𝔷</div>
+  <div class="brand" aria-label="Acil Epikriz" role="button" tabindex="0" title="Ana sayfaya dön" onclick="showLanding()" style="cursor:pointer;"><span class="brand-emoji">👨🏻‍⚕️🩺👩🏻‍⚕️</span> 𝔄𝔠𝔦𝔩 𝔈𝔭𝔦𝔨𝔯𝔦𝔷</div>
   <div class="spacer"></div>
   <button class="btn" id="btnSenkron" onclick="openSyncModal()" style="display:none;">🔄 Senkron<span class="auto-sync-dot" id="autoSyncDot" hidden title="Otomatik senkron açık"></span></button>
   <button class="btn" id="btnYeniHasta" onclick="resetAll()" style="display:none;">Yeni Hasta</button>
+  <button class="btn" id="btnSil" onclick="clearForm()" style="display:none;">🗑 Sil</button>
   <button class="btn primary" id="btnKopyala" onclick="copyText()" style="display:none;">Kopyala</button>
   <button class="btn" id="btnYazdir" onclick="window.print()" style="display:none;">🖨️ Yazdır</button>
 </div>
@@ -646,30 +647,10 @@ html[data-theme="light"] .feedback-status,html[data-theme="light"] .feedback-cou
   <div class="login-panel">
     <div id="gandalf">
       <div class="gx-inner">
-        <svg viewBox="0 0 78 104" shape-rendering="crispEdges" class="gx-svg" aria-hidden="true">
-          <g class="g-staff">
-            <rect x="54" y="12" width="6" height="80" fill="#7a4a1e"/>
-            <rect class="g-staff-glow" x="52" y="2" width="10" height="10" fill="#ffd76b"/>
-          </g>
-          <rect x="30" y="0" width="6" height="6" fill="#8a8a8a"/>
-          <rect x="24" y="6" width="18" height="12" fill="#8a8a8a"/>
-          <rect x="18" y="18" width="30" height="6" fill="#8a8a8a"/>
-          <rect x="12" y="24" width="42" height="6" fill="#6f6f6f"/>
-          <rect x="24" y="30" width="18" height="6" fill="#e9caa3"/>
-          <rect x="24" y="36" width="6" height="6" fill="#2a2a2a"/>
-          <rect x="30" y="36" width="6" height="6" fill="#e9caa3"/>
-          <rect x="36" y="36" width="6" height="6" fill="#2a2a2a"/>
-          <rect x="24" y="42" width="18" height="6" fill="#e9caa3"/>
-          <rect x="42" y="42" width="18" height="6" fill="#8a8a8a"/>
-          <rect x="18" y="48" width="30" height="12" fill="#ffffff"/>
-          <rect x="24" y="60" width="18" height="6" fill="#ffffff"/>
-          <rect x="24" y="66" width="18" height="6" fill="#8a8a8a"/>
-          <rect x="18" y="72" width="30" height="12" fill="#8a8a8a"/>
-          <rect x="12" y="84" width="42" height="6" fill="#8a8a8a"/>
-          <rect x="6" y="42" width="18" height="6" fill="#8a8a8a"/>
-          <rect x="6" y="48" width="6" height="6" fill="#7a4a1e"/>
-          <rect x="0" y="54" width="18" height="6" fill="#b0b0b0"/>
-          <rect x="6" y="60" width="6" height="30" fill="#d6d6d6"/>
+        <svg viewBox="0 0 72 88" shape-rendering="crispEdges" class="gx-svg" aria-hidden="true">
+          <g class="g-staff" id="gxStaff"></g>
+          <g id="gxBody"></g>
+          <g id="gxSword"></g>
         </svg>
         <div class="gx-text">YOU SHALL NOT PASS!</div>
       </div>
@@ -678,7 +659,7 @@ html[data-theme="light"] .feedback-status,html[data-theme="light"] .feedback-cou
     <input type="password" id="loginPass" autocomplete="current-password" oninput="hideGandalf()" onkeydown="if(event.key==='Enter')doTestLogin()">
     <div class="login-err" id="loginErr"></div>
     <div class="login-actions">
-      <button type="button" onclick="backToLanding()">← Geri</button>
+      <button type="button" onclick="backToLanding()" title="Geri">←</button>
       <button type="button" class="sfae-btn" onclick="doTestLogin()">speak friend and enter</button>
     </div>
   </div>
@@ -12753,6 +12734,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     landing.style.display='none';
     appBody.style.display='flex';
     document.getElementById('btnYeniHasta').style.display='';
+    document.getElementById('btnSil').style.display='';
     document.getElementById('btnKopyala').style.display='';
     document.getElementById('btnYazdir').style.display='';
     document.getElementById('btnSenkron').style.display='';
@@ -12765,6 +12747,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     document.getElementById('testLogin').style.display='none';
     document.getElementById('testLanding').style.display='none';
     document.getElementById('btnYeniHasta').style.display='none';
+    document.getElementById('btnSil').style.display='none';
     document.getElementById('btnKopyala').style.display='none';
     document.getElementById('btnYazdir').style.display='none';
     document.getElementById('btnSenkron').style.display='none';
@@ -12843,6 +12826,22 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const g=document.getElementById('gandalf'); if(g)g.style.display='none';
     clearTimeout(gandalfTimer);
   };
+  // Pixel Gandalf'ı bir piksel-haritasından üret (küçük pikseller + gölgeleme = vintage)
+  function buildGandalf(){
+    const PAL={'1':'#aeb6bc','2':'#7c858d','3':'#4b545c','4':'#d6a06e','5':'#a9744a','6':'#2b2330','7':'#e7e2cb','8':'#bdb79a','9':'#9aa3a9','a':'#6f7880','b':'#4c545b','c':'#bcc6cf','d':'#828c95','e':'#c89636','f':'#6a4824','g':'#97683a','h':'#ffd45e','i':'#ffeeac'};
+    const PX=4, E='..................';
+    const BODY=['.........1........','........11........','........112.......','.......1122.......','.......11322......','......113222......','......1132222.....','.....222222222....','.......44444......','.......46464......','......5444445.....','......7778777.....','......7777777.....','.......78887......','........777.......','.....9aaaaaa9.....','....9aaabaaaa9....','....9aabbaaba9....','...9aaaaaaaaaa9...','...9aaaaaaaaaa9...','..9aaaaaaaaaaaa9..','..9aaaaaaaaaaaa9..'];
+    const STAFF=[E,'..............ii..','..............hh..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..','..............gf..',E];
+    const SWORD=[E,E,E,E,E,E,E,E,E,E,E,E,E,E,'.f................','eee...............','.dc...............','.dc...............','.dc...............','.dc...............','.dc...............','..c...............'];
+    const draw=(id,map)=>{
+      const el=document.getElementById(id); if(!el)return;
+      let s='';
+      for(let y=0;y<map.length;y++){const row=map[y];for(let x=0;x<row.length;x++){const c=row[x];if(c==='.')continue;const col=PAL[c];if(!col)continue;const cls=(c==='h'||c==='i')?' class="g-staff-glow"':'';s+=`<rect${cls} x="${x*PX}" y="${y*PX}" width="${PX}" height="${PX}" fill="${col}"/>`;}}
+      el.innerHTML=s;
+    };
+    draw('gxStaff',STAFF); draw('gxBody',BODY); draw('gxSword',SWORD);
+  }
+  buildGandalf();
   window.testLogout=function(){
     localStorage.removeItem('epikriz_session');
     document.getElementById('testLanding').style.display='none';
@@ -15137,6 +15136,25 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     }
   };
 
+  // "Sil": geçerli hastanın tüm girdilerini sıfırlar (kaydetmeden; Yeni Hasta'dan farklı)
+  window.clearForm=function(){
+    if(!confirm('Bu hastanın tüm girdileri silinecek. Emin misiniz?'))return;
+    form.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
+    form.querySelectorAll('input,textarea').forEach(i=>i.value='');
+    form.querySelectorAll('select').forEach(s=>{if(s.options[0])s.selectedIndex=0;});
+    lezyonList.innerHTML='';
+    examWrap.querySelectorAll('.exam-sys').forEach(s=>{
+      s.classList.remove('open');
+      const tog=s.querySelector('.tog');
+      if(tog)tog.textContent='+';
+    });
+    includedScores.clear();
+    syncAllScoreAdds();
+    setGksDefaults();
+    if(activeIndex!==null) patients[activeIndex]=captureState();
+    refreshDetail();render();
+    toast('Hasta girdileri silindi');
+  };
   window.resetAll=function(){
     const cur=captureState();
     let msg='Form temizlendi';
