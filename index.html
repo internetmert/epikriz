@@ -165,6 +165,7 @@
     box-shadow:inset 1px 1px 0 var(--shadow),inset -1px -1px 0 var(--hl);
     background:#b8b8b8;font-weight:700;}
   .chip.active::before{content:"\2713 ";}
+  #examWrap .chip:not([data-normal]).active{color:#cc0000;}
 
 
 
@@ -13147,6 +13148,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     {sys:'msk', label:'Distalde nörovasküler defisit', type:'lokalizasyon3'},
     {sys:'msk', label:'Vertebra üzerinde hassasiyet', type:'vertebralSeviye'},
     {sys:'msk', label:'Paravertebral kas spazmı', type:'vertebralSeviye'},
+    {sys:'msk', label:'Düz bacak kaldırma testi (+)', type:'sagSol'},
     {sys:'cilt', label:'Ekimoz / hematom', type:'bolge'},
     {sys:'cilt', label:'Laserasyon / abrazyon', type:'bolge'},
     {sys:'cilt', label:'Basınç ülseri', type:'bolge'},
@@ -13191,6 +13193,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       wrap.innerHTML=`<input type="text" class="extra" data-exam-extra="freetext" placeholder="Detay (opsiyonel)" style="margin-top:4px;">`;
     }else if(def.type==='santralPeriferik'){
       wrap.innerHTML=`<div class="chips" data-single="true" data-exam-extra="santralperiferik"><button class="chip">Santral</button><button class="chip">Periferik</button></div>`;
+    }else if(def.type==='sagSol'){
+      wrap.innerHTML=`<div class="chips" data-single="true" data-exam-extra="sagsol"><button class="chip">Sağ</button><button class="chip">Sol</button><button class="chip">Bilateral</button></div>`;
     }
     chip.insertAdjacentElement('afterend', wrap);
     examExtraMap.set(chip, {wrap, def});
@@ -13250,6 +13254,12 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(def.type==='santralPeriferik'){
       const c=wrap.querySelector('[data-exam-extra="santralperiferik"] .chip.active');
       return c?lc(c.textContent.trim()):'';
+    }
+    if(def.type==='sagSol'){
+      const c=wrap.querySelector('[data-exam-extra="sagsol"] .chip.active');
+      if(!c)return '';
+      const map={'Sağ':'sağ','Sol':'sol','Bilateral':'bilateral'};
+      return map[c.textContent.trim()]||lc(c.textContent.trim());
     }
     return '';
   }
