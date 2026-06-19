@@ -13088,6 +13088,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     fgktSetResearcher();
     document.getElementById('fgktForm').style.display='flex';
     fgktRecalc();
+    fgktSheetSync(true); // açılışta sessiz tam senkron (eski/kaçan kayıtları toparlar)
   };
   window.hideFgktForm=function(){
     document.getElementById('fgktForm').style.display='none';
@@ -13162,18 +13163,20 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       st.style.color='#1a7a1a';st.textContent=`${recs.length} kayıt Excel olarak indirildi.`;
     }catch(e){st.style.color='#b00020';st.textContent='Bağlantı hatası.';}
   };
-  window.fgktSheetSync=async function(){
+  window.fgktSheetSync=async function(silent){
     const st=document.getElementById('fgktStatus');
-    if(!GSHEET_SYNC_URL){st.style.color='#b00020';st.textContent='Google Sheet bağlantısı (URL) henüz ayarlanmadı.';return;}
-    st.style.color='#888';st.textContent='Google Sheet’e aktarılıyor…';
+    const say=(c,t)=>{ if(!silent&&st){st.style.color=c;st.textContent=t;} };
+    if(!GSHEET_SYNC_URL){say('#b00020','Google Sheet bağlantısı (URL) henüz ayarlanmadı.');return;}
+    say('#888','Google Sheet’e aktarılıyor…');
     try{
       const res=await fetch(`${SUPABASE_URL}/rest/v1/fgkt_records?select=*&order=created_at.asc`,{headers:apiHeaders()});
-      if(!res.ok){st.style.color='#b00020';st.textContent='Kayıtlar alınamadı.';return;}
+      if(!res.ok){say('#b00020','Kayıtlar alınamadı.');return;}
       const recs=await res.json();
+      if(!recs.length&&silent)return; // sessiz modda boş sonuç (oturum/RLS) tabloyu silmesin
       const t=fgktTable(recs);
       await gsheetPost({secret:GSHEET_SECRET,mode:'replace',header:t.header,rows:t.rows});
-      st.style.color='#1a7a1a';st.textContent=`${recs.length} kayıt Google Sheet’e gönderildi (Sheet’i kontrol edin).`;
-    }catch(e){st.style.color='#b00020';st.textContent='Bağlantı hatası.';}
+      say('#1a7a1a',`${recs.length} kayıt Google Sheet’e gönderildi (Sheet’i kontrol edin).`);
+    }catch(e){say('#b00020','Bağlantı hatası.');}
   };
 
   const followups={
