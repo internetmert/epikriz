@@ -13142,8 +13142,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     return {header,rows};
   }
   function gsheetPost(payload){
-    if(!GSHEET_SYNC_URL)return Promise.resolve(false);
-    return fetch(GSHEET_SYNC_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).then(()=>true).catch(()=>false);
+    if(!GSHEET_SYNC_URL)return Promise.resolve({ok:false,err:'URL yok'});
+    return fetch(GSHEET_SYNC_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+      .then(r=>r.text()).then(t=>({ok:(t||'').trim()==='ok',body:(t||'').trim()})).catch(e=>({ok:false,err:String(e)}));
   }
   function gsheetAppendOne(rec){
     if(!GSHEET_SYNC_URL||!rec)return;
@@ -13171,12 +13172,13 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     say('#888','Google Sheet’e aktarılıyor…');
     try{
       const res=await fetch(`${SUPABASE_URL}/rest/v1/fgkt_records?select=*&order=created_at.asc`,{headers:apiHeaders()});
-      if(!res.ok){say('#b00020','Kayıtlar alınamadı.');return;}
+      if(!res.ok){say('#b00020','Kayıtlar alınamadı (HTTP '+res.status+').');return;}
       const recs=await res.json();
-      if(!recs.length&&silent)return; // sessiz modda boş sonuç (oturum/RLS) tabloyu silmesin
+      if(!recs.length){ say('#b00020','Supabase’den 0 kayıt geldi — aktarım atlandı (giriş/oturum kontrol et).'); return; }
       const t=fgktTable(recs);
-      await gsheetPost({secret:GSHEET_SECRET,mode:'replace',header:t.header,rows:t.rows});
-      say('#1a7a1a',`${recs.length} kayıt Google Sheet’e gönderildi (Sheet’i kontrol edin).`);
+      const r=await gsheetPost({secret:GSHEET_SECRET,mode:'replace',header:t.header,rows:t.rows});
+      if(r.ok) say('#1a7a1a',`${recs.length} kayıt Google Sheet’e aktarıldı.`);
+      else say('#b00020','Sheet hatası: '+(r.body||r.err||'bilinmiyor'));
     }catch(e){say('#b00020','Bağlantı hatası.');}
   };
 
