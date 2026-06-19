@@ -92,6 +92,14 @@
   .login-err{color:#b00020;font-size:12px;margin-top:8px;min-height:15px;}
   .login-panel input{margin-bottom:9px;}
   .sfae-btn{font-style:italic;letter-spacing:.3px;}
+  .admin-tools{display:flex;flex-direction:column;gap:6px;margin:11px 0;}
+  .admin-tools label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer;}
+  .admin-tools input{width:15px;height:15px;flex:none;cursor:pointer;}
+  .admin-status{font-size:12px;min-height:15px;margin-top:7px;}
+  .admin-sub{font-size:11px;font-weight:700;margin:13px 0 5px;color:var(--muted);}
+  .admin-row{display:flex;align-items:center;gap:7px;font-size:11px;padding:5px 0;border-top:1px solid var(--shadow);}
+  .admin-row span{flex:1;line-height:1.3;word-break:break-word;}
+  .admin-row button{font-size:10px;padding:2px 7px;cursor:pointer;border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);background:var(--face);color:var(--ink);}
   .login-panel{position:relative;}
   #gandalf{position:absolute;left:50%;bottom:calc(100% + 2px);transform:translateX(-50%);display:none;flex-direction:column;align-items:center;pointer-events:none;}
   #gandalf .gx-inner{display:flex;flex-direction:column;align-items:center;animation:gx-shake 1.6s infinite;}
@@ -669,6 +677,30 @@ html[data-theme="light"] .feedback-status,html[data-theme="light"] .feedback-cou
   <h1 id="testHello">Araçlar</h1>
   <div id="testTools" style="display:flex;flex-direction:column;gap:14px;align-items:center;"></div>
   <button type="button" class="test-login-btn" style="margin-top:18px;" onclick="testLogout()">← Çıkış</button>
+</div>
+
+<div class="landing" id="adminPanel" style="display:none;">
+  <div class="login-panel" style="width:360px;max-width:92vw;">
+    <h2>Admin — Kullanıcı Araçları</h2>
+    <input type="text" id="adminUser" placeholder="kullanıcı adı (ör. nurse1)" autocomplete="off">
+    <input type="text" id="adminName" placeholder="Görünen ad (opsiyonel)" autocomplete="off">
+    <div class="admin-tools">
+      <label><input type="checkbox" value="falls"> Falls Score</label>
+      <label><input type="checkbox" value="dahili"> Acil Dahili Hasta</label>
+      <label><input type="checkbox" value="adli"> Adli Muayene</label>
+      <label><input type="checkbox" value="travma"> Travma</label>
+    </div>
+    <div class="login-actions">
+      <button type="button" onclick="adminSave()">Kaydet</button>
+      <button type="button" onclick="adminClear()">Temizle</button>
+    </div>
+    <div class="admin-status" id="adminStatus"></div>
+    <div class="admin-sub">Tanımlı kullanıcılar</div>
+    <div id="adminList"></div>
+    <div class="login-actions" style="margin-top:10px;">
+      <button type="button" onclick="hideAdminPanel()" title="Geri">←</button>
+    </div>
+  </div>
 </div>
 
 <div class="landing" id="morseForm" style="display:none;">
@@ -12748,6 +12780,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     appBody.style.display='none';
     document.getElementById('testLogin').style.display='none';
     document.getElementById('testLanding').style.display='none';
+    document.getElementById('adminPanel').style.display='none';
     document.getElementById('btnYeniHasta').style.display='none';
     document.getElementById('btnSil').style.display='none';
     document.getElementById('btnKopyala').style.display='none';
@@ -12850,6 +12883,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     document.getElementById('testLanding').style.display='none';
     document.getElementById('testLogin').style.display='none';
     document.getElementById('morseForm').style.display='none';
+    document.getElementById('adminPanel').style.display='none';
     landing.style.display='flex';
   };
   // Kullanıcı bazlı "Araçlar": her kullanıcının göreceği araçlar Supabase
@@ -12863,25 +12897,98 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function sessionUser(){
     try{const s=JSON.parse(localStorage.getItem('epikriz_session')); return (s&&s.user)||null;}catch(e){return null;}
   }
-  function renderTools(){
+  function curUsername(){ const u=sessionUser(); return u&&u.email ? (u.email.endsWith(AUTH_DOMAIN)?u.email.slice(0,-AUTH_DOMAIN.length):u.email) : ''; }
+  function isAdmin(){ return curUsername().toLowerCase()==='drmert'; }
+  function renderToolsButtons(tools, name){
     const host=document.getElementById('testTools'); if(!host)return;
-    const u=sessionUser();
-    const meta=Object.assign({}, (u&&u.user_metadata)||{}, (u&&u.app_metadata)||{});
-    let tools=Array.isArray(meta.tools)?meta.tools:null;
-    if(!tools||!tools.length)tools=['falls'];
-    const name=meta.display_name || (u&&u.email ? (u.email.endsWith(AUTH_DOMAIN)?u.email.slice(0,-AUTH_DOMAIN.length):u.email) : '');
     const hello=document.getElementById('testHello');
     if(hello)hello.textContent=name?`Merhaba, ${name}`:'Araçlar';
     host.innerHTML='';
-    tools.forEach(key=>{
+    (tools&&tools.length?tools:['falls']).forEach(key=>{
       const t=TOOL_REGISTRY[key]; if(!t)return;
-      const b=document.createElement('button');
-      b.type='button'; b.className='test-login-btn'; b.textContent=t.label;
-      b.addEventListener('click',t.fn);
-      host.appendChild(b);
+      const b=document.createElement('button'); b.type='button'; b.className='test-login-btn'; b.textContent=t.label;
+      b.addEventListener('click',t.fn); host.appendChild(b);
     });
-    if(!host.children.length){const d=document.createElement('div');d.style.cssText='font-size:12px;color:#888;';d.textContent='Atanmış araç yok.';host.appendChild(d);}
+    if(isAdmin()){
+      const b=document.createElement('button'); b.type='button'; b.className='test-login-btn'; b.style.cssText='background:#caa84a;color:#1a1208;';
+      b.textContent='🔧 Admin Paneli'; b.addEventListener('click',()=>window.showAdminPanel()); host.appendChild(b);
+    }
   }
+  async function renderTools(){
+    const u=sessionUser();
+    const meta=Object.assign({}, (u&&u.user_metadata)||{}, (u&&u.app_metadata)||{});
+    const uname=curUsername();
+    renderToolsButtons(Array.isArray(meta.tools)&&meta.tools.length?meta.tools:null, meta.display_name||uname);
+    if(!uname)return;
+    try{
+      const res=await fetch(`${SUPABASE_URL}/rest/v1/user_tools?username=eq.${encodeURIComponent(uname)}&select=tools,display_name`,{headers:fallsAuthHeaders()});
+      if(res.ok){const rows=await res.json(); if(rows&&rows[0]) renderToolsButtons(rows[0].tools, rows[0].display_name||meta.display_name||uname);}
+    }catch(e){}
+  }
+  // ---- Admin paneli (sadece drmert; yazma RLS ile drmert'e kilitli) ----
+  window.showAdminPanel=function(){
+    if(!isAdmin())return;
+    document.getElementById('testLanding').style.display='none';
+    document.getElementById('adminPanel').style.display='flex';
+    window.adminClear(); adminLoadList();
+  };
+  window.hideAdminPanel=function(){
+    document.getElementById('adminPanel').style.display='none';
+    renderTools();
+    document.getElementById('testLanding').style.display='flex';
+  };
+  window.adminClear=function(){
+    document.getElementById('adminUser').value='';
+    document.getElementById('adminName').value='';
+    document.querySelectorAll('#adminPanel .admin-tools input').forEach(c=>c.checked=false);
+    const s=document.getElementById('adminStatus'); if(s)s.textContent='';
+  };
+  function adminEditRow(r){
+    document.getElementById('adminUser').value=r.username;
+    document.getElementById('adminName').value=r.display_name||'';
+    document.querySelectorAll('#adminPanel .admin-tools input').forEach(c=>{c.checked=(r.tools||[]).includes(c.value);});
+    document.getElementById('adminStatus').textContent='';
+  }
+  async function adminLoadList(){
+    const host=document.getElementById('adminList'); if(!host)return;
+    host.textContent='Yükleniyor…';
+    try{
+      const res=await fetch(`${SUPABASE_URL}/rest/v1/user_tools?select=*&order=username.asc`,{headers:fallsAuthHeaders()});
+      if(!res.ok){const d=await res.json().catch(()=>({}));host.textContent='Liste alınamadı: '+(d.message||('HTTP '+res.status));return;}
+      const rows=await res.json();
+      host.innerHTML='';
+      if(!rows.length){host.innerHTML='<div style="font-size:11px;color:#888;">Henüz tanımlı kullanıcı yok.</div>';return;}
+      rows.forEach(r=>{
+        const div=document.createElement('div'); div.className='admin-row';
+        const info=document.createElement('span'); info.innerHTML=`<b>${esc(r.username)}</b>${r.display_name?' ('+esc(r.display_name)+')':''} — ${(r.tools||[]).map(esc).join(', ')||'—'}`;
+        const ed=document.createElement('button'); ed.type='button'; ed.textContent='Düzenle'; ed.onclick=()=>adminEditRow(r);
+        const del=document.createElement('button'); del.type='button'; del.textContent='Sil'; del.onclick=()=>window.adminDelete(r.username);
+        div.appendChild(info); div.appendChild(ed); div.appendChild(del); host.appendChild(div);
+      });
+    }catch(e){host.textContent='Bağlantı hatası.';}
+  }
+  window.adminSave=async function(){
+    const status=document.getElementById('adminStatus');
+    const uname=(document.getElementById('adminUser').value||'').trim().toLowerCase();
+    if(!uname){status.style.color='#b00020';status.textContent='Kullanıcı adı girin.';return;}
+    const name=(document.getElementById('adminName').value||'').trim();
+    const tools=[...document.querySelectorAll('#adminPanel .admin-tools input:checked')].map(c=>c.value);
+    status.style.color='#333';status.textContent='Kaydediliyor…';
+    try{
+      const res=await fetch(`${SUPABASE_URL}/rest/v1/user_tools`,{method:'POST',headers:{...fallsAuthHeaders(),'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({username:uname,tools,display_name:name||null})});
+      if(res.ok){status.style.color='#1a7a1a';status.textContent='Kaydedildi: '+uname;adminLoadList();}
+      else{const d=await res.json().catch(()=>({}));status.style.color='#b00020';status.textContent='Kaydedilemedi: '+(d.message||d.hint||('HTTP '+res.status));}
+    }catch(e){status.style.color='#b00020';status.textContent='Bağlantı hatası.';}
+  };
+  window.adminDelete=async function(uname){
+    if(!confirm(uname+' kaydı silinsin mi?'))return;
+    const status=document.getElementById('adminStatus');
+    try{
+      const res=await fetch(`${SUPABASE_URL}/rest/v1/user_tools?username=eq.${encodeURIComponent(uname)}`,{method:'DELETE',headers:fallsAuthHeaders()});
+      if(res.ok){status.style.color='#1a7a1a';status.textContent='Silindi: '+uname;adminLoadList();}
+      else{const d=await res.json().catch(()=>({}));status.style.color='#b00020';status.textContent='Silinemedi: '+(d.message||('HTTP '+res.status));}
+    }catch(e){status.style.color='#b00020';status.textContent='Bağlantı hatası.';}
+  };
 
   // ---- Morse Düşme Skalası (Falls Score) ----
   const MORSE_ITEMS=[
