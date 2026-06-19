@@ -666,8 +666,8 @@ html[data-theme="light"] .feedback-status,html[data-theme="light"] .feedback-cou
 </div>
 
 <div class="landing" id="testLanding" style="display:none;">
-  <h1>Araçlar</h1>
-  <button type="button" class="test-login-btn" onclick="showMorseForm()">Falls Score</button>
+  <h1 id="testHello">Araçlar</h1>
+  <div id="testTools" style="display:flex;flex-direction:column;gap:14px;align-items:center;"></div>
   <button type="button" class="test-login-btn" style="margin-top:18px;" onclick="testLogout()">← Çıkış</button>
 </div>
 
@@ -12732,6 +12732,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     currentMode=mode;
     applyMode(mode);
     landing.style.display='none';
+    document.getElementById('testLanding').style.display='none';
+    document.getElementById('testLogin').style.display='none';
     appBody.style.display='flex';
     document.getElementById('btnYeniHasta').style.display='';
     document.getElementById('btnSil').style.display='';
@@ -12806,6 +12808,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(r.ok){
       err.textContent='';
       document.getElementById('testLogin').style.display='none';
+      renderTools();
       document.getElementById('testLanding').style.display='flex';
       clearLoginHash();
     }else if(r.error==='network'){
@@ -12849,6 +12852,36 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     document.getElementById('morseForm').style.display='none';
     landing.style.display='flex';
   };
+  // Kullanıcı bazlı "Araçlar": her kullanıcının göreceği araçlar Supabase
+  // user_metadata.tools (ya da app_metadata.tools) dizisinden gelir; tanımsızsa varsayılan.
+  const TOOL_REGISTRY={
+    falls:{label:'Falls Score', fn:()=>window.showMorseForm()},
+    dahili:{label:'🏥 Acil Dahili Hasta', fn:()=>window.selectMode('dahili')},
+    adli:{label:'⚖️ Adli Muayene', fn:()=>window.selectMode('adli')},
+    travma:{label:'🚑 Travma', fn:()=>window.selectMode('travma')},
+  };
+  function sessionUser(){
+    try{const s=JSON.parse(localStorage.getItem('epikriz_session')); return (s&&s.user)||null;}catch(e){return null;}
+  }
+  function renderTools(){
+    const host=document.getElementById('testTools'); if(!host)return;
+    const u=sessionUser();
+    const meta=Object.assign({}, (u&&u.user_metadata)||{}, (u&&u.app_metadata)||{});
+    let tools=Array.isArray(meta.tools)?meta.tools:null;
+    if(!tools||!tools.length)tools=['falls'];
+    const name=meta.display_name || (u&&u.email ? (u.email.endsWith(AUTH_DOMAIN)?u.email.slice(0,-AUTH_DOMAIN.length):u.email) : '');
+    const hello=document.getElementById('testHello');
+    if(hello)hello.textContent=name?`Merhaba, ${name}`:'Araçlar';
+    host.innerHTML='';
+    tools.forEach(key=>{
+      const t=TOOL_REGISTRY[key]; if(!t)return;
+      const b=document.createElement('button');
+      b.type='button'; b.className='test-login-btn'; b.textContent=t.label;
+      b.addEventListener('click',t.fn);
+      host.appendChild(b);
+    });
+    if(!host.children.length){const d=document.createElement('div');d.style.cssText='font-size:12px;color:#888;';d.textContent='Atanmış araç yok.';host.appendChild(d);}
+  }
 
   // ---- Morse Düşme Skalası (Falls Score) ----
   const MORSE_ITEMS=[
@@ -12884,6 +12917,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   };
   window.hideMorseForm=function(){
     document.getElementById('morseForm').style.display='none';
+    renderTools();
     document.getElementById('testLanding').style.display='flex';
   };
   window.resetMorse=function(){
