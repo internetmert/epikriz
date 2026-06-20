@@ -1891,27 +1891,30 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
         <button class="chip">Geçirilmiş operasyon</button>
         <button class="chip" id="chipGebelik">Gebelik</button>
       </div>
-      <div class="mini-row" id="stentBox" style="display:none">
-        Stent sayısı: <input class="txt" id="f_stent_sayi" type="number" min="1" step="1" placeholder="adet">
+      <div class="subpop" id="stentBox" style="display:none">
+        Stent sayısı:
+        <div class="chips" data-single="true" style="margin-top:4px;">
+          <button class="chip">1</button><button class="chip">2</button><button class="chip">3</button>
+          <button class="chip">4</button><button class="chip">5</button><button class="chip">6+</button>
+        </div>
       </div>
-      <div class="mini-row" id="diyalizBox" style="display:none">
-        Haftalık diyaliz: <select class="txt" id="f_diyaliz_gun" style="width:auto;min-width:50px;">
-          <option value="">—</option>
-          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-          <option value="7">7</option>
-        </select> / 7
+      <div class="subpop" id="diyalizBox" style="display:none">
+        Haftalık diyaliz (gün):
+        <div class="chips" data-single="true" style="margin-top:4px;">
+          <button class="chip">1</button><button class="chip">2</button><button class="chip">3</button>
+          <button class="chip">4</button><button class="chip">5</button><button class="chip">6</button><button class="chip">7</button>
+        </div>
       </div>
-      <div class="mini-row" id="bypassYearBox" style="display:none">
+      <div class="subpop" id="bypassYearBox" style="display:none">
         Kaç yıl önce?: <input class="txt" id="f_bypass_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
       </div>
-      <div class="mini-row" id="svoYearBox" style="display:none">
+      <div class="subpop" id="svoYearBox" style="display:none">
         Kaç yıl önce?: <input class="txt" id="f_svo_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
       </div>
-      <div class="mini-row" id="pedvtYearBox" style="display:none">
+      <div class="subpop" id="pedvtYearBox" style="display:none">
         Kaç yıl önce?: <input class="txt" id="f_pedvt_yil" type="number" min="1950" max="2100" step="1" placeholder="yıl">
       </div>
-      <div class="mini-row" id="gebelikBox" style="display:none">
+      <div class="subpop" id="gebelikBox" style="display:none">
         Kaç hafta?: <select class="txt" id="f_gebelik_hafta" style="width:auto;min-width:60px;">
           <option value="">—</option>
           <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
@@ -1921,12 +1924,14 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
           <option value="41">41</option><option value="42">42</option>
         </select>
       </div>
-      <div class="chips" id="psikSub" style="display:none;margin-top:7px;">
-        <button class="chip">Depresyon</button>
-        <button class="chip">Bipolar bozukluk</button>
-        <button class="chip">Şizofreni</button>
-        <button class="chip">Anksiyete bozukluğu</button>
-        <button class="chip">Diğer</button>
+      <div class="subpop" id="psikSub" style="display:none">
+        <div class="chips">
+          <button class="chip">Depresyon</button>
+          <button class="chip">Bipolar bozukluk</button>
+          <button class="chip">Şizofreni</button>
+          <button class="chip">Anksiyete bozukluğu</button>
+          <button class="chip">Diğer</button>
+        </div>
       </div>
       <input class="extra" data-extra placeholder="Diğer / ek bilgi">
     </div>
@@ -14179,6 +14184,15 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   const pedvtYearBox=document.getElementById('pedvtYearBox');
   const gebelikBox=document.getElementById('gebelikBox');
 
+  // Detay kutuları artık popover (fiziki muayene defans picker'ı gibi): chip'e tıklayınca açılır
+  chipToPanel.set(chipStent, stentBox);
+  chipToPanel.set(chipDiyaliz, diyalizBox);
+  chipToPanel.set(chipPsik, psikSub);
+  chipToPanel.set(chipBypass, bypassYearBox);
+  chipToPanel.set(chipSvo, svoYearBox);
+  chipToPanel.set(chipPedvt, pedvtYearBox);
+  chipToPanel.set(chipGebelik, gebelikBox);
+
   // Yıl/hafta bilgisi gerektiren chip'ler: chip -> {box, inputId, fmt}
   const ozgecmisExtraMap=[
     {chip:chipBypass, box:bypassYearBox, inputId:'f_bypass_yil', fmt:v=>` (${v})`},
@@ -14187,26 +14201,18 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     {chip:chipGebelik, box:gebelikBox, inputId:'f_gebelik_hafta', fmt:v=>` (${v} hafta)`},
   ];
 
-  function updateOzgecmisExtras(){
-    stentBox.style.display=chipStent.classList.contains('active')?'flex':'none';
-    diyalizBox.style.display=chipDiyaliz.classList.contains('active')?'flex':'none';
-    psikSub.style.display=chipPsik.classList.contains('active')?'flex':'none';
-    ozgecmisExtraMap.forEach(({chip,box})=>{
-      box.style.display=chip.classList.contains('active')?'flex':'none';
-    });
-  }
+  function updateOzgecmisExtras(){ repositionPop(); }
 
   function ozgecmisText(){
     const box=form.querySelector('[data-field="ozgecmis"]');
     let parts=[];
-    box.querySelectorAll(':scope > .chips .chip.active').forEach(c=>{
-      if(psikSub.contains(c))return;
+    box.querySelector(':scope > .chips').querySelectorAll('.chip.active').forEach(c=>{
       if(c===chipStent){
-        const n=val('f_stent_sayi');
-        parts.push(n?`Stent: ${n} adet`:'Stent');
+        const s=stentBox.querySelector('.chip.active');
+        parts.push(s?`Stent: ${s.textContent.trim()} adet`:'Stent');
       }else if(c===chipDiyaliz){
-        const g=val('f_diyaliz_gun');
-        parts.push(g?`Diyaliz alıyor (${g}/7)`:'Diyaliz alıyor');
+        const g=diyalizBox.querySelector('.chip.active');
+        parts.push(g?`Diyaliz alıyor (${g.textContent.trim()}/7)`:'Diyaliz alıyor');
       }else if(c===chipPsik){
         const subs=[];
         psikSub.querySelectorAll('.chip.active').forEach(s=>subs.push(s.dataset.full||s.textContent.trim()));
