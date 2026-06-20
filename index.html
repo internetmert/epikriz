@@ -13125,10 +13125,13 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     }catch(e){ idEl.value=px+'-0001'; }
   }
   function fgktSetResearcher(){ const el=document.getElementById('fg_arastirmaci'); if(el){ el.value=curUsername(); el.readOnly=true; } }
+  function nowLocalDT(){ const d=new Date(),p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); }
+  function setNowDT(id,force){ const el=document.getElementById(id); if(el&&(force||!el.value))el.value=nowLocalDT(); }
   window.showFgktForm=function(){
     document.getElementById('testLanding').style.display='none';
     buildFgktForm();
     fgktSetResearcher();
+    setNowDT('fg_basvuru_tarihi');
     document.getElementById('fgktForm').style.display='flex';
     fgktRecalc();
     fgktSheetSync(true); // açılışta sessiz tam senkron (eski/kaçan kayıtları toparlar)
@@ -13143,6 +13146,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     document.querySelectorAll('#fgktBody select').forEach(s=>s.value='');
     document.getElementById('fgktStatus').textContent='';
     fgktSetResearcher();
+    setNowDT('fg_basvuru_tarihi',true);
     fgktRecalc();
   };
   window.fgktSave=async function(){
@@ -13260,7 +13264,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const f=document.getElementById('fdrForm');
     if(!f.dataset.wired){ f.addEventListener('change',fdrRecalc); f.dataset.wired='1'; }
     f.style.display='flex';
-    fdrSetResearcher(); fdrSuggestId(); fdrRecalc();
+    fdrSetResearcher(); fdrSuggestId(); setNowDT('fdr_tarih'); fdrRecalc();
     fdrSheetSync(true);
   };
   window.hideFdrForm=function(){
@@ -13271,7 +13275,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   window.fdrClear=function(){
     ['hasta_id','tarih','cfs','bas_carpmasi_yok','amnezi_yok','noro_yok'].forEach(id=>{const el=document.getElementById('fdr_'+id); if(el)el.value='';});
     document.getElementById('fdrStatus').textContent='';
-    fdrSetResearcher(); fdrSuggestId(); fdrRecalc();
+    fdrSetResearcher(); fdrSuggestId(); setNowDT('fdr_tarih',true); fdrRecalc();
   };
   window.fdrSave=async function(){
     const st=document.getElementById('fdrStatus');
