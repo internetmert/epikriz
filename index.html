@@ -52,6 +52,10 @@
   /* mod secim ekrani */
   .landing{display:flex;flex-direction:column;align-items:center;justify-content:center;
     min-height:calc(100vh - 46px);padding:40px 16px;gap:28px;text-align:center;}
+  #landing{position:relative;}
+  .landing-support{position:absolute;top:12px;right:16px;font-size:12px;color:var(--muted);text-decoration:none;text-transform:none;z-index:5;}
+  .landing-support:hover{color:var(--accent);text-decoration:underline;}
+  .landing-copyright{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:11px;color:var(--muted);opacity:.7;text-transform:none;}
   .landing h1{font-size:16px;font-weight:700;margin:0;text-transform:none;}
   .landing p{font-size:12px;font-weight:400;text-transform:none;margin:0;color:var(--muted);}
   .landing-grid{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;}
@@ -592,6 +596,7 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
 </div>
 
 <div class="landing" id="landing">
+  <a class="landing-support" href="mailto:destek@yazar.uk">destek@yazar.uk</a>
   <div class="theme-switch-row">
     <div class="theme-switch" role="group" aria-label="Tema">
       <button type="button" class="theme-opt" data-theme-val="dark" onclick="setTheme('dark')" title="Koyu" aria-label="Koyu">☾</button>
@@ -622,6 +627,7 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
     <p>İlgili alanları işaretledikçe sağ tarafta profesyonel bir epikriz metni anında oluşur. Hasta başında telefonunuzdan girdiğiniz notları bilgisayarınızla senkronize edebilir, hazır metni tek tıkla kopyalayıp HBYS'ye yapıştırabilirsiniz.</p>
     <p>Daha az yazım yükü, daha hızlı dokümantasyon.</p>
   </div>
+  <div class="landing-copyright">&copy; 2026 Mert Çiftçi</div>
 </div>
 
 <div class="landing" id="testLogin" style="display:none;">
