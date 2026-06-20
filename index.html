@@ -12833,6 +12833,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   }
   window.addEventListener('hashchange',syncLoginRoute);
   if(location.hash==='#login') window.showTestLogin();
+  // Oturum token'ını proaktif tazele: açılışta + 45 dk'da bir + sekmeye dönünce (1 saatlik süre dolmadan)
+  refreshSession();
+  setInterval(refreshSession, 45*60*1000);
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible') refreshSession(); });
   window.doTestLogin=async function(){
     const u=document.getElementById('loginUser').value.trim();
     const p=document.getElementById('loginPass').value;
@@ -12999,6 +13003,17 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     let token=SUPABASE_KEY;
     try{const s=JSON.parse(localStorage.getItem('epikriz_session')); if(s&&s.access_token)token=s.access_token;}catch(e){}
     return {'apikey':SUPABASE_KEY,'Authorization':`Bearer ${token}`,'Content-Type':'application/json'};
+  }
+  async function refreshSession(){
+    let s=null; try{s=JSON.parse(localStorage.getItem('epikriz_session'));}catch(e){}
+    if(!s||!s.refresh_token)return false;
+    try{
+      const res=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:s.refresh_token})});
+      if(!res.ok)return false;
+      const d=await res.json();
+      if(d&&d.access_token){ localStorage.setItem('epikriz_session',JSON.stringify({access_token:d.access_token,refresh_token:d.refresh_token||s.refresh_token,user:d.user||s.user})); return true; }
+    }catch(e){}
+    return false;
   }
 
   // ---- FGKT-KKK Olgu Kayıt Formu (Florida Geriatrik Kafa Travması BT kuralı, TR dış-validasyon) ----
@@ -13174,6 +13189,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     try{
       const res=await fetch(`${SUPABASE_URL}/rest/v1/fgkt_records`,{method:'POST',headers:{...apiHeaders(),'Prefer':'return=representation'},body:JSON.stringify(rec)});
       if(res.ok){st.style.color='#1a7a1a';st.textContent=(fgktState.excluded?'Dışlanan kayıt eklendi: ':'Kaydedildi: ')+hasta_id; const saved=await res.json().catch(()=>null); gsheetAppendOne((saved&&saved[0])||rec);}
+      else if(res.status===401){st.style.color='#b00020';st.textContent='Oturum süresi doldu — sayfayı yenileyip tekrar giriş yapın.';}
       else{const d=await res.json().catch(()=>({}));st.style.color='#b00020';st.textContent='Kaydedilemedi: '+(d.code==='23505'?'Hasta ID zaten var':(d.message||d.hint||('HTTP '+res.status)));}
     }catch(e){st.style.color='#b00020';st.textContent='Bağlantı hatası.';}
   };
@@ -13284,6 +13300,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(!fdrV('tarih')){st.style.color='#b00020';st.textContent='Değerlendirme tarih-saati gerekli.';return;}
     const cfs=parseInt(fdrV('cfs'));
     if(isNaN(cfs)){st.style.color='#b00020';st.textContent='CFS skoru gerekli.';return;}
+    for(const k of ['bas_carpmasi_yok','amnezi_yok','noro_yok']){ if(!fdrV(k)){st.style.color='#b00020';st.textContent='Üç kriteri de (baş çarpması, amnezi, nörolojik) yanıtlayın.';return;} }
     if(!fdrState.sonuc){st.style.color='#b00020';st.textContent='Tüm kriterleri (baş çarpması, amnezi, nörolojik) yanıtlayın.';return;}
     const cfs5=cfs<5?'Evet':'Hayır';
     const data={tarih:fdrV('tarih'),cfs_tanim:CFS_DEFS[cfs]?CFS_DEFS[cfs][0]:'',cfs5,bas_carpmasi_yok:fdrV('bas_carpmasi_yok'),amnezi_yok:fdrV('amnezi_yok'),noro_yok:fdrV('noro_yok')};
@@ -13292,6 +13309,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     try{
       const res=await fetch(`${SUPABASE_URL}/rest/v1/fdr_records`,{method:'POST',headers:{...apiHeaders(),'Prefer':'return=representation'},body:JSON.stringify(rec)});
       if(res.ok){ st.style.color='#1a7a1a';st.textContent='Kaydedildi: '+hasta_id; const saved=await res.json().catch(()=>null); fdrAppendOne((saved&&saved[0])||rec); }
+      else if(res.status===401){ st.style.color='#b00020';st.textContent='Oturum süresi doldu — sayfayı yenileyip tekrar giriş yapın.'; }
       else{ const d=await res.json().catch(()=>({})); st.style.color='#b00020';st.textContent='Kaydedilemedi: '+(d.code==='23505'?'Hasta ID zaten var':(d.message||('HTTP '+res.status))); }
     }catch(e){st.style.color='#b00020';st.textContent='Bağlantı hatası.';}
   };
