@@ -13174,7 +13174,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     }catch(e){st.style.color='#b00020';st.textContent='Bağlantı hatası.';}
   };
   // ---- Ortak tablo / Google Sheet senkronu ----
-  const GSHEET_SYNC_URL='https://script.google.com/macros/s/AKfycbxxDZFJ3atuDLpfvBhPmGfbhqHuRZjybPXgTxeJ8nBvwZwQlXMFNbduyMMBL6Cjm3RL6Q/exec'; // Google Apps Script web app /exec URL (boşken Sheet senkronu kapalı)
+  const GSHEET_SYNC_URL='https://script.google.com/macros/s/AKfycbybssd2qWHxHKqmXy0r5LNRe_YdOqO_IIwPtVCN_roSJjivDtPYyq19UeORtBZA_UKh3w/exec'; // Google Apps Script web app /exec URL (boşken Sheet senkronu kapalı)
   const GSHEET_SECRET='fgkt-sheet-2026';
   function fgktTable(recs){
     const cols=[['created_at','Tarih'],['hasta_id','Hasta ID'],['merkez','Merkez'],['arastirmaci','Araştırmacı'],['excluded','Dışlandı'],['exclusion_reason','Dışlama nedeni'],...fgktAllFields().filter(f=>!['hasta_id','merkez','arastirmaci'].includes(f.k)).map(f=>[f.k,f.l])];
