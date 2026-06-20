@@ -3,55 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#2f6fed">
-<title>Mavi Kod</title>
+<title>Mavi Kod — Destek</title>
+<meta name="description" content="Mavi Kod uygulaması için destek, gizlilik ve iletişim bilgileri. Yalnızca eğitim ve simülasyon amaçlıdır.">
+<meta name="theme-color" content="#070f1c">
 <style>
   :root{
-    --bg:#0d1422; --card:#15213a; --ink:#e9eef8; --muted:#8ba0c2;
-    --blue:#2f6fed; --blue-soft:#5b8cff; --blue-deep:#1a3f95; --line:#27344f;
+    --bg:#070f1c; --bg2:#0b1730; --card:#10203a; --line:#1d3357;
+    --text:#eaf1fb; --muted:#9fb2cc; --blue:#5ac3ff; --amber:#f2c14e;
   }
-  *{box-sizing:border-box;}
-  html,body{height:100%;}
+  *{box-sizing:border-box;margin:0;padding:0}
   body{
-    margin:0;display:flex;align-items:center;justify-content:center;padding:22px;
-    background:radial-gradient(1100px 560px at 50% -12%, #1b2c58 0%, var(--bg) 62%);
-    color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#0d1c38 0%,var(--bg) 60%);
+    color:var(--text); line-height:1.6; -webkit-font-smoothing:antialiased;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px;
   }
+  .wrap{width:100%; max-width:640px}
+  .logo{display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:28px}
+  .logo svg{filter:drop-shadow(0 0 14px rgba(90,195,255,.55)); margin-bottom:14px}
+  h1{font-size:34px; font-weight:800; letter-spacing:.5px}
+  .sub{color:var(--muted); font-size:15px; margin-top:4px}
   .card{
-    background:var(--card);border:1px solid var(--line);border-radius:18px;
-    padding:40px 34px 30px;max-width:460px;width:100%;text-align:center;
-    box-shadow:0 24px 60px rgba(0,0,0,.5);
+    background:linear-gradient(180deg,var(--card),#0e1b32);
+    border:1px solid var(--line); border-radius:18px; padding:22px 24px; margin-top:16px;
   }
-  .beacon{
-    width:58px;height:58px;border-radius:50%;margin:0 auto 20px;
-    background:radial-gradient(circle at 36% 30%, var(--blue-soft), var(--blue) 55%, var(--blue-deep));
-    box-shadow:0 0 0 9px rgba(47,111,237,.14), 0 0 30px rgba(47,111,237,.55);
-    animation:pulse 2.4s ease-in-out infinite;
-  }
-  @keyframes pulse{
-    0%,100%{box-shadow:0 0 0 9px rgba(47,111,237,.14), 0 0 26px rgba(47,111,237,.45);}
-    50%{box-shadow:0 0 0 13px rgba(47,111,237,.06), 0 0 40px rgba(47,111,237,.75);}
-  }
-  h1{margin:0 0 8px;font-size:32px;font-weight:700;letter-spacing:.4px;}
-  h1 b{color:var(--blue-soft);font-weight:700;}
-  .tag{color:var(--muted);font-size:14.5px;line-height:1.55;margin:0 0 22px;}
-  .badge{
-    display:inline-block;font-size:12px;font-weight:600;color:#c4d6ff;
-    background:rgba(47,111,237,.14);border:1px solid rgba(47,111,237,.42);
-    border-radius:999px;padding:6px 14px;letter-spacing:.3px;
-  }
-  .foot{margin-top:28px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);}
-  .foot a{color:var(--blue-soft);text-decoration:none;}
-  .foot a:hover{text-decoration:underline;}
+  .card h2{font-size:17px; font-weight:700; margin-bottom:8px; color:var(--blue)}
+  .card p{color:var(--text); font-size:15px}
+  .muted{color:var(--muted)}
+  a{color:var(--blue); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .warn{border-color:#5a4a17; background:linear-gradient(180deg,#1c1606,#140f04)}
+  .warn h2{color:var(--amber)}
+  .mail{display:inline-block; margin-top:6px; font-weight:600; font-size:16px}
+  footer{text-align:center; color:var(--muted); font-size:13px; margin-top:24px}
 </style>
 </head>
 <body>
-  <main class="card">
-    <div class="beacon" aria-hidden="true"></div>
-    <h1>Mavi <b>Kod</b></h1>
-    <p class="tag">Hastane mavi kod (acil müdahale) aracı</p>
-    <span class="badge">Yapım aşamasında</span>
-    <div class="foot"><a href="/">← Acil Epikriz</a></div>
+  <main class="wrap">
+    <div class="logo">
+      <!-- Wolff-Parkinson-White EKG çizgisi (uygulama ikonuyla aynı) -->
+      <svg width="190" height="84" viewBox="0 0 190 84" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <polyline points="8,42 42,42 50,37 59,42 63,48 88,15 98,66 112,42 131,33 141,42 181,42"
+          stroke="#5ac3ff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h1>Mavi Kod</h1>
+      <div class="sub">Eğitim ve simülasyon amaçlı ACLS asistanı</div>
+    </div>
+
+    <section class="card">
+      <h2>Destek &amp; İletişim</h2>
+      <p>Sorularınız, geri bildirimleriniz ve hata bildirimleriniz için bize ulaşın:</p>
+      <a class="mail" href="mailto:destek@yazar.uk">destek@yazar.uk</a>
+    </section>
+
+    <section class="card">
+      <h2>Uygulama Hakkında</h2>
+      <p>Mavi Kod; sağlık profesyonelleri için resüsitasyon eğitimi ve tatbikatlarında
+      zamanlamayı ve olayları takip etmeye yardımcı olan bir ileri kardiyak yaşam desteği
+      (ACLS) zamanlayıcısı ve olay kaydedicisidir. Klinik zamanlama mantığı 2025 AHA
+      Erişkin İleri Yaşam Desteği kılavuzuna dayanır.</p>
+    </section>
+
+    <section class="card">
+      <h2>Gizlilik</h2>
+      <p>Mavi Kod kişisel veri toplamaz. Oturum kayıtları yalnızca cihazınızda saklanır;
+      hiçbir veri sunuculara gönderilmez veya üçüncü taraflarla paylaşılmaz.</p>
+    </section>
+
+    <section class="card warn">
+      <h2>Önemli Uyarı</h2>
+      <p>Bu uygulama <strong>yalnızca eğitim ve simülasyon</strong> amaçlıdır. Gerçek hasta
+      bakımında birincil karar aracı olarak kullanılamaz. Ritim yorumlamaz, tanı koymaz,
+      doz veya tedavi önermez. Klinik kararlar her zaman sağlık profesyoneline ve monitöre
+      aittir.</p>
+    </section>
+
+    <footer>© 2026 Mert Çiftçi — Mavi Kod</footer>
   </main>
 </body>
 </html>
