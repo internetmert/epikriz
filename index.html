@@ -13175,7 +13175,6 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   };
   // ---- Ortak tablo / Google Sheet senkronu ----
   const GSHEET_SYNC_URL='https://script.google.com/macros/s/AKfycbybssd2qWHxHKqmXy0r5LNRe_YdOqO_IIwPtVCN_roSJjivDtPYyq19UeORtBZA_UKh3w/exec'; // Google Apps Script web app /exec URL (boşken Sheet senkronu kapalı)
-  const GSHEET_SECRET='fgkt-sheet-2026';
   function fgktTable(recs){
     const cols=[['created_at','Tarih'],['hasta_id','Hasta ID'],['merkez','Merkez'],['arastirmaci','Araştırmacı'],['excluded','Dışlandı'],['exclusion_reason','Dışlama nedeni'],...fgktAllFields().filter(f=>!['hasta_id','merkez','arastirmaci'].includes(f.k)).map(f=>[f.k,f.l])];
     const top=['created_at','hasta_id','merkez','arastirmaci','excluded','exclusion_reason'];
@@ -13186,12 +13185,13 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   }
   function gsheetPost(payload){
     if(!GSHEET_SYNC_URL)return Promise.resolve({ok:false,err:'URL yok'});
-    return fetch(GSHEET_SYNC_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
-      .then(r=>r.text()).then(t=>({ok:(t||'').trim()==='ok',body:(t||'').trim()})).catch(e=>({ok:false,err:String(e)}));
+    let jwt=''; try{const s=JSON.parse(localStorage.getItem('epikriz_session')); jwt=(s&&s.access_token)||'';}catch(e){}
+    return fetch(GSHEET_SYNC_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...payload,jwt})})
+      .then(r=>r.text()).then(t=>{t=(t||'').trim();return {ok:t.indexOf('ok')===0,body:t};}).catch(e=>({ok:false,err:String(e)}));
   }
   function gsheetAppendOne(rec){
     if(!GSHEET_SYNC_URL||!rec)return;
-    const t=fgktTable([rec]); gsheetPost({secret:GSHEET_SECRET,sheet:'FGKT',mode:'append',header:t.header,row:t.rows[0]});
+    const t=fgktTable([rec]); gsheetPost({sheet:'FGKT',mode:'append',header:t.header,row:t.rows[0]});
   }
   window.fgktSheetSync=async function(silent){
     const st=document.getElementById('fgktStatus');
@@ -13204,7 +13204,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const recs=await res.json();
       if(!recs.length){ say('#b00020','Supabase’den 0 kayıt geldi — aktarım atlandı (giriş/oturum kontrol et).'); return; }
       const t=fgktTable(recs);
-      const r=await gsheetPost({secret:GSHEET_SECRET,sheet:'FGKT',mode:'replace',header:t.header,rows:t.rows});
+      const r=await gsheetPost({sheet:'FGKT',mode:'replace',header:t.header,rows:t.rows});
       if(r.ok) say('#1a7a1a',`${recs.length} kayıt Google Sheet’e aktarıldı.`);
       else say('#b00020','Sheet hatası: '+(r.body||r.err||'bilinmiyor'));
     }catch(e){say('#b00020','Bağlantı hatası.');}
@@ -13254,7 +13254,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const rows=recs.map(r=>{const d=r.data||{}; return cols.map(c=>cell(top.includes(c[0])?r[c[0]]:d[c[0]]));});
     return {header,rows};
   }
-  function fdrAppendOne(rec){ if(!GSHEET_SYNC_URL||!rec)return; const t=fdrTable([rec]); gsheetPost({secret:GSHEET_SECRET,sheet:'FALLS',mode:'append',header:t.header,row:t.rows[0]}); }
+  function fdrAppendOne(rec){ if(!GSHEET_SYNC_URL||!rec)return; const t=fdrTable([rec]); gsheetPost({sheet:'FALLS',mode:'append',header:t.header,row:t.rows[0]}); }
   window.showFdrForm=function(){
     document.getElementById('testLanding').style.display='none';
     const f=document.getElementById('fdrForm');
@@ -13302,7 +13302,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const recs=await res.json();
       if(!recs.length){ say('#b00020','Supabase’den 0 kayıt geldi — aktarım atlandı (giriş/oturum kontrol et).'); return; }
       const t=fdrTable(recs);
-      const r=await gsheetPost({secret:GSHEET_SECRET,sheet:'FALLS',mode:'replace',header:t.header,rows:t.rows});
+      const r=await gsheetPost({sheet:'FALLS',mode:'replace',header:t.header,rows:t.rows});
       if(r.ok) say('#1a7a1a',`${recs.length} kayıt Google Sheet’e aktarıldı.`);
       else say('#b00020','Sheet hatası: '+(r.body||r.err||'bilinmiyor'));
     }catch(e){say('#b00020','Bağlantı hatası.');}
