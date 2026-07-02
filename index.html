@@ -14644,7 +14644,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
         <span class="bm-readout" data-role="readout">Bölge seçilmedi — figürde bölgeye tıklayın.</span>
         <button class="bm-clear" type="button" data-role="bmclear">Temizle</button>
       </div>
-      <div class="bm-hint">Aynı bölgeye 2 kez → o bölgede lokalize · 2 farklı bölge → arası uzanan lezyon</div>
+      <div class="bm-hint">Bölgeye tıkla → lokalize · 2 farklı bölge → arası uzanan lezyon · seçili bölgeye tekrar tıkla → seçimi kaldır</div>
       <div class="sub">Lezyon tipi</div>
       <div class="chips" data-single="true" data-role="tip">
         <button class="chip">Ekimoz</button>
@@ -14741,10 +14741,12 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(card){
         let sel=card._sel||[];
         const zi=+zone.dataset.zi;
-        if(sel.length>=2){
-          // İki nokta seçiliyken: seçili noktalardan birine bas → o noktada lokalize (düzeltme);
-          // yeni bir noktaya bas → baştan başla
-          sel=sel.includes(zi)?[zi,zi]:[zi];
+        if(sel.includes(zi)){
+          // Seçili noktaya tekrar bas → o noktanın seçimini kaldır
+          sel=sel.filter(v=>v!==zi);
+        }else if(sel.length>=2){
+          // İki nokta doluyken yeni bir noktaya bas → baştan başla
+          sel=[zi];
         }else{
           sel.push(zi);
         }
@@ -14757,7 +14759,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
 
   function bmReadoutText(sel){
     if(!sel||!sel.length)return 'Bölge seçilmedi — figürde bölgeye tıklayın.';
-    if(sel.length===1)return '1. nokta: '+BM_DATA[sel[0]].rap+' — 2. nokta için tıklayın (aynı yer = lokalize).';
+    if(sel.length===1)return 'Lokalize: '+BM_DATA[sel[0]].rap+' — uzanan lezyon için 2. bölgeye tıklayın (tekrar tıkla = kaldır).';
     if(sel[0]===sel[1])return 'Lokalize: '+BM_DATA[sel[0]].rap;
     return 'Uzanan: '+BM_DATA[sel[0]].rap+' → '+BM_DATA[sel[1]].rap;
   }
@@ -14767,7 +14769,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     card.querySelectorAll('.bm-zone.sel').forEach(z=>z.classList.remove('sel'));
     card.querySelectorAll('.bm-badge').forEach(b=>b.remove());
     card.querySelectorAll('.bm-arrow').forEach(a=>a.remove());
-    const localized=sel.length===2&&sel[0]===sel[1];
+    const localized=sel.length===1||(sel.length===2&&sel[0]===sel[1]);
     [...new Set(sel)].forEach(zi=>{
       card.querySelectorAll('.bm-zone[data-zi="'+zi+'"]').forEach(z=>{
         z.classList.add('sel');
