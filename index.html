@@ -243,6 +243,19 @@
     text-transform:none;}
   .lezyon-del:active{border-color:var(--dark) var(--light) var(--light) var(--dark);
     box-shadow:inset 1px 1px 0 var(--shadow),inset -1px -1px 0 var(--hl);}
+  /* Katlanabilir lezyon kartı */
+  .lezyon-card.collapsed>*:not(.lezyon-head){display:none;}
+  .lezyon-head{cursor:pointer;user-select:none;}
+  .lezyon-head .lezyon-kat{font-size:10px;color:var(--muted);margin-right:6px;}
+  .lezyon-ozet{flex:1;min-width:0;margin:0 8px;font-size:11px;color:var(--muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* TCK rehberi (2019) karar desteği kutusu */
+  .tck-oneri{margin-top:8px;padding:7px 9px;font-size:11px;line-height:1.55;
+    background:#33301f;color:#e6d9a8;border:1px solid #5a5236;}
+  html[data-theme="light"] .tck-oneri{background:#ffffe1;color:#333;border-color:#b8a94f;}
+  .tck-oneri .tck-cakisma{color:var(--danger);font-weight:700;margin-top:4px;}
+  .tck-oneri .tck-uygula{margin-top:6px;}
+  .tck-oneri .tck-kaynak{display:block;margin-top:4px;font-size:9.5px;opacity:.75;}
 
   .extra,.txt{font-family:Arial,sans-serif;font-size:12.5px;color:var(--ink);background:var(--field);
     border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);
@@ -2577,6 +2590,8 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
         <button class="chip">İzlenmedi</button>
         <button class="chip">İzlendi</button>
       </div>
+
+      <div id="adliTckOneri" class="tck-oneri" style="display:none;"></div>
     </div>
 
   </div>
@@ -14474,6 +14489,28 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     });
   }
 
+  // Kart başlığındaki tek satır özet (katlıyken içerik görünür kalsın)
+  function updateLezyonOzets(){
+    lezyonList.querySelectorAll('.lezyon-card').forEach(card=>{
+      const parca=[];
+      const sel=card._sel||[];
+      if(sel.length){
+        parca.push(sel.length===2&&sel[0]!==sel[1]
+          ?BM_DATA[sel[0]].rap+' → '+BM_DATA[sel[1]].rap
+          :BM_DATA[sel[0]].rap);
+      }
+      const tip=card.querySelector('[data-role="tip"] .chip.active');
+      if(tip)parca.push(tip.textContent.trim());
+      const x=card.querySelector('[data-role="x"]').value,y=card.querySelector('[data-role="y"]').value;
+      if(x&&y)parca.push(x+'x'+y+' cm');else if(x||y)parca.push((x||y)+' cm');
+      const oz=card.querySelector('.lezyon-ozet');
+      const kat=card.querySelector('.lezyon-kat');
+      const collapsed=card.classList.contains('collapsed');
+      if(oz)oz.textContent=collapsed?(parca.join(' · ')||'(boş)'):'';
+      if(kat)kat.textContent=collapsed?'▸':'▾';
+    });
+  }
+
   // Açık (yelpaze) el geometrisi — çizim ve zone aynı noktaları kullanır.
   function handFingers(wx){
     const mir=wx<100?1:-1, X=dx=>wx+mir*dx, by=318;
@@ -14635,7 +14672,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const card=document.createElement('div');
     card.className='lezyon-card';
     card.innerHTML=`
-      <div class="lezyon-head"><span class="subhead" style="margin:0;">Lezyon</span><button class="lezyon-del" type="button" title="Lezyonu sil">×</button></div>
+      <div class="lezyon-head" title="Kartı katla/aç"><span class="subhead" style="margin:0;">Lezyon</span><span class="lezyon-ozet"></span><span class="lezyon-kat">▾</span><button class="lezyon-del" type="button" title="Lezyonu sil">×</button></div>
       <div class="bm-wrap">
         <div class="bm-fig"><span class="bm-cap">ÖN</span>${bodyFigure('on')}</div>
         <div class="bm-fig"><span class="bm-cap">ARKA</span>${bodyFigure('arka')}</div>
@@ -14719,7 +14756,11 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     render();
   }
 
-  lezyonAddBtn.addEventListener('click',createLezyonCard);
+  lezyonAddBtn.addEventListener('click',()=>{
+    // Yeni kart eklerken mevcut kartları katla (form uzamasın)
+    lezyonList.querySelectorAll('.lezyon-card:not(.collapsed)').forEach(c=>c.classList.add('collapsed'));
+    createLezyonCard();
+  });
 
   lezyonList.addEventListener('click',e=>{
     const del=e.target.closest('.lezyon-del');
@@ -14727,6 +14768,12 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       del.closest('.lezyon-card').remove();
       renumberLezyonCards();
       render();
+      return;
+    }
+    const head=e.target.closest('.lezyon-head');
+    if(head){
+      head.closest('.lezyon-card').classList.toggle('collapsed');
+      updateLezyonOzets();
       return;
     }
     const clr=e.target.closest('[data-role="bmclear"]');
@@ -14905,6 +14952,105 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     sentences.push('Durum bildirir geçici tek hekim raporudur.');
 
     return sentences.join(' ');
+  }
+
+  // --- TCK Rehberi (2019) karar desteği: BTM + yaşamsal tehlike önerisi ---
+  // Kaynak: "TCK'da Tanımlanan Yaralama Suçlarının Adli Tıp Açısından Değerlendirilmesi"
+  // (ATUD+ATK+ATD, Haziran 2019). Öneri niteliğindedir; kesin karar hekime aittir.
+  const adliTckOneriBox=document.getElementById('adliTckOneri');
+  const TCK_YUZ_SACLI=/frontal|temporal|periorbital|zigomatik|nazal|bukkal|dudak|mental|mandibular|aurikular|parietal|oksipital|verteks|mastoid|dil\b/i;
+  const TCK_GOVDE=/presternal|pektoral|epigastrik|hipokondriyak|umbilikal|hipogastrik|iliak|torakal|skapular|lomber|sakral/i;
+  function tckNum(s){return parseFloat(String(s||'').replace(',','.'))||0;}
+
+  function tckDegerlendir(){
+    const notlar=[];
+    let btm=false, hayati=false;   // btm=true → "giderilemez" önerisi
+    const toplam={yuz:0,diger:0};  // cilt-cilt altı yara uzunluk toplamları (Tablo 2)
+
+    [...lezyonList.querySelectorAll('.lezyon-card')].forEach(card=>{
+      const tipEl=card.querySelector('[data-role="tip"] .chip.active');
+      const tip=tipEl?tipEl.textContent.trim():'';
+      if(!tip)return;
+      const sel=card._sel||[];
+      const bolge=sel.length?BM_DATA[sel[0]].rap:'';
+      const yuzde=TCK_YUZ_SACLI.test(bolge);
+      const uzun=Math.max(tckNum(card.querySelector('[data-role="x"]').value),tckNum(card.querySelector('[data-role="y"]').value));
+      const adetEl=card.querySelector('[data-role="adet"] .chip.active');
+      const adet=adetEl&&/^\d+$/.test(adetEl.textContent.trim())?+adetEl.textContent.trim():1;
+
+      if(tip.startsWith('ASY')){
+        btm=true;
+        notlar.push('Ateşli silah yaralanması → BTM ile giderilemez (Tablo 2).');
+        if(TCK_GOVDE.test(bolge))notlar.push('Gövde bölgesinde ASY: göğüs/batın boşluğuna penetre ise organ lezyonu olmasa da yaşamsal tehlike (Tablo 1).');
+      }
+      if(tip==='Yanık'){
+        const d=card.querySelector('[data-role="yanikDerece"] .chip.active');
+        const dt=d?d.textContent:'';
+        if(dt.includes('3')){btm=true;notlar.push('3. derece yanık → BTM ile giderilemez; alan >%10 ise yaşamsal tehlike (Tablo 2).');}
+        else if(dt.includes('2'))notlar.push('2. derece yanık: alan ≥%10 (yüz/perinede ≥%5) ise BTM ile giderilemez; >%20 ise yaşamsal tehlike (Tablo 2).');
+      }
+      if(tip==='Laserasyon'||tip==='Kesi'){
+        if(uzun){
+          toplam[yuzde?'yuz':'diger']+=uzun*adet;
+          if(yuzde&&uzun>=5){btm=true;notlar.push('Yüz/saçlı deride ≥5 cm cilt-cilt altı yara → BTM ile giderilemez (Tablo 2).');}
+          if(!yuzde&&uzun>=10){btm=true;notlar.push('≥10 cm cilt-cilt altı yara → BTM ile giderilemez (Tablo 2).');}
+        }
+        if(TCK_GOVDE.test(bolge))notlar.push('Göğüs/batın bölgesinde '+lc(tip)+': fasya/kas dokuya penetre ise BTM ile giderilemez; boşluğa penetre ise yaşamsal tehlike (Tablo 1-2).');
+      }
+    });
+    if(toplam.yuz>=10){btm=true;notlar.push('Yüz/saçlı deri yaralarının toplamı ≥10 cm → BTM ile giderilemez (Tablo 2).');}
+    if(toplam.diger>=20){btm=true;notlar.push('Vücuttaki yaraların toplamı ≥20 cm → BTM ile giderilemez (Tablo 2).');}
+
+    // GKS (Tablo 3): 13-15 hafif · 9-12 hafif değil · ≤8 yaşamsal tehlike
+    const gksSectionVisible=(sectionFieldsByMode[currentMode]||[]).includes('gks');
+    const g=parseInt((gksSectionVisible?document.getElementById('gksTotal'):document.getElementById('adliGksTotal')).textContent);
+    if(g){
+      if(g<=8){hayati=true;notlar.push('GKS ≤8 → yaşamsal tehlike (Tablo 3).');}
+      else if(g<=12){btm=true;notlar.push('GKS 9-12 → BTM ile giderilemez (Tablo 3).');}
+    }
+
+    // Radyolojik bulgu metni (anahtar kelime)
+    if(chipRadyoPatoloji.classList.contains('active')){
+      const d=(val('f_adli_radyo_detay')||'').toLocaleLowerCase('tr');
+      if(d){
+        if(/kırı|fraktür|fraktur|çıkı|luksasyon|ampütasyon|amputasyon/.test(d)){btm=true;notlar.push('Kemik kırığı/çıkığı → BTM ile giderilemez (genel kural).');}
+        if(/kafatası|kafa taban|kranial|kranyal|intrakran|kafa içi|epidural|subdural|subaraknoid|pnömosefali|beyin/.test(d)){hayati=true;notlar.push('Kafatası kırığı / kafa içi travmatik değişim → yaşamsal tehlike (Tablo 1-3).');}
+        if(/pnömotoraks|hemotoraks|pnömomediasten|akciğer kontüzyon|yelken/.test(d)){hayati=true;notlar.push('Hemo/pnömotoraks, akciğer kontüzyonu (minimal dahi) → yaşamsal tehlike (Tablo 6).');}
+        if(/dalak|karaciğer|böbrek|pankreas|mezenter|iç organ|batın içi|retroperiton/.test(d)){hayati=true;notlar.push('İç organ yaralanması (minimal dahi) → yaşamsal tehlike (Tablo 1-7).');}
+        if(/vertebra|medulla|spinal/.test(d))notlar.push('Vertebra kırığı → BTM ile giderilemez; ilk 5 servikal korpus kırığı veya kord hasarı → yaşamsal tehlike (Tablo 1-8).');
+      }
+    }
+    if(hayati)btm=true;
+    return {btm,hayati,notlar:[...new Set(notlar)]};
+  }
+
+  function tckSetChip(boxId,text){
+    document.querySelectorAll('#'+boxId+' .chip').forEach(c=>c.classList.toggle('active',c.textContent.trim()===text));
+  }
+
+  function updateTckOneri(){
+    if(!adliTckOneriBox)return;
+    const o=tckDegerlendir();
+    if(!o.notlar.length){adliTckOneriBox.style.display='none';adliTckOneriBox.innerHTML='';return;}
+    const gider=document.querySelector('#adliGiderilebilir .chip.active');
+    const hay=document.querySelector('#adliHayatiTehlike .chip.active');
+    let warn='';
+    if(o.btm&&gider&&gider.textContent.trim()==='Giderilebilir')warn+='<div class="tck-cakisma">⚠ Seçiminiz rehberle çelişiyor: bulgular BTM ile giderilemez düzeyde.</div>';
+    if(o.hayati&&hay&&hay.textContent.trim()==='İzlenmedi')warn+='<div class="tck-cakisma">⚠ Seçiminiz rehberle çelişiyor: bulgular yaşamsal tehlike kriterini karşılıyor.</div>';
+    const uygulanabilir=(o.btm&&(!gider||gider.textContent.trim()!=='Giderilemez'))||(o.hayati&&(!hay||hay.textContent.trim()!=='İzlendi'));
+    adliTckOneriBox.innerHTML='<b>TCK rehberi önerisi:</b><br>'
+      +o.notlar.map(n=>'• '+n).join('<br>')
+      +warn
+      +(uygulanabilir?'<div class="tck-uygula"><button class="btn" type="button" id="tckUygulaBtn">Öneriyi uygula</button></div>':'')
+      +'<span class="tck-kaynak">Adli Tıp Rehberi 2019 · öneri niteliğindedir, karar hekime aittir.</span>';
+    adliTckOneriBox.style.display='block';
+    const b=document.getElementById('tckUygulaBtn');
+    if(b)b.addEventListener('click',()=>{
+      const s=tckDegerlendir();
+      if(s.btm)tckSetChip('adliGiderilebilir','Giderilemez');
+      if(s.hayati)tckSetChip('adliHayatiTehlike','İzlendi');
+      render();
+    });
   }
 
   // --- EKG: Dal bloğu alt seçenekleri ---
@@ -15283,7 +15429,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const yEl=card.querySelector('[data-role="y"]');
       if(xEl)xEl.value=st.x||'';
       if(yEl)yEl.value=st.y||'';
+      // Dolu kartlar katlanmış gelsin
+      card.classList.toggle('collapsed',!!(st.tip||(st.sel&&st.sel.length)));
     });
+    updateLezyonOzets();
   }
 
   function captureState(){
@@ -15390,6 +15539,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     updateAdliGksTotal();
     updateSikayetExtras();
     updateAdliExtras();
+    updateTckOneri();
+    updateLezyonOzets();
     updateMekanizmaExtras();
     updatePrimaryExtras();
     updatePrimaryBadges();
