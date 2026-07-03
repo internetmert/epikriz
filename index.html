@@ -255,6 +255,16 @@
   html[data-theme="light"] .tck-oneri{background:#ffffe1;color:#333;border-color:#b8a94f;}
   .tck-oneri .tck-cakisma{color:var(--danger);font-weight:700;margin-top:4px;}
   .tck-oneri .tck-uygula{margin-top:6px;}
+  .tck-ref{color:var(--accent);text-decoration:underline;cursor:pointer;white-space:nowrap;}
+  .tck-tablo{font-size:11.5px;line-height:1.55;text-transform:none;}
+  .tck-tablo table{width:100%;border-collapse:collapse;margin-top:6px;}
+  .tck-tablo th,.tck-tablo td{border:1px solid var(--shadow);padding:3px 6px;text-align:left;vertical-align:top;}
+  .tck-tablo th{background:var(--hl);font-size:10.5px;}
+  .tck-tablo .yt{color:var(--danger);font-weight:700;}
+  .tck-tablo .ho{color:#e0a94a;font-weight:700;}
+  html[data-theme="light"] .tck-tablo .ho{color:#a06000;}
+  .tck-tablo .hf{color:var(--accent);font-weight:700;}
+  .tck-tablo p{margin:6px 0 0;}
 
   .extra,.txt{font-family:Arial,sans-serif;font-size:12.5px;color:var(--ink);background:var(--field);
     border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);
@@ -604,6 +614,16 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
 
       <div class="sync-link" id="syncForgetLink" onclick="syncForgetCode()" hidden>Farklı kod kullan (hatırlanan kodu unut)</div>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="tckModalOverlay" hidden onclick="if(event.target===this)closeTckModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tckModalTitle" style="width:460px;">
+    <div class="modal-titlebar">
+      <span id="tckModalTitle">TCK Rehberi</span>
+      <button type="button" class="modal-close" onclick="closeTckModal()">✕</button>
+    </div>
+    <div class="modal-body tck-tablo" id="tckModalBody"></div>
   </div>
 </div>
 
@@ -14994,7 +15014,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
           if(yuzde&&uzun>=5){btm=true;notlar.push('Yüz/saçlı deride ≥5 cm cilt-cilt altı yara → BTM ile giderilemez (Tablo 2).');}
           if(!yuzde&&uzun>=10){btm=true;notlar.push('≥10 cm cilt-cilt altı yara → BTM ile giderilemez (Tablo 2).');}
         }
-        if(TCK_GOVDE.test(bolge))notlar.push('Göğüs/batın bölgesinde '+lc(tip)+': fasya/kas dokuya penetre ise BTM ile giderilemez; boşluğa penetre ise yaşamsal tehlike (Tablo 1-2).');
+        if(TCK_GOVDE.test(bolge))notlar.push('Göğüs/batın bölgesinde '+lc(tip)+': fasya/kas dokuya penetre ise BTM ile giderilemez; boşluğa penetre ise yaşamsal tehlike (Tablo 1, Tablo 2).');
       }
     });
     if(toplam.yuz>=10){btm=true;notlar.push('Yüz/saçlı deri yaralarının toplamı ≥10 cm → BTM ile giderilemez (Tablo 2).');}
@@ -15013,15 +15033,102 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const d=(val('f_adli_radyo_detay')||'').toLocaleLowerCase('tr');
       if(d){
         if(/kırı|fraktür|fraktur|çıkı|luksasyon|ampütasyon|amputasyon/.test(d)){btm=true;notlar.push('Kemik kırığı/çıkığı → BTM ile giderilemez (genel kural).');}
-        if(/kafatası|kafa taban|kranial|kranyal|intrakran|kafa içi|epidural|subdural|subaraknoid|pnömosefali|beyin/.test(d)){hayati=true;notlar.push('Kafatası kırığı / kafa içi travmatik değişim → yaşamsal tehlike (Tablo 1-3).');}
+        if(/kafatası|kafa taban|kranial|kranyal|intrakran|kafa içi|epidural|subdural|subaraknoid|pnömosefali|beyin/.test(d)){hayati=true;notlar.push('Kafatası kırığı / kafa içi travmatik değişim → yaşamsal tehlike (Tablo 1, Tablo 3).');}
         if(/pnömotoraks|hemotoraks|pnömomediasten|akciğer kontüzyon|yelken/.test(d)){hayati=true;notlar.push('Hemo/pnömotoraks, akciğer kontüzyonu (minimal dahi) → yaşamsal tehlike (Tablo 6).');}
-        if(/dalak|karaciğer|böbrek|pankreas|mezenter|iç organ|batın içi|retroperiton/.test(d)){hayati=true;notlar.push('İç organ yaralanması (minimal dahi) → yaşamsal tehlike (Tablo 1-7).');}
-        if(/vertebra|medulla|spinal/.test(d))notlar.push('Vertebra kırığı → BTM ile giderilemez; ilk 5 servikal korpus kırığı veya kord hasarı → yaşamsal tehlike (Tablo 1-8).');
+        if(/dalak|karaciğer|böbrek|pankreas|mezenter|iç organ|batın içi|retroperiton/.test(d)){hayati=true;notlar.push('İç organ yaralanması (minimal dahi) → yaşamsal tehlike (Tablo 1, Tablo 7).');}
+        if(/vertebra|medulla|spinal/.test(d))notlar.push('Vertebra kırığı → BTM ile giderilemez; ilk 5 servikal korpus kırığı veya kord hasarı → yaşamsal tehlike (Tablo 1, Tablo 8).');
       }
     }
     if(hayati)btm=true;
     return {btm,hayati,notlar:[...new Set(notlar)]};
   }
+
+  // TCK rehberi tablo içerikleri (2019 rehberden özet) — referansa tıklayınca modalda açılır
+  const TCK_TABLOLAR={
+    'Genel kural':{b:'BTM kararı — genel kural',h:`<p>Şunlardan biri varsa yaralanma <span class="ho">BTM ile giderilemez</span>:</p>
+      <table><tr><td>Kemik kırığı veya çıkığı (diş kaybı/kırığı dahil)</td></tr>
+      <tr><td>Kas-tendon hasarı (laserasyon, kopma)</td></tr>
+      <tr><td>Büyük damar ve sinir hasarı (tüm periferik sinir yaralanmaları)</td></tr>
+      <tr><td>İç organ yaralanması</td></tr></table>
+      <p>Diğer yumuşak doku lezyonları için Tablo 2 eşikleri kullanılır.</p>`},
+    'Tablo 1':{b:'Tablo 1 — Yaşamı tehlikeye sokan yaralanmalar',h:`<table>
+      <tr><td>Kafatası ve kafa tabanı kırıkları (Lefort III, orbita tavanı dahil)</td></tr>
+      <tr><td>Atlanto-aksiyal luksasyon · ilk 5 servikal vertebra korpus kırığı</td></tr>
+      <tr><td>Kafa içi kanama, kontüzyon, laserasyon; GKS ≤8</td></tr>
+      <tr><td>İç organ yaralanmaları (minimal dahi)</td></tr>
+      <tr><td>Büyük damar yaralanmaları (travmatik anevrizma/trombüs dahil)</td></tr>
+      <tr><td>&gt;%20 kan kaybına işaret eden klinik tablo (ATLS Evre ≥2; Şİ&gt;1 + SKB&lt;110; baz açığı &gt;-6 / laktat &gt;4)</td></tr>
+      <tr><td>Medulla spinalis yaralanması, epidural hematom</td></tr>
+      <tr><td>Göğüs/batın boşluğuna penetre yaralanma (organ lezyonu olmasa da)</td></tr>
+      <tr><td>2° yanık &gt;%20 · 3-4° yanık &gt;%10</td></tr>
+      <tr><td>Kuduz riskli hayvan ısırığı · elektrik çarpması (akım geçiş bulgusu)</td></tr>
+      <tr><td>Ağır zehirlenme · asfiksiden kurtulma · emboli, akut böbrek yetmezliği</td></tr>
+      <tr><td>İlk 24 saatte stresörle tetiklenen MI · crush sendromu · yelken göğüs</td></tr>
+      <tr><td>Retroperitoneal hematom (izole psoas hematomu hariç)</td></tr></table>`},
+    'Tablo 2':{b:'Tablo 2 — Deri-deri altı-kas dokusu',h:`<table>
+      <tr><th>Bulgu</th><th>Karar</th></tr>
+      <tr><td>Abrazyon/kontüzyon: yüzde &lt;%30, vücutta &lt;%10 TVYA</td><td class="hf">HAFİF</td></tr>
+      <tr><td>Abrazyon/kontüzyon: yüzde ≥%30, vücutta ≥%10</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>Cilt-cilt altı yara: yüz/saçlı deride tek &lt;5 cm ve toplam &lt;10 cm; diğer bölgede tek &lt;10 ve toplam &lt;20 cm</td><td class="hf">HAFİF</td></tr>
+      <tr><td>Eşik ve üzeri (≥5/≥10 tek · ≥10/≥20 toplam)</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>Travmatik alopesi ≥5 cm</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>Fasya/kas dokuya penetre tüm yaralanmalar</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>Tüm ateşli silah yaralanmaları (yüzeyel sıyrık hariç)</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>Saçlı deri flep &lt;5 cm²</td><td class="hf">HAFİF</td></tr>
+      <tr><td>Saçlı deri flep ≥5 cm²</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>Kanlanması bozulmuş &gt;100 cm² flep/skalp kaybı · &gt;%20 kan kaybı kliniği</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>1° yanık</td><td class="hf">HAFİF</td></tr>
+      <tr><td>2° yanık &lt;%10 (≤5 yaş &lt;%5; yüz/perine &lt;%5)</td><td class="hf">HAFİF</td></tr>
+      <tr><td>2° yanık %10-20 (≤5 yaş %5-15; yüz/perine %5-15)</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>2° yanık &gt;%20 (≤5 yaş &gt;%15)</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>3-4° yanık ≤%10</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>3-4° yanık &gt;%10</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Elektrik akımı geçiş bulgusu (giriş/çıkış lezyonu, klinik bulgu, CPR)</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr></table>`},
+    'Tablo 3':{b:'Tablo 3 — Kafa bölgesi',h:`<table>
+      <tr><th>Bulgu</th><th>Karar</th></tr>
+      <tr><td>Kafatası/kafa tabanı kırıkları</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Sadece dış tabulayı ilgilendiren kırıklar</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>Tüm kafa içi travmatik değişimler (kontüzyon, pnömosefali, klinik bulgu veren ödem, BOS kaçağı)</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>İzole kranial sinir yaralanması</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>GKS 13-15 · &lt;5 dk bilinç kaybı · &lt;24 saat amnezi</td><td class="hf">HAFİF</td></tr>
+      <tr><td>GKS 9-12 · &gt;5 dk bilinç kaybı · fokal nörolojik defisit · &gt;24 saat amnezi</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>Başlangıç GKS ≤8</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr></table>
+      <p>Direkt grafide lineer kırık = iç tabula da etkilenmiş sayılır. Erişkinde sutur ayrışması = kırık.</p>`},
+    'Tablo 6':{b:'Tablo 6 — Göğüs bölgesi',h:`<table>
+      <tr><th>Bulgu</th><th>Karar</th></tr>
+      <tr><td>Hemotoraks, pnömotoraks (minimal dahi), tansiyon pnömotoraks, pnömomediastinum, hava embolisi</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Akciğer kontüzyon ve laserasyonu</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Kalp kontüzyon/laserasyon/perforasyonu · perikard tamponadı · korda tendinea</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Trakea-bronş ve özofagus yaralanmaları · diyafragma rüptürü · trakeostomi zorunluluğu</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Geniş cilt altı amfizemi · yelken göğüs · yabancı cisim aspirasyonu (klinik destekli)</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Organ lezyonsuz lokal cilt altı amfizemi · memede avülsiyon</td><td class="ho">HAFİF DEĞİL</td></tr></table>
+      <p>İzole minimal kontüzyon/buzlu cam: eşlik eden kot kırığı/hemopnömotoraks varsa YT; yoksa 1 hafta arayla kontrol BT ile değerlendirilir.</p>`},
+    'Tablo 7':{b:'Tablo 7 — Karın ve pelvis',h:`<table>
+      <tr><th>Bulgu</th><th>Karar</th></tr>
+      <tr><td>Lümenli organlarda (mide→rektum, üreter, mesane, üretra*, uterus, safra kesesi) her derece laserasyon/perforasyon/rüptür</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Parankimal organlarda (böbrek, karaciğer, dalak) subkapsüler hematom dahil</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Pankreas/adrenal · mezenter-omentum · retroperitoneal hematom</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Peritonu geçen yaralanma (kanama olmasa bile)</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Tanısal laparotomi (organ yaralanmasız)</td><td class="ho">HAFİF DEĞİL</td></tr>
+      <tr><td>Skrotum/penis/vagina/vulva/perinede yüzeyel abrazyon-ekimoz</td><td class="hf">HAFİF</td></tr>
+      <tr><td>Aynı bölgelerde laserasyon, belirgin hematom · skrotal hidrosel/hematosel</td><td class="ho">HAFİF DEĞİL</td></tr></table>
+      <p>*Üretra: sadece sonda kaydıyla değil, tetkikle kanıtlanmış olmalı.</p>`},
+    'Tablo 8':{b:'Tablo 8 — Vertebra, medulla spinalis, periferik sinir',h:`<table>
+      <tr><th>Bulgu</th><th>Karar</th></tr>
+      <tr><td>Kord/kauda equina kontüzyon-laserasyonu (her düzeyde)</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Kord hasarının eşlik ettiği disk hernisi/kırık/çıkık</td><td class="yt">YAŞAMSAL TEHLİKE</td></tr>
+      <tr><td>Tüm periferik sinir yaralanmaları · disk hernisi · facet kilitlenmesi · interspinöz ligament</td><td class="ho">HAFİF DEĞİL</td></tr></table>
+      <p>İlk 5 servikal vertebra korpus kırığı ve atlanto-aksiyal luksasyon → yaşamsal tehlike (Tablo 1).</p>`},
+  };
+  function openTckModal(key){
+    const t=TCK_TABLOLAR[key];
+    if(!t)return;
+    document.getElementById('tckModalTitle').textContent=t.b;
+    document.getElementById('tckModalBody').innerHTML=t.h;
+    document.getElementById('tckModalOverlay').hidden=false;
+  }
+  function closeTckModal(){document.getElementById('tckModalOverlay').hidden=true;}
+  window.closeTckModal=closeTckModal;
 
   function tckSetChip(boxId,text){
     document.querySelectorAll('#'+boxId+' .chip').forEach(c=>c.classList.toggle('active',c.textContent.trim()===text));
@@ -15037,8 +15144,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(o.btm&&gider&&gider.textContent.trim()==='Giderilebilir')warn+='<div class="tck-cakisma">⚠ Seçiminiz rehberle çelişiyor: bulgular BTM ile giderilemez düzeyde.</div>';
     if(o.hayati&&hay&&hay.textContent.trim()==='İzlenmedi')warn+='<div class="tck-cakisma">⚠ Seçiminiz rehberle çelişiyor: bulgular yaşamsal tehlike kriterini karşılıyor.</div>';
     const uygulanabilir=(o.btm&&(!gider||gider.textContent.trim()!=='Giderilemez'))||(o.hayati&&(!hay||hay.textContent.trim()!=='İzlendi'));
+    const linkle=n=>n.replace(/Tablo \d+|genel kural/g,m=>`<span class="tck-ref" data-tk="${m==='genel kural'?'Genel kural':m}">${m}</span>`);
     adliTckOneriBox.innerHTML='<b>TCK rehberi önerisi:</b><br>'
-      +o.notlar.map(n=>'• '+n).join('<br>')
+      +o.notlar.map(n=>'• '+linkle(n)).join('<br>')
       +warn
       +(uygulanabilir?'<div class="tck-uygula"><button class="btn" type="button" id="tckUygulaBtn">Öneriyi uygula</button></div>':'');
     adliTckOneriBox.style.display='block';
@@ -15050,6 +15158,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       render();
     });
   }
+  adliTckOneriBox.addEventListener('click',e=>{
+    const r=e.target.closest('.tck-ref');
+    if(r)openTckModal(r.dataset.tk);
+  });
 
   // --- EKG: Dal bloğu alt seçenekleri ---
   const chipDalBlogu=document.getElementById('chipDalBlogu');
