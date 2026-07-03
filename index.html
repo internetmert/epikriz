@@ -255,7 +255,6 @@
   html[data-theme="light"] .tck-oneri{background:#ffffe1;color:#333;border-color:#b8a94f;}
   .tck-oneri .tck-cakisma{color:var(--danger);font-weight:700;margin-top:4px;}
   .tck-oneri .tck-uygula{margin-top:6px;}
-  .tck-oneri .tck-kaynak{display:block;margin-top:4px;font-size:9.5px;opacity:.75;}
 
   .extra,.txt{font-family:Arial,sans-serif;font-size:12.5px;color:var(--ink);background:var(--field);
     border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);
@@ -15041,8 +15040,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     adliTckOneriBox.innerHTML='<b>TCK rehberi önerisi:</b><br>'
       +o.notlar.map(n=>'• '+n).join('<br>')
       +warn
-      +(uygulanabilir?'<div class="tck-uygula"><button class="btn" type="button" id="tckUygulaBtn">Öneriyi uygula</button></div>':'')
-      +'<span class="tck-kaynak">Adli Tıp Rehberi 2019 · öneri niteliğindedir, karar hekime aittir.</span>';
+      +(uygulanabilir?'<div class="tck-uygula"><button class="btn" type="button" id="tckUygulaBtn">Öneriyi uygula</button></div>':'');
     adliTckOneriBox.style.display='block';
     const b=document.getElementById('tckUygulaBtn');
     if(b)b.addEventListener('click',()=>{
