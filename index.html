@@ -12943,6 +12943,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     draw('gxStaff',STAFF); draw('gxBody',BODY); draw('gxSword',SWORD);
   }
   buildGandalf();
+  // PWA: offline çalışma için service worker (https gerektirir; file:// üzerinde sessizce atlanır)
+  if('serviceWorker' in navigator&&location.protocol==='https:'){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
   window.testLogout=function(){
     localStorage.removeItem('epikriz_session');
     document.getElementById('testLanding').style.display='none';
@@ -14192,7 +14196,12 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     }
     refreshDetail();updateSymptomSureBoxes();render();
   });
-  form.addEventListener('input',render);
+  // Metin girişlerinde her tuş vuruşunda tam render yapma — 120 ms debounce
+  let renderDebounceTmr=null;
+  form.addEventListener('input',()=>{
+    clearTimeout(renderDebounceTmr);
+    renderDebounceTmr=setTimeout(render,120);
+  });
   // Mini pencere: dışarı tıklayınca kapat (tetikleyici chip'i form handler yönetir, seçim korunur)
   document.addEventListener('click',e=>{
     if(!currentPop)return;
