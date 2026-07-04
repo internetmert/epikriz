@@ -138,11 +138,12 @@
   /* hasta gecmisi (oturum bellegi) sekmeleri */
   .patient-tabs{flex:none;display:flex;flex-direction:column;gap:4px;padding:14px 6px;
     position:sticky;top:46px;}
-  .patient-tab{width:28px;min-height:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  .patient-tab{min-width:28px;max-width:96px;min-height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;
     border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
     box-shadow:inset 1px 1px 0 var(--hl),inset -1px -1px 0 var(--shadow);
     background:var(--face);color:var(--ink);font:inherit;font-size:12px;font-weight:700;
-    cursor:pointer;border-radius:0;padding:2px 0;line-height:1.05;}
+    cursor:pointer;border-radius:0;padding:3px 5px;line-height:1.1;}
+  .patient-tab .nm{max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;}
   .patient-tab .time{font-size:8px;font-weight:400;}
   .patient-tab:active{border-color:var(--dark) var(--light) var(--light) var(--dark);
     box-shadow:inset 1px 1px 0 var(--shadow),inset -1px -1px 0 var(--hl);}
@@ -953,6 +954,9 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
     <!-- 01 Hasta -->
     <div class="section" data-field="hasta">
       <div class="sec-label"><span class="num">01</span> Hasta</div>
+      <div class="field" style="margin-top:10px;"><label>Ad Soyad <span style="font-weight:400;opacity:.7;">(sadece sekme etiketi — epikrize yazılmaz)</span></label>
+        <input class="txt" id="f_name" style="width:100%;" autocomplete="off">
+      </div>
       <div class="grid g2">
         <div class="field"><label>Yaş</label><select class="txt" id="f_age" style="width:100%;">
           <option value="">—</option>
@@ -2411,16 +2415,32 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
         <button class="chip">İV sıvı</button>
         <button class="chip">Analjezik</button>
         <button class="chip">Antiemetik</button>
+        <button class="chip">PPİ / mide koruma</button>
+        <button class="chip">Spazmolitik</button>
         <button class="chip">Antibiyotik</button>
+        <button class="chip">Antihistaminik</button>
+        <button class="chip">Kortikosteroid</button>
+        <button class="chip">Adrenalin</button>
         <button class="chip">Nebülizatör</button>
         <button class="chip">O₂ desteği</button>
         <button class="chip">NİMV</button>
         <button class="chip">Antiagregan/antikoagülan</button>
         <button class="chip">Antihipertansif</button>
         <button class="chip">Diüretik</button>
+        <button class="chip">Kas gevşetici</button>
+        <button class="chip">Antikonvülzan / sedasyon</button>
+        <button class="chip">Elektrolit replasmanı</button>
+        <button class="chip">Dekstroz (hipoglisemi)</button>
+        <button class="chip">İnsülin</button>
+        <button class="chip">Vazopresör/inotrop</button>
+        <button class="chip">Trombolitik</button>
+        <button class="chip">Kan/kan ürünü transfüzyonu</button>
+        <button class="chip">Antidot</button>
+        <button class="chip">Aktif kömür</button>
         <button class="chip">Yara bakımı</button>
         <button class="chip">Sütür</button>
         <button class="chip">Tetanos aşısı</button>
+        <button class="chip">Kuduz profilaksisi</button>
         <button class="chip">Pansuman</button>
       </div>
       <input class="extra" data-extra placeholder="İlaç adı-doz">
@@ -15578,6 +15598,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     });
     return {
       chips, inputs, examOpen,
+      name:(document.getElementById('f_name')||{value:''}).value.trim(),
       lezyon:captureLezyonCards(),
       scores:[...includedScores],
       time:`${pad(d.getHours())}:${pad(d.getMinutes())}`,
@@ -15628,8 +15649,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const b=document.createElement('button');
       b.type='button';
       b.className='patient-tab'+(i===activeIndex?' active':'');
-      b.innerHTML=`${i+1}<span class="time">${p.time||''}</span>`;
-      b.title=`Hasta #${i+1} — ${p.time||''}`;
+      const nm=(p.name||'').trim();
+      b.innerHTML=`<span class="nm">${nm?esc(nm):(i+1)}</span><span class="time">${p.time||''}</span>`;
+      b.title=`Hasta #${i+1}${nm?' — '+nm:''} — ${p.time||''}`;
       b.dataset.idx=i;
       wrap.appendChild(b);
     });
