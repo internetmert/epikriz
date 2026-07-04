@@ -14831,8 +14831,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
         let sel=card._sel||[];
         const zi=+zone.dataset.zi;
         if(sel.includes(zi)){
-          // Seçili noktaya tekrar bas → o noktanın seçimini kaldır
-          sel=sel.filter(v=>v!==zi);
+          // Seçili herhangi bir noktaya tekrar bas → tüm seçimi temizle
+          sel=[];
         }else if(sel.length>=2){
           // İki nokta doluyken yeni bir noktaya bas → baştan başla
           sel=[zi];
@@ -14848,7 +14848,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
 
   function bmReadoutText(sel){
     if(!sel||!sel.length)return 'Bölge seçilmedi — figürde bölgeye tıklayın.';
-    if(sel.length===1)return 'Lokalize: '+BM_DATA[sel[0]].rap+' — uzanan lezyon için 2. bölgeye tıklayın (tekrar tıkla = kaldır).';
+    if(sel.length===1)return 'Lokalize: '+BM_DATA[sel[0]].rap+' — uzanan lezyon için 2. bölgeye tıklayın (tekrar tıkla = temizle).';
     if(sel[0]===sel[1])return 'Lokalize: '+BM_DATA[sel[0]].rap;
     return 'Uzanan: '+BM_DATA[sel[0]].rap+' → '+BM_DATA[sel[1]].rap;
   }
