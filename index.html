@@ -256,6 +256,12 @@
   .tck-oneri .tck-cakisma{color:var(--danger);font-weight:700;margin-top:4px;}
   .tck-oneri .tck-uygula{margin-top:6px;}
   .tck-ref{color:var(--accent);text-decoration:underline;cursor:pointer;white-space:nowrap;}
+  .tck-rehber-link{float:right;font-size:10px;font-weight:400;text-transform:none;
+    color:var(--accent);cursor:pointer;text-decoration:underline;}
+  .tck-index{list-style:none;margin:0;padding:0;}
+  .tck-index li{padding:5px 2px;border-bottom:1px solid var(--shadow);cursor:pointer;color:var(--accent);}
+  .tck-index li:hover{text-decoration:underline;}
+  .tck-geri{display:inline-block;margin-bottom:7px;font-size:10.5px;color:var(--accent);cursor:pointer;text-decoration:underline;}
   .tck-tablo{font-size:11.5px;line-height:1.55;text-transform:none;}
   .tck-tablo table{width:100%;border-collapse:collapse;margin-top:6px;}
   .tck-tablo th,.tck-tablo td{border:1px solid var(--shadow);padding:3px 6px;text-align:left;vertical-align:top;}
@@ -2540,7 +2546,7 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
 
     <!-- 12 Adli Rapor -->
     <div class="section" data-field="adli">
-      <div class="sec-label"><span class="num">12</span> Adli Rapor</div>
+      <div class="sec-label"><span class="num">12</span> Adli Rapor<span class="tck-rehber-link" onclick="openTckIndex()" title="TCK yaralama rehberi tabloları">⚖ TCK Rehberi</span></div>
 
       <div class="subhead" id="adliMekanizmaSubhead" style="display:none;">Mekanizma / Niyet</div>
       <div id="adliMekanizmaSlot"></div>
@@ -15124,11 +15130,21 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const t=TCK_TABLOLAR[key];
     if(!t)return;
     document.getElementById('tckModalTitle').textContent=t.b;
-    document.getElementById('tckModalBody').innerHTML=t.h;
+    document.getElementById('tckModalBody').innerHTML=
+      '<span class="tck-geri" onclick="openTckIndex()">← Tüm tablolar</span>'+t.h;
+    document.getElementById('tckModalOverlay').hidden=false;
+  }
+  function openTckIndex(){
+    document.getElementById('tckModalTitle').textContent='TCK Yaralama Rehberi (2019)';
+    document.getElementById('tckModalBody').innerHTML=
+      '<ul class="tck-index">'+Object.keys(TCK_TABLOLAR).map(k=>
+        `<li onclick="openTckTablo('${k}')">${TCK_TABLOLAR[k].b}</li>`).join('')+'</ul>';
     document.getElementById('tckModalOverlay').hidden=false;
   }
   function closeTckModal(){document.getElementById('tckModalOverlay').hidden=true;}
   window.closeTckModal=closeTckModal;
+  window.openTckIndex=openTckIndex;
+  window.openTckTablo=openTckModal;
 
   function tckSetChip(boxId,text){
     document.querySelectorAll('#'+boxId+' .chip').forEach(c=>c.classList.toggle('active',c.textContent.trim()===text));
