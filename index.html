@@ -15837,9 +15837,14 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     includedScores.clear();
     syncAllScoreAdds();
     setGksDefaults();
-    if(activeIndex!==null) patients[activeIndex]=captureState();
+    // Kayıtlı hastaysa sekme listesinden de kaldır
+    if(activeIndex!==null){
+      patients.splice(activeIndex,1);
+      activeIndex=null;
+      renderPatientTabs();
+    }
     refreshDetail();render();
-    toast('Hasta girdileri silindi');
+    toast('Hasta silindi');
   };
   window.resetAll=function(){
     const cur=captureState();
