@@ -14613,9 +14613,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     p('on','kol ön yüzü',50,150,6); p('on','antekubital bölge',51,200,5); p('on','önkol ön yüzü',53,250,6);
     pushHand('on','R',48); pushHand('on','L',152);
     p('on','uyluk ön yüzü',18,320,7); p('on','patellar bölge',19,388,5); p('on','pretibial bölge',18,450,6);
-    p('on','ayak bileği ön yüzü',18,505,4); p('on','ayak sırtı',17,521,4);
-    p('on','ayak başparmağı',12,535,2.5); p('on','ayak 2. parmak',16,536,2.5); p('on','ayak 3. parmak',20,536,2.5);
-    p('on','ayak 4. parmak',24,536,2.5); p('on','ayak 5. parmak',28,535,2.5);
+    p('on','ayak bileği ön yüzü',18,505,4); p('on','ayak sırtı',22,524,5);
+    p('on','ayak başparmağı',10,540,3); p('on','ayak 2. parmak',16,541,3); p('on','ayak 3. parmak',22,541,3);
+    p('on','ayak 4. parmak',28,541,3); p('on','ayak 5. parmak',34,540,3);
     // ===== ARKA =====
     SH=0;
     m('arka','Verteks bölgesi',11,4); p('arka','parietal bölge',16,36,4); p('arka','oksipital bölge',15,60,4);
@@ -14631,7 +14631,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     pushHand('arka','R',152); pushHand('arka','L',48);
     p('arka','trokanterik bölge',26,256,5,'kalça yan'); p('arka','uyluk arka yüzü',18,320,7);
     p('arka','popliteal bölge',18,388,5,'diz arkası'); p('arka','baldır (sural bölge)',18,450,6);
-    p('arka','Aşil bölgesi',18,495,3.5); p('arka','topuk bölgesi',17,515,4); p('arka','ayak tabanı',17,528,4);
+    p('arka','Aşil bölgesi',18,495,3.5); p('arka','topuk bölgesi',20,516,4.5); p('arka','ayak tabanı',22,531,5);
     // Trapez (boyun-omuz geçişi) — hem önden hem arkadan erişilebilir; en sona eklenir ki indeksler kaymasın
     p('on','trapez bölgesi',26,102,5); p('arka','trapez bölgesi',26,106,5);
     return out;
@@ -14663,8 +14663,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       return s;
     };
     const leg='M78,251 C70,257 65,273 64,301 C63,331 63,361 65,387 C66,416 66,456 69,491 C70,501 71,509 73,515 C76,517 80,517 83,514 C85,509 86,501 87,491 C89,456 89,419 90,389 C91,361 92,331 92,303 C93,286 94,269 92,255 Z';
-    const foot='M74,510 C69,514 67,521 69,529 C71,535 78,538 85,536 C90,534 91,527 90,520 C89,513 84,509 79,509 Z';
-    const toes='M73,533 L73,537 M77,534 L77,538 M81,534 L81,538 M85,533 L85,536';
+    const foot='M71,509 C63,514 60,523 63,533 C66,541 76,545 87,542 C93,539 95,530 93,521 C91,512 84,507 77,507 Z';
+    const toes='M69,535 L69,541 M75,537 L75,543 M81,537 L81,543 M87,536 L87,542';
     const clavicle='M99,94 C90,90 78,91 64,98';
     const pectoral='M99,122 C92,137 84,140 74,133';
     const costal='M100,166 C92,175 85,178 78,174';
