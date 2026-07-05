@@ -15272,6 +15272,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   // Epikrize "✅" ile eklenen klinik skorlar (id -> {name, get:()=>metin}); render() bunları "Klinik Skorlar" satırına basar.
   const includedScores=new Set();
   const scoreGetters=new Map();
+  const scoreRecalcs=new Map(); // her skor kartının yeniden hesap fonksiyonu — skor girdileri restore edilince çağrılır
   const scoreAddSyncers=[]; // her skor kartının "✅" buton senkron fonksiyonu — restore'da topluca çağrılır
   function syncAllScoreAdds(){ scoreAddSyncers.forEach(fn=>{try{fn();}catch(e){}}); }
   function clinicalScoresText(){
@@ -15578,6 +15579,38 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     updateLezyonOzets();
   }
 
+  // Skor paneli (#scoreCalcs) #form'un DIŞINDA olduğundan girdileri ayrıca yakalanıp
+  // geri yüklenir; aksi halde girilen değerler hasta sekmeleri arasında taşınır ve
+  // epikrizdeki "Klinik Skorlar" satırı başka hastanın skorunu basar.
+  function captureScoreVals(){
+    const out={};
+    document.querySelectorAll('#scoreCalcs .score-calc[data-score]').forEach(card=>{
+      const vals={};
+      card.querySelectorAll('[data-key]').forEach(el=>{
+        const k=el.dataset.key;
+        if(el.type==='checkbox'){if(el.checked)vals[k]=true;}
+        else if(el.tagName==='SELECT'){if(el.selectedIndex>0)vals[k]=el.selectedIndex;}
+        else if(el.value!=='')vals[k]=el.value;
+      });
+      if(Object.keys(vals).length)out[card.dataset.score]=vals;
+    });
+    return out;
+  }
+  function restoreScoreVals(sv){
+    sv=sv||{};
+    document.querySelectorAll('#scoreCalcs .score-calc[data-score]').forEach(card=>{
+      const vals=sv[card.dataset.score]||{};
+      card.querySelectorAll('[data-key]').forEach(el=>{
+        const k=el.dataset.key;
+        if(el.type==='checkbox')el.checked=vals[k]===true;
+        else if(el.tagName==='SELECT')el.selectedIndex=(typeof vals[k]==='number'&&vals[k]<el.options.length)?vals[k]:0;
+        else el.value=vals[k]!==undefined?String(vals[k]):'';
+      });
+      const rc=scoreRecalcs.get(card.dataset.score);
+      if(rc)rc();
+    });
+  }
+
   function captureState(){
     const d=new Date();
     const chips={};
@@ -15601,6 +15634,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       name:(document.getElementById('f_name')||{value:''}).value.trim(),
       lezyon:captureLezyonCards(),
       scores:[...includedScores],
+      scoreVals:captureScoreVals(),
       time:`${pad(d.getHours())}:${pad(d.getMinutes())}`,
     };
   }
@@ -15614,12 +15648,11 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     });
     updateSymptomSureBoxes(); // şikayet sure select'lerini chip durumuna göre yeniden oluştur
     const inputs=st.inputs||{};
-    const gksDefaults={f_gks_goz:'4',f_gks_motor:'6',f_gks_verbal:'5',f_adli_gks_goz:'4',f_adli_gks_motor:'6',f_adli_gks_verbal:'5'};
     form.querySelectorAll('input,select,textarea').forEach(el=>{
       if(el.closest('#lezyonList'))return;
       const k=pathKey(el);
       let v=(k!=null && inputs[k]!==undefined)?inputs[k]:'';
-      if(v===''&&gksDefaults[el.id]!==undefined) v=gksDefaults[el.id];
+      if(v===''&&GKS_DEFAULTS[el.id]!==undefined) v=GKS_DEFAULTS[el.id];
       el.value=v;
     });
     const examOpen=st.examOpen||{};
@@ -15631,15 +15664,24 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     });
     restoreLezyonCards(st.lezyon);
     includedScores.clear(); (st.scores||[]).forEach(id=>includedScores.add(id));
+    restoreScoreVals(st.scoreVals);
     syncAllScoreAdds(); refreshIcdSuggestions();
   }
 
+  const GKS_DEFAULTS={f_gks_goz:'4',f_gks_motor:'6',f_gks_verbal:'5',f_adli_gks_goz:'4',f_adli_gks_motor:'6',f_adli_gks_verbal:'5'};
+  const PRISTINE_CHIPS=new Set(); // markup'ta önceden aktif gelen chip'ler (adli varsayılanları) — init'te doldurulur
   function isStateEmpty(st){
     const chips=st.chips||{}, inputs=st.inputs||{};
-    return !Object.values(chips).some(Boolean)
-      && !Object.values(inputs).some(v=>v&&v.trim())
+    return !Object.entries(chips).some(([k,on])=>on&&!PRISTINE_CHIPS.has(k))
+      && !Object.entries(inputs).some(([k,v])=>{
+          if(!v||!v.trim())return false;
+          // GKS select'leri boş formda bile varsayılan (4/6/5) taşır — içerik sayılmaz
+          const def=GKS_DEFAULTS[k.replace(/^id:/,'')];
+          return def===undefined||v!==def;
+        })
       && !(st.lezyon&&st.lezyon.length)
-      && !(st.scores&&st.scores.length);
+      && !(st.scores&&st.scores.length)
+      && !Object.keys(st.scoreVals||{}).length;
   }
 
   function renderPatientTabs(){
@@ -15666,6 +15708,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       patients[activeIndex]=captureState();
     }else{
       const cur=captureState();
+      // Sekmesiz dolu form (yerel çalışma ya da senkrondan gelen hasta) kaybedilmeden
+      // sekmeye alınır — sunucu blob'u kod başına tektir, karşı cihaz her an ezebilir.
       if(!isStateEmpty(cur))patients.push(cur);
     }
     restoreState(patients[idx]);
@@ -15844,6 +15888,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     includedScores.clear();
     syncAllScoreAdds();
     setGksDefaults();
+    restoreScoreVals(null);
     // Kayıtlı hastaysa sekme listesinden de kaldır
     if(activeIndex!==null){
       patients.splice(activeIndex,1);
@@ -15856,14 +15901,14 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   window.resetAll=function(){
     const cur=captureState();
     let msg='Form temizlendi';
-    if(!isStateEmpty(cur)){
-      if(activeIndex!==null){
-        patients[activeIndex]=cur;
-        msg=`Hasta #${activeIndex+1} güncellendi, yeni hasta`;
-      }else{
-        patients.push(cur);
-        msg=`Hasta #${patients.length} olarak kaydedildi, yeni hasta`;
-      }
+    if(activeIndex!==null){
+      // Sekmeye bağlı form, elle boşaltılmış olsa bile sekmesine yazılır;
+      // aksi halde sekme silindiği sanılan eski veriyle kalır.
+      patients[activeIndex]=cur;
+      msg=`Hasta #${activeIndex+1} güncellendi, yeni hasta`;
+    }else if(!isStateEmpty(cur)){
+      patients.push(cur);
+      msg=`Hasta #${patients.length} olarak kaydedildi, yeni hasta`;
     }
     form.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
     form.querySelectorAll('input,textarea').forEach(i=>i.value='');
@@ -15878,6 +15923,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     includedScores.clear();
     syncAllScoreAdds();
     setGksDefaults();
+    restoreScoreVals(null);
     renderPatientTabs();
     refreshDetail();render();
     toast(msg);
@@ -15891,6 +15937,11 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   }
   makeComplaintsCollapsible();
   assignStableKeys();
+  form.querySelectorAll('.chip.active').forEach(c=>{
+    if(c.closest('#lezyonList'))return;
+    const k=pathKey(c);
+    if(k!=null)PRISTINE_CHIPS.add(k);
+  });
   setGksDefaults();
   renderPatientTabs();
   render();
@@ -16243,6 +16294,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     clinicalScores.forEach(def=>{
       const card=document.createElement('div');
       card.className='score-calc';
+      card.dataset.score=def.id;
       card.innerHTML=`<button type="button" class="score-head"><span>${def.name}</span><span class="arrow">▶</span></button><div class="score-body"></div>`;
       const body=card.querySelector('.score-body');
       def.fields.forEach(f=>{
@@ -16278,6 +16330,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
         el.addEventListener('change',recalc);
       });
       recalc();
+      scoreRecalcs.set(def.id,recalc);
       // "✅ Epikrize ekle": basınca skor sonucu raporun "Klinik Skorlar" satırına işlenir; tekrar basınca kaldırılır.
       scoreGetters.set(def.id,{name:def.name,get:()=>result.textContent});
       const addBtn=document.createElement('button');
@@ -16516,8 +16569,28 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function collectFormState(){
     return captureState();
   }
+  // Senkronla en son GÖNDERİLEN ya da ALINAN state'in kıyas kopyası. Formdaki içerik
+  // buna eşitse senkron zinciriyle zaten temsil ediliyor demektir (gelen güncelleme onun
+  // devamıdır) ve üzerine yazılması güvenlidir; farklıysa senkrona yansımamış yerel
+  // çalışma vardır ve kaybedilmeden sekmeye alınır.
+  let lastSyncedJson=null;
+  function syncComparable(state){
+    return JSON.stringify({...state,time:''}); // time alanı dakikada değişir, kıyasa girmez
+  }
   function applyFormState(state){
+    // Gelen veri formu değiştirmeden önce yereldeki çalışma korunur; aksi halde
+    // sekme geçişinde uzak hastanın verisi yerel hastanın kaydının üzerine yazılır.
+    const cur=captureState();
+    if(activeIndex!==null){
+      patients[activeIndex]=cur;
+      activeIndex=null; // senkron verisi hiçbir yerel sekmeyi temsil etmez
+    }else if(!isStateEmpty(cur)&&syncComparable(cur)!==lastSyncedJson){
+      patients.push(cur);
+    }
     restoreState(state);
+    lastSyncedJson=syncComparable(captureState());
+    renderPatientTabs();
+    refreshDetail();
     render();
   }
 
@@ -16625,6 +16698,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(!res.ok)throw new Error('HTTP '+res.status);
       rememberCode(raw);
       lastSyncedHash=await stateHash(state);
+      lastSyncedJson=syncComparable(state);
       lastSeenExpiresAt=expiresAt;
       lastSyncTime=Date.now();
       everSynced=true;
@@ -16712,7 +16786,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     try{localStorage.setItem(AUTO_SYNC_KEY,on?'1':'0');}catch(e){}
   }
   async function stateHash(state){
-    return sha256Hex(JSON.stringify(state));
+    // time alanı dakikada değiştiğinden kıyasa girmez; aksi halde eko koruması
+    // (karşı cihazın aynı içeriği yeniden paketlemesi) dakika sınırında delinir.
+    return sha256Hex(syncComparable(state));
   }
   function updateAutoSyncUI(){
     const dot=document.getElementById('autoSyncDot');
@@ -16804,6 +16880,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(!res.ok)throw new Error('HTTP '+res.status);
       rememberCode(raw);
       lastSyncedHash=hash;
+      lastSyncedJson=syncComparable(state);
       lastSeenExpiresAt=expiresAt;
       lastSyncTime=Date.now();
       everSynced=true;

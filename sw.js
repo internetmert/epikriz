@@ -22,9 +22,15 @@ self.addEventListener('fetch', e => {
   e.respondWith(
     fetch(e.request)
       .then(r => {
-        const copy = r.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copy));
-        return r;
+        if (r.ok && r.type === 'basic') {
+          const copy = r.clone();
+          caches.open(CACHE).then(c => c.put(e.request, copy));
+          return r;
+        }
+        // 404/500 vb. önbelleğe yazılmaz; varsa sağlam kopya sunulur
+        return caches.match(e.request, { ignoreSearch: true })
+          .then(m => m || (e.request.mode === 'navigate' ? caches.match('./index.html') : undefined))
+          .then(m => m || r);
       })
       .catch(() =>
         caches.match(e.request, { ignoreSearch: true })
