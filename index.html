@@ -12768,8 +12768,12 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
      ═══════════════════════════════════════════════════════════════════ */
   const form=document.getElementById('form');
   const pad=n=>String(n).padStart(2,'0');
-  const now=new Date();
-  const dateStr=`${pad(now.getDate())}.${pad(now.getMonth()+1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  // Her çağrıda güncel tarih-saat: sayfa açık kaldıkça (PWA) epikriz başlığı
+  // uygulamanın açılış anına sabitlenmesin — adli raporda tarih hukuken kritik.
+  function nowStr(){
+    const n=new Date();
+    return `${pad(n.getDate())}.${pad(n.getMonth()+1)}.${n.getFullYear()} ${pad(n.getHours())}:${pad(n.getMinutes())}`;
+  }
 
   // --- Mod secimi (Acil Dahili Hasta / Adli Muayene / Travma) ---
   const landing=document.getElementById('landing');
@@ -15786,7 +15790,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       paper.innerHTML=`<p class="placeholder-doc">Soldaki kutuları işaretledikçe epikriz burada oluşacak…</p>`;
       lastText='';return;
     }
-    let html=`<div class="meta"><span></span><span>${dateStr}</span></div>`;
+    let html=`<div class="meta"><span></span><span>${nowStr()}</span></div>`;
     if(patient)html+=`<div class="doc-row">${esc(patient)}.</div>`;
     rows.forEach(([k,v])=>{html+=`<div class="doc-row ${v?'':'empty'}"><span class="k">${k}:</span> ${esc(v)}</div>`;});
     paper.innerHTML=html;
@@ -15858,6 +15862,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
   window.copyText=function(){
+    render(); // kopyalanan metinde tarih-saat güncel olsun
     if(!lastText){toast('Önce hastayı işaretleyin');return;}
     const out=lastText.toLocaleUpperCase('tr');
     const done=()=>toast('Kopyalandı');
@@ -15945,6 +15950,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   setGksDefaults();
   renderPatientTabs();
   render();
+  window.addEventListener('beforeprint',render); // basılı çıktıda tarih-saat güncel olsun
 
   /* ===== Klinik skor hesaplayicilari (sadece yan panel, ana nota dahil edilmez) ===== */
   // NEWS2 parametre puanları (Scale 1). Hem toplam hem "tek parametrede 3 puan" kontrolü için ayrı tutulur.
@@ -16567,7 +16573,13 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   }
 
   function collectFormState(){
-    return captureState();
+    // Aktif form + DİĞER hasta sekmeleri birlikte gönderilir; önceden yalnız aktif
+    // hasta senkronlanıyor, çok hastalı nöbet yedeklendi sanılıyordu. Aktif sekme
+    // ayrıca gönderilmez: form state'i onu zaten temsil eder (alıcıda kopya önler).
+    const state=captureState();
+    const others=activeIndex!==null?patients.filter((_,i)=>i!==activeIndex):patients.slice();
+    if(others.length)state.patients=others;
+    return state;
   }
   // Senkronla en son GÖNDERİLEN ya da ALINAN state'in kıyas kopyası. Formdaki içerik
   // buna eşitse senkron zinciriyle zaten temsil ediliyor demektir (gelen güncelleme onun
@@ -16575,7 +16587,14 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   // çalışma vardır ve kaybedilmeden sekmeye alınır.
   let lastSyncedJson=null;
   function syncComparable(state){
-    return JSON.stringify({...state,time:''}); // time alanı dakikada değişir, kıyasa girmez
+    // Yalnız form içeriği: time dakikada değişir, patients ayrıca kıyaslanır — ikisi de girmez.
+    return JSON.stringify({...state,time:'',patients:undefined});
+  }
+  function blobComparable(state){
+    // Blob'un tamamı (form + sekmeler). Sekmeler sıra-bağımsız kıyaslanır ki iki cihaz
+    // aynı kümeye yakınsadığında karşılıklı yeniden gönderim döngüsü oluşmasın.
+    const tabs=Array.isArray(state.patients)?state.patients.map(p=>syncComparable(p)).sort():[];
+    return JSON.stringify({form:syncComparable(state),tabs});
   }
   function applyFormState(state){
     // Gelen veri formu değiştirmeden önce yereldeki çalışma korunur; aksi halde
@@ -16586,6 +16605,15 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       activeIndex=null; // senkron verisi hiçbir yerel sekmeyi temsil etmez
     }else if(!isStateEmpty(cur)&&syncComparable(cur)!==lastSyncedJson){
       patients.push(cur);
+    }
+    // Uzak cihazın hasta sekmeleri yerel listeyle birleştirilir; birebir aynıları atlanır.
+    if(Array.isArray(state.patients)){
+      const seen=new Set(patients.map(p=>syncComparable(p)));
+      state.patients.forEach(p=>{
+        if(!p||typeof p!=='object')return;
+        const k=syncComparable(p);
+        if(!seen.has(k)){seen.add(k);patients.push(p);}
+      });
     }
     restoreState(state);
     lastSyncedJson=syncComparable(captureState());
@@ -16788,7 +16816,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   async function stateHash(state){
     // time alanı dakikada değiştiğinden kıyasa girmez; aksi halde eko koruması
     // (karşı cihazın aynı içeriği yeniden paketlemesi) dakika sınırında delinir.
-    return sha256Hex(syncComparable(state));
+    return sha256Hex(blobComparable(state));
   }
   function updateAutoSyncUI(){
     const dot=document.getElementById('autoSyncDot');

@@ -19,22 +19,23 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (new URL(e.request.url).origin !== location.origin) return; // Supabase vb. dokunma
-  e.respondWith(
-    fetch(e.request)
-      .then(r => {
-        if (r.ok && r.type === 'basic') {
-          const copy = r.clone();
-          caches.open(CACHE).then(c => c.put(e.request, copy));
-          return r;
-        }
-        // 404/500 vb. önbelleğe yazılmaz; varsa sağlam kopya sunulur
-        return caches.match(e.request, { ignoreSearch: true })
-          .then(m => m || (e.request.mode === 'navigate' ? caches.match('./index.html') : undefined))
-          .then(m => m || r);
-      })
-      .catch(() =>
-        caches.match(e.request, { ignoreSearch: true })
-          .then(m => m || (e.request.mode === 'navigate' ? caches.match('./index.html') : undefined))
-      )
-  );
+  e.respondWith((async () => {
+    const networkRaw = fetch(e.request);
+    const cached = await caches.match(e.request, { ignoreSearch: true })
+      .then(m => m || (e.request.mode === 'navigate' ? caches.match('./index.html') : undefined));
+    const network = networkRaw.then(r => {
+      if (r.ok && r.type === 'basic') {
+        const copy = r.clone();
+        caches.open(CACHE).then(c => c.put(e.request, copy));
+        return r;
+      }
+      // 404/500 vb. önbelleğe yazılmaz; varsa sağlam kopya sunulur
+      return cached || r;
+    });
+    if (!cached) return network; // önbellek yoksa ağı beklemekten başka yol yok
+    // Zayıf ağda (lie-fi) açılışı ağ zaman aşımına kilitleme: yanıt gecikirse
+    // önbellekten aç; ağ yanıtı arka planda önbelleği tazelemeye devam eder.
+    const timeout = new Promise(res => setTimeout(res, 2500, cached));
+    return Promise.race([network.catch(() => cached), timeout]);
+  })());
 });
