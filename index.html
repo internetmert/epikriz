@@ -15398,6 +15398,21 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   // --- Hasta gecmisi / oturum bellegi (sadece JS bellekte, kalici depolama YOK) ---
   let patients=[];
   let activeIndex=null;
+  // Hasta kimliği (pid): sekme birleştirme/senkron "aynı hasta mı, yeni hasta mı"
+  // ayrımını içerikle yapamaz — düzenlenen hasta eski kopyasıyla eşleşmez ve çoğalır.
+  // Her mantıksal hastaya oluşturulduğunda benzersiz kimlik verilir; senkron
+  // birleştirmesi pid ile günceller, silmeler deletedPids (tombstone) ile yayılır.
+  function newPid(){
+    try{if(crypto.randomUUID)return crypto.randomUUID();}catch(e){}
+    return Date.now().toString(36)+Math.random().toString(36).slice(2,10);
+  }
+  let formPid=newPid(); // formdaki (sekmeye bağlı ya da bağsız) hastanın kimliği
+  const deletedPids=new Set(); // bu oturumda silinen hasta kimlikleri
+  function upsertPatient(st){
+    if(!st.pid)st.pid=newPid();
+    const i=patients.findIndex(p=>p.pid===st.pid);
+    if(i>=0)patients[i]=st; else patients.push(st);
+  }
 
   // --- Senkron/oturum durumu: DOM-index yerine kararlı (stable) anahtarlarla serileştirme ---
   // pathKey: bir elemana SABİT (DOM konumundan bağımsız) bir anahtar verir.
@@ -15639,6 +15654,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       lezyon:captureLezyonCards(),
       scores:[...includedScores],
       scoreVals:captureScoreVals(),
+      pid:formPid,
       time:`${pad(d.getHours())}:${pad(d.getMinutes())}`,
     };
   }
@@ -15714,9 +15730,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const cur=captureState();
       // Sekmesiz dolu form (yerel çalışma ya da senkrondan gelen hasta) kaybedilmeden
       // sekmeye alınır — sunucu blob'u kod başına tektir, karşı cihaz her an ezebilir.
-      if(!isStateEmpty(cur))patients.push(cur);
+      if(!isStateEmpty(cur))upsertPatient(cur);
     }
     restoreState(patients[idx]);
+    formPid=patients[idx].pid||(patients[idx].pid=newPid());
     activeIndex=idx;
     renderPatientTabs();
     refreshDetail();render();
@@ -15881,6 +15898,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   // "Sil": geçerli hastanın tüm girdilerini sıfırlar (kaydetmeden; Yeni Hasta'dan farklı)
   window.clearForm=function(){
     if(!confirm('Bu hastanın tüm girdileri silinecek. Emin misiniz?'))return;
+    const wasEmpty=isStateEmpty(captureState()); // boş formun kimliği tombstone'lanmaz
     form.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
     form.querySelectorAll('input,textarea').forEach(i=>i.value='');
     form.querySelectorAll('select').forEach(s=>{if(s.options[0])s.selectedIndex=0;});
@@ -15894,13 +15912,20 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     syncAllScoreAdds();
     setGksDefaults();
     restoreScoreVals(null);
-    // Kayıtlı hastaysa sekme listesinden de kaldır
+    // Kayıtlı hastaysa sekme listesinden de kaldır; silme senkrona tombstone ile
+    // yayılır ki karşı cihazdan hayalet sekme olarak geri gelmesin.
     if(activeIndex!==null){
+      const pid=patients[activeIndex]&&patients[activeIndex].pid;
+      if(pid)deletedPids.add(pid);
       patients.splice(activeIndex,1);
       activeIndex=null;
       renderPatientTabs();
+    }else if(formPid&&!wasEmpty){
+      deletedPids.add(formPid);
     }
+    formPid=newPid(); // temizlenen form yeni bir hastayı temsil eder
     refreshDetail();render();
+    scheduleAutoSend(); // Sil butonu #form dışında — silme senkrona gecikmeden yayılsın
     toast('Hasta silindi');
   };
   window.resetAll=function(){
@@ -15912,8 +15937,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       patients[activeIndex]=cur;
       msg=`Hasta #${activeIndex+1} güncellendi, yeni hasta`;
     }else if(!isStateEmpty(cur)){
-      patients.push(cur);
-      msg=`Hasta #${patients.length} olarak kaydedildi, yeni hasta`;
+      upsertPatient(cur);
+      msg=`Hasta #${patients.findIndex(p=>p.pid===cur.pid)+1} olarak kaydedildi, yeni hasta`;
     }
     form.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
     form.querySelectorAll('input,textarea').forEach(i=>i.value='');
@@ -15925,12 +15950,14 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(tog)tog.textContent='+';
     });
     activeIndex=null;
+    formPid=newPid(); // boş form yeni bir hastayı temsil eder
     includedScores.clear();
     syncAllScoreAdds();
     setGksDefaults();
     restoreScoreVals(null);
     renderPatientTabs();
     refreshDetail();render();
+    scheduleAutoSend(); // Yeni Hasta butonu #form dışında — sekme listesi senkrona yayılsın
     toast(msg);
   };
 
@@ -16578,7 +16605,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     // ayrıca gönderilmez: form state'i onu zaten temsil eder (alıcıda kopya önler).
     const state=captureState();
     const others=activeIndex!==null?patients.filter((_,i)=>i!==activeIndex):patients.slice();
+    others.forEach(p=>{if(!p.pid)p.pid=newPid();});
     if(others.length)state.patients=others;
+    if(state.pid)deletedPids.delete(state.pid); // formdaki hasta yaşıyor — çelişkili blob önlenir
+    if(deletedPids.size)state.deleted=[...deletedPids];
     return state;
   }
   // Senkronla en son GÖNDERİLEN ya da ALINAN state'in kıyas kopyası. Formdaki içerik
@@ -16587,35 +16617,74 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   // çalışma vardır ve kaybedilmeden sekmeye alınır.
   let lastSyncedJson=null;
   function syncComparable(state){
-    // Yalnız form içeriği: time dakikada değişir, patients ayrıca kıyaslanır — ikisi de girmez.
-    return JSON.stringify({...state,time:'',patients:undefined});
+    // Yalnız form içeriği: time dakikada değişir; patients/deleted blob seviyesinde
+    // ayrıca kıyaslanır — üçü de girmez.
+    return JSON.stringify({...state,time:'',patients:undefined,deleted:undefined});
   }
   function blobComparable(state){
-    // Blob'un tamamı (form + sekmeler). Sekmeler sıra-bağımsız kıyaslanır ki iki cihaz
-    // aynı kümeye yakınsadığında karşılıklı yeniden gönderim döngüsü oluşmasın.
+    // Blob'un tamamı (form + sekmeler + silinenler). Sekmeler/silinenler sıra-bağımsız
+    // kıyaslanır ki iki cihaz aynı kümeye yakınsadığında gönderim döngüsü oluşmasın.
     const tabs=Array.isArray(state.patients)?state.patients.map(p=>syncComparable(p)).sort():[];
-    return JSON.stringify({form:syncComparable(state),tabs});
+    const del=Array.isArray(state.deleted)?state.deleted.slice().sort():[];
+    return JSON.stringify({form:syncComparable(state),tabs,del});
   }
   function applyFormState(state){
     // Gelen veri formu değiştirmeden önce yereldeki çalışma korunur; aksi halde
     // sekme geçişinde uzak hastanın verisi yerel hastanın kaydının üzerine yazılır.
     const cur=captureState();
+    const preserved=new Set(); // bu çağrıda korunan yerel çalışma — uzak kopya ezemez
     if(activeIndex!==null){
       patients[activeIndex]=cur;
+      preserved.add(cur.pid);
       activeIndex=null; // senkron verisi hiçbir yerel sekmeyi temsil etmez
     }else if(!isStateEmpty(cur)&&syncComparable(cur)!==lastSyncedJson){
-      patients.push(cur);
+      upsertPatient(cur);
+      preserved.add(cur.pid);
     }
-    // Uzak cihazın hasta sekmeleri yerel listeyle birleştirilir; birebir aynıları atlanır.
+    // Karşı cihazın sildiği hastalar yerelden de kaldırılır (hayalet sekme önlenir).
+    if(Array.isArray(state.deleted)){
+      state.deleted.forEach(pid=>{
+        if(typeof pid!=='string')return;
+        deletedPids.add(pid);
+        const i=patients.findIndex(p=>p.pid===pid);
+        if(i<0)return;
+        if(preserved.has(pid)){
+          // Karşı cihaz silmiş ama yerelde senkrona yansımamış çalışma var: korunan
+          // kopya yeni kimlik alır (çatallanır) — tombstone kalıcı olduğundan salt
+          // atlamak yetmez, sonraki turda silerdi; yeni kimlikle hem hayatta kalır
+          // hem karşı cihaza yeni hasta olarak yayılır.
+          patients[i]={...patients[i],pid:newPid()};
+          preserved.add(patients[i].pid);
+        }else{
+          patients.splice(i,1);
+        }
+      });
+    }
+    // Uzak sekmeler pid ile birleştirilir: aynı hasta yerinde güncellenir, yeni hasta
+    // eklenir; korunan yerel çalışma ve silinmiş hastalar ezilmez/geri gelmez.
     if(Array.isArray(state.patients)){
-      const seen=new Set(patients.map(p=>syncComparable(p)));
       state.patients.forEach(p=>{
         if(!p||typeof p!=='object')return;
-        const k=syncComparable(p);
-        if(!seen.has(k)){seen.add(k);patients.push(p);}
+        if(p.pid&&(preserved.has(p.pid)||deletedPids.has(p.pid)))return;
+        if(!p.pid){
+          // Eski sürüm blob'u (pid'siz): birebir içerik kopyasını ekleme
+          const k=syncComparable({...p,pid:undefined});
+          if(patients.some(q=>syncComparable({...q,pid:undefined})===k))return;
+          p.pid=newPid();
+        }
+        upsertPatient(p);
       });
     }
     restoreState(state);
+    // Formun kimliği gelen hastanın kimliğidir. İki istisna yeni kimlik alır:
+    // (1) yerel divergent kopya korunduysa (çatallanma — sekme geçişi ezmesin),
+    // (2) gelen form BOŞSA — boş formun kimliğini paylaşmak, iki cihazda aynı anda
+    // başlatılan FARKLI yeni hastalara aynı pid'i verip birbirini ezdirir.
+    formPid=(state.pid&&!preserved.has(state.pid)&&!isStateEmpty(state))?state.pid:newPid();
+    // Düzenleme silmeye üstün gelir: karşı cihaz bu hastayı formunda yaşatıyorsa tombstone kalkar.
+    if(state.pid&&!isStateEmpty(state))deletedPids.delete(state.pid);
+    const fi=patients.findIndex(p=>p.pid===formPid);
+    if(fi>=0)patients.splice(fi,1); // form bu hastayı temsil eder; sekme kopyası kalkar
     lastSyncedJson=syncComparable(captureState());
     renderPatientTabs();
     refreshDetail();

@@ -22,7 +22,8 @@ self.addEventListener('fetch', e => {
   e.respondWith((async () => {
     const networkRaw = fetch(e.request);
     const cached = await caches.match(e.request, { ignoreSearch: true })
-      .then(m => m || (e.request.mode === 'navigate' ? caches.match('./index.html') : undefined));
+      .then(m => m || (e.request.mode === 'navigate' ? caches.match('./index.html') : undefined))
+      .catch(() => undefined); // bozuk cache-storage sağlam ağdaki isteği düşürmesin
     const network = networkRaw.then(r => {
       if (r.ok && r.type === 'basic') {
         const copy = r.clone();
@@ -35,6 +36,9 @@ self.addEventListener('fetch', e => {
     if (!cached) return network; // önbellek yoksa ağı beklemekten başka yol yok
     // Zayıf ağda (lie-fi) açılışı ağ zaman aşımına kilitleme: yanıt gecikirse
     // önbellekten aç; ağ yanıtı arka planda önbelleği tazelemeye devam eder.
+    // waitUntil olmadan tarayıcı, yanıt döner dönmez SW'yi sonlandırıp arka plan
+    // tazelemesini iptal edebilir — kalıcı yavaş ağda cache süresiz bayat kalırdı.
+    e.waitUntil(network.catch(() => {}));
     const timeout = new Promise(res => setTimeout(res, 2500, cached));
     return Promise.race([network.catch(() => cached), timeout]);
   })());
