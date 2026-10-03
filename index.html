@@ -217,7 +217,9 @@
   .bm-wrap{display:flex;gap:6px;justify-content:center;background:var(--field);border:2px solid;
     border-color:var(--shadow) var(--light) var(--light) var(--shadow);padding:6px 4px;margin:2px 0 4px;}
   .bm-fig{flex:1;display:flex;flex-direction:column;align-items:center;max-width:50%;}
-  .bm-cap{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:2px;letter-spacing:.5px;}
+  .bm-cap{font-size:13px;font-weight:800;color:var(--muted);margin-bottom:2px;letter-spacing:1px;}
+  .bm-side text{font-size:13px;font-weight:800;fill:#0b574c;letter-spacing:.5px;pointer-events:none;}
+  .mek-sublbl{font-size:10px;font-weight:700;color:var(--muted);margin:8px 0 3px;}
   .bm-svg{width:100%;height:auto;display:block;touch-action:manipulation;}
   .bm-body path{fill:#f3e7d8;stroke:#6b4f3a;stroke-width:1.3;stroke-linejoin:round;}
   .bm-line{fill:none;stroke:#b59a78;stroke-width:.9;}
@@ -492,7 +494,7 @@
 /* anatomical diagram reads as a light figure */
 .bm-wrap{background:#f3efe6;}
 .bm-readout{background:#fbfaf6;color:#1a1a17;}
-.bm-cap{color:#5a5346;}
+.bm-cap{color:#1f1c16;}
 
 /* QR codes need a true white field to scan */
 .sync-qr-box{background:#fff;}
@@ -2520,6 +2522,7 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
         <button class="chip">Asfiksi</button>
         <button class="chip">Yanık</button>
         <button class="chip">Zehirlenme</button>
+        <button class="chip" id="chipScooter">Scooter kazası</button>
       </div>
 
       <div class="chips" data-single="true" id="trafikSub" style="display:none;margin-top:7px;">
@@ -2535,6 +2538,38 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
         <button class="chip">Kask var</button>
         <button class="chip">Kask yok</button>
         <button class="chip">Hava yastığı açıldı</button>
+      </div>
+
+      <div id="scooterBox" style="display:none;">
+        <div class="mek-sublbl">Scooter tipi</div>
+        <div class="chips" data-single="true" id="scooterTip">
+          <button class="chip">Elektrikli scooter</button>
+          <button class="chip">Elektriksiz scooter</button>
+        </div>
+        <div class="mek-sublbl">Kişinin konumu</div>
+        <div class="chips" data-single="true" id="scooterRol">
+          <button class="chip">Sürücü</button>
+          <button class="chip">Yolcu (2. kişi)</button>
+          <button class="chip">Yaya (scooter çarptı)</button>
+        </div>
+        <div id="scooterOlayBox">
+          <div class="mek-sublbl">Olay şekli</div>
+          <div class="chips" data-single="true" id="scooterOlay">
+            <button class="chip">Dengesini kaybedip düştü</button>
+            <button class="chip">Yol bozukluğu nedeniyle düştü</button>
+            <button class="chip">Motorlu araçla çarpıştı</button>
+            <button class="chip">Scooter/bisikletle çarpıştı</button>
+            <button class="chip">Sabit cisme çarptı</button>
+            <button class="chip">Yayaya çarptı</button>
+          </div>
+        </div>
+        <div class="mek-sublbl">Ek bilgi</div>
+        <div class="chips" id="scooterEk">
+          <button class="chip" data-surucu="1">Kask var</button>
+          <button class="chip" data-surucu="1">Kask yok</button>
+          <button class="chip" data-surucu="1">Scooterdan fırladı</button>
+          <button class="chip">Başını çarptı</button>
+        </div>
       </div>
 
       <div class="mini-row" id="dusmeYukseklikBox" style="display:none">
@@ -14444,29 +14479,47 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   const trafikSub=document.getElementById('trafikSub');
   const trafikEkSub=document.getElementById('trafikEkSub');
   const dusmeYukseklikBox=document.getElementById('dusmeYukseklikBox');
+  const chipScooter=document.getElementById('chipScooter');
+  const scooterBox=document.getElementById('scooterBox');
+  const scooterOlayBox=document.getElementById('scooterOlayBox');
+  const scooterEk=document.getElementById('scooterEk');
+
+  // Seçili (tek) chip'in metni; yoksa ''
+  function chipText(sel){const c=document.querySelector(sel+' .chip.active');return c?c.textContent.trim():'';}
+  // ["a","b","c"] → "a, b ve c"
+  function veIle(arr){return arr.length<2?(arr[0]||''):arr.slice(0,-1).join(', ')+' ve '+arr[arr.length-1];}
 
   function updateMekanizmaExtras(){
     const trafikActive=chipTrafikKazasi.classList.contains('active');
     trafikSub.style.display=trafikActive?'flex':'none';
     trafikEkSub.style.display=trafikActive?'flex':'none';
     dusmeYukseklikBox.style.display=chipDusme.classList.contains('active')?'flex':'none';
+    scooterBox.style.display=chipScooter.classList.contains('active')?'block':'none';
+    // Yaya iken "olay şekli" (düştü/çarptı) sürücüye ait olduğundan gizlenir
+    const scYaya=chipText('#scooterRol').startsWith('Yaya');
+    scooterOlayBox.style.display=scYaya?'none':'block';
+    // Kask / fırlama yalnızca scooter üzerindeki kişi için anlamlı
+    scooterEk.querySelectorAll('.chip[data-surucu]').forEach(c=>{c.style.display=scYaya?'none':'';});
   }
 
-  // Mekanizma olay tipi / niyet → anlamlı adli cümle haritaları
+  // Mekanizma olay tipi / niyet → elle yazılmış gibi akan beyan cümlesi.
+  // Fiiller "…dığını ifade etmektedir" kalıbına uyacak şekilde ad-fiil halindedir.
   const MEK_OLAY={
-    'Darp':'darp edilmiştir',
-    'İş kazası':'iş kazası geçirmiştir',
-    'Ateşli silah yaralanması':'ateşli silahla yaralanmıştır',
-    'Kesici delici alet yaralanması':'kesici delici aletle yaralanmıştır',
-    'Trafik kazası':'trafik kazası geçirmiştir',
-    'Düşme':'düşmüştür',
-    'Üzerine cisim düşmesi':'üzerine cisim düşmüştür',
-    'Cinsel saldırı':'cinsel saldırıya uğramıştır',
-    'Künt travma':'künt travmaya maruz kalmıştır',
-    'Asfiksi':'asfiksiye maruz kalmıştır',
-    'Yanık':'yanık oluşmuştur',
-    'Zehirlenme':'zehirlenmiştir',
+    'Darp':'darp edildiğini',
+    'İş kazası':'iş kazası geçirdiğini',
+    'Ateşli silah yaralanması':'ateşli silahla yaralandığını',
+    'Kesici delici alet yaralanması':'kesici delici aletle yaralandığını',
+    'Trafik kazası':'trafik kazası geçirdiğini',
+    'Düşme':'düştüğünü',
+    'Üzerine cisim düşmesi':'üzerine cisim düştüğünü',
+    'Cinsel saldırı':'cinsel saldırıya uğradığını',
+    'Künt travma':'künt travmaya maruz kaldığını',
+    'Asfiksi':'asfiksiye maruz kaldığını',
+    'Yanık':'yanık yaralanmasına maruz kaldığını',
+    'Zehirlenme':'zehirlendiğini',
   };
+  // "üçüncü bir şahıs tarafından" yalnızca edilgen fiillerle doğal okunur
+  const MEK_EDILGEN=new Set(['Darp','Ateşli silah yaralanması','Kesici delici alet yaralanması','Cinsel saldırı','Zehirlenme']);
   const MEK_NIYET={
     'Kazara':'kazara',
     'Kendine zarar':'kendisine zarar verme amacıyla',
@@ -14475,34 +14528,68 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     'Bilinmiyor':'',
   };
   const MEK_TRAFIK_ROL={
-    'Sürücü':'araç sürücüsü olarak','Yolcu':'araç yolcusu olarak','Yaya':'yaya olarak',
+    'Sürücü':'araç sürücüsü olarak','Yolcu':'araç yolcusu olarak',
     'Motosiklet sürücüsü':'motosiklet sürücüsü olarak','Motosiklet yolcusu':'motosiklet yolcusu olarak',
   };
   const MEK_TRAFIK_EK={
-    'Emniyet kemeri var':'emniyet kemeri takılıydı','Emniyet kemeri yok':'emniyet kemeri takılı değildi',
-    'Kask var':'kask takılıydı','Kask yok':'kask takılı değildi','Hava yastığı açıldı':'hava yastığı açıldı',
+    'Emniyet kemeri var':'emniyet kemerinin takılı olduğunu','Emniyet kemeri yok':'emniyet kemerinin takılı olmadığını',
+    'Kask var':'kask taktığını','Kask yok':'kask takmadığını','Hava yastığı açıldı':'hava yastığının açıldığını',
+  };
+  const SCOOTER_TIP={'Elektrikli scooter':'elektrikli scooter','Elektriksiz scooter':'elektriksiz scooter'};
+  const SCOOTER_OLAY={
+    'Dengesini kaybedip düştü':'dengesini kaybederek düştüğünü',
+    'Yol bozukluğu nedeniyle düştü':'yoldaki bir bozukluğa (çukur, kaldırım vb.) takılarak düştüğünü',
+    'Motorlu araçla çarpıştı':'bir motorlu araçla çarpıştığını',
+    'Scooter/bisikletle çarpıştı':'başka bir scooter ya da bisikletle çarpıştığını',
+    'Sabit cisme çarptı':'sabit bir cisme çarptığını',
+    'Yayaya çarptı':'bir yayaya çarptığını',
+  };
+  const SCOOTER_EK={
+    'Kask var':'kask taktığını','Kask yok':'kask takmadığını',
+    'Scooterdan fırladı':'scooterdan fırladığını','Başını çarptı':'başını çarptığını',
   };
 
-  // Olay tipi + niyetten anlamlı "Beyanına göre …" cümlesi (+ varsa ek detay cümlesi) üretir
+  function scooterCekirdek(){
+    const tip=SCOOTER_TIP[chipText('#scooterTip')]||'scooter';
+    const rol=chipText('#scooterRol');
+    if(rol.startsWith('Yaya'))return `yaya olarak yürürken kendisine ${tip} çarptığını`;
+    const olay=SCOOTER_OLAY[chipText('#scooterOlay')]||'';
+    if(rol==='Sürücü')return `${tip} kullanırken ${olay||'kaza geçirdiğini'}`;
+    if(rol.startsWith('Yolcu'))return `${tip} üzerinde ikinci kişi olarak bulunduğu sırada ${olay||'kaza geçirdiğini'}`;
+    return olay?`${tip} kazasında ${olay}`:`${tip} kazası geçirdiğini`;
+  }
+
+  // Olay tipi + niyetten "Kişi kendi beyanına göre … ifade etmektedir." cümlesi (+ varsa ek detay cümlesi)
   function mekanizmaCumlesi(){
     const olayChip=document.querySelector('#mekanizmaTipi .chip.active');
     const niyetChip=document.querySelector('#mekanizmaNiyet .chip.active');
     if(!olayChip)return {beyan:'',ek:''};
     const t=olayChip.textContent.trim();
-    let verb=MEK_OLAY[t]||lc(t);
-    let ek='';
+    let core=MEK_OLAY[t]||(lc(t)+' nedeniyle yaralandığını');
+    let ekList=[];
     if(olayChip===chipTrafikKazasi){
-      const sub=trafikSub.querySelector('.chip.active');
-      const rol=sub?MEK_TRAFIK_ROL[sub.textContent.trim()]:'';
-      if(rol)verb=`${rol} ${verb}`;
-      const ekList=[...trafikEkSub.querySelectorAll('.chip.active')].map(c=>MEK_TRAFIK_EK[c.textContent.trim()]).filter(Boolean);
-      if(ekList.length)ek=`Kaza sırasında ${ekList.join(', ')}.`;
+      const rolT=chipText('#trafikSub');
+      if(rolT==='Yaya')core='yaya olarak yürürken kendisine araç çarptığını';
+      else if(MEK_TRAFIK_ROL[rolT])core=`${MEK_TRAFIK_ROL[rolT]} ${core}`;
+      ekList=[...trafikEkSub.querySelectorAll('.chip.active')].map(c=>MEK_TRAFIK_EK[c.textContent.trim()]).filter(Boolean);
+    }else if(olayChip===chipScooter){
+      core=scooterCekirdek();
+      const scYaya=chipText('#scooterRol').startsWith('Yaya');
+      ekList=[...scooterEk.querySelectorAll('.chip.active')].filter(c=>!(scYaya&&c.dataset.surucu))
+        .map(c=>SCOOTER_EK[c.textContent.trim()]).filter(Boolean);
     }else if(olayChip===chipDusme){
       const h=val('f_dusme_yukseklik');
-      if(h)verb=`${h} metre yükseklikten düşmüştür`;
+      if(h)core=`${h} metre yükseklikten düştüğünü`;
     }
-    const niyet=niyetChip?(MEK_NIYET[niyetChip.textContent.trim()]||''):'';
-    return {beyan:`Beyanına göre ${niyet?niyet+' ':''}${verb}.`, ek};
+    const niyetT=niyetChip?niyetChip.textContent.trim():'';
+    let niyet=MEK_NIYET[niyetT]||'';
+    const kazaTipi=olayChip===chipTrafikKazasi||olayChip===chipScooter||t==='İş kazası';
+    if(niyetT==='Kazara'&&kazaTipi)niyet='';   // "kazara trafik kazası" tekrarını önle
+    if(niyetT==='Başkası tarafından'&&!MEK_EDILGEN.has(t))niyet='başka bir şahsın eylemi sonucunda';
+    return {
+      beyan:`Kişi kendi beyanına göre ${niyet?niyet+' ':''}${core} ifade etmektedir.`,
+      ek:ekList.length?`Olay sırasında ${veIle(ekList)} belirtmektedir.`:'',
+    };
   }
 
   // --- Adli Rapor: Lezyon ekleyici ---
@@ -14693,11 +14780,16 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       face=faceArka;
     }
     const bodyParts=`<path d="${torso}"/>`+dual(arm,'')+handShape(48)+handShape(152)+dual(leg,'')+dual(foot,'');
+    // Lateralite: ÖN'de hastanın sağı izleyenin solunda; ARKA'da izleyenin sağında
+    const sl=view==='on'?'SAĞ':'SOL', sr=view==='on'?'SOL':'SAĞ';
+    const sides=`<g class="bm-side"><text x="3" y="14" text-anchor="start">${sl}</text><text x="197" y="14" text-anchor="end">${sr}</text>`
+      +`<text x="3" y="556" text-anchor="start">${sl}</text><text x="197" y="556" text-anchor="end">${sr}</text></g>`;
     const zones=BM_DATA.map((z,i)=>z.v===view?`<circle class="bm-zone" data-zi="${i}" cx="${z.x}" cy="${z.y}" r="${z.r}"><title>${z.ad}</title></circle>`:'').join('');
     return `<svg viewBox="0 0 200 562" class="bm-svg" data-view="${view}">
       <g transform="translate(0,16)"><g class="bm-body">${bodyParts}</g>${bodyLines}</g>
       <g class="bm-body"><path d="${neck}"/><path d="${head}"/></g>
       ${face}
+      ${sides}
       <g class="bm-zones">${zones}</g>
     </svg>`;
   }
@@ -14895,6 +14987,11 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(ro)ro.textContent=bmReadoutText(sel);
   }
 
+  const LEZ_SEKIL={'Lineer':'lineer','Oval':'oval şekilli','Yuvarlak':'yuvarlak şekilli','Düzensiz':'düzensiz şekilli','Yıldızvari':'yıldızvari','Yarım ay':'yarım ay şeklinde'};
+  const LEZ_OZELLIK={'Sütüre':'sütüre edilmiş','Enfekte':'enfekte görünümlü','Sıyrık tarzı':'sıyrık tarzında'};
+  const LEZ_TIP={'ASY giriş':'ateşli silah giriş deliği ile uyumlu yara','ASY çıkış':'ateşli silah çıkış deliği ile uyumlu yara','Isırık':'ısırık izi'};
+
+  // Tek lezyon için "sağ frontal bölgede 2x3 cm boyutlarında, oval şekilli ekimoz" öbeği (fiilsiz)
   function lezyonClause(card){
     const sel=card._sel||[];
     const tip=card.querySelector('[data-role="tip"] .chip.active');
@@ -14908,17 +15005,20 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(sel.length===2&&sel[0]!==sel[1])loc=`${lc(BM_DATA[sel[0]].rap)} ile ${lc(BM_DATA[sel[1]].rap)} arasında uzanan`;
     else loc=lokatif(lc(BM_DATA[sel[0]].rap));
 
-    // Tanımlayıcılar (sıra: adet · boyut · şekil · yön · renk · özellikler)
-    const desc=[];
+    // Tanımlayıcılar (sıra: boyut · şekil · yön · renk · özellikler); adet başa, virgülsüz
     const adet=active('adet');
-    if(adet&&adet!=='Tek')desc.push(adet==='Multipl'?'multipl':`${adet} adet`);
-    if(x&&y)desc.push(`${x}x${y} cm boyutunda`);
-    else if(x||y)desc.push(`${x||y} cm uzunluğunda`);
-    const sekil=active('sekil'); if(sekil)desc.push(lc(sekil));
+    const adetOn=(adet&&adet!=='Tek')?(adet==='Multipl'?'çok sayıda':`${adet} adet`):'';
+    const sekil=active('sekil');
+    const desc=[];
+    if(x&&y)desc.push(`${x}x${y} cm boyutlarında`);
+    else if(x||y)desc.push(`${x||y} cm ${sekil==='Yuvarlak'?'çapında':'uzunluğunda'}`);
+    if(sekil)desc.push(LEZ_SEKIL[sekil]||lc(sekil));
     const yon=active('yon'); if(yon)desc.push(`${lc(yon)} seyirli`);
     const tname=tip?tip.textContent.trim():'';
     const renk=active('renk'); if(renk&&tname==='Ekimoz')desc.push(`${lc(renk)} renkli`);
-    [...card.querySelectorAll('[data-role="ozellik"] .chip.active')].forEach(c=>desc.push(lc(c.textContent.trim())));
+    [...card.querySelectorAll('[data-role="ozellik"] .chip.active')].forEach(c=>{
+      const o=c.textContent.trim(); desc.push(LEZ_OZELLIK[o]||lc(o));
+    });
 
     // Tip
     let tipText;
@@ -14927,15 +15027,16 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const d=active('yanikDerece');
       tipText=d?(d.toLocaleLowerCase('tr').includes('yanık')?d.toLocaleLowerCase('tr'):`${d.toLocaleLowerCase('tr')} yanık`):'yanık';
     }
-    else if(tname.startsWith('ASY'))tipText=tname;   // kısaltma korunur
-    else tipText=lc(tname);
+    else tipText=LEZ_TIP[tname]||lc(tname);
 
-    return loc+' '+(desc.length?desc.join(', ')+' ':'')+tipText;
+    return [loc,adetOn,desc.join(', '),tipText].filter(Boolean).join(' ');
   }
 
+  // Her lezyon ayrı tam cümle: ilki "Yapılan fizik muayenesinde …", sonrakiler büyük harfle başlar
   function lezyonlarText(){
     const cards=[...lezyonList.querySelectorAll('.lezyon-card')];
-    return cards.map(lezyonClause).filter(Boolean).join(', ');
+    const cl=cards.map(lezyonClause).filter(Boolean);
+    return cl.map((c,i)=>(i===0?'Yapılan fizik muayenesinde '+c:cap(c))+' mevcuttur.').join(' ');
   }
   // ---- /Lezyon ekleyici ----
 
@@ -14948,10 +15049,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const radyoActive=chipRadyoPatoloji.classList.contains('active');
     const akutActive=document.getElementById('chipRadyoAkut').classList.contains('active');
     const lezyonlar=lezyonlarText();
-    const patoloji=lezyonlar||val('f_adli_patoloji');
+    const serbest=val('f_adli_patoloji');
 
     // Bölümle hiç etkileşime girilmediyse çıktı üretme
-    if(!olayChip && !patoloji && !radyoActive && !giderChip && !hayatiChip && !bilincChip)return '';
+    if(!olayChip && !lezyonlar && !serbest && !radyoActive && !giderChip && !hayatiChip && !bilincChip)return '';
 
     const mek=mekanizmaCumlesi();
 
@@ -14959,40 +15060,52 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const gksSectionVisible=(sectionFieldsByMode[currentMode]||[]).includes('gks');
     const gks=(gksSectionVisible?document.getElementById('gksTotal'):document.getElementById('adliGksTotal')).textContent.trim();
 
-    let sentences=[];
+    const sentences=[];
 
-    // Bilinç durumu + GKS tek cümlede birleştirilir
-    let bilincPhrase='';
-    if(bilincChip){
-      const t=bilincChip.textContent.trim();
-      if(t==='Oryante ve koopere')bilincPhrase='Hasta oryante ve koopere görüldü';
-      else if(t==='Oryante, koopere değil')bilincPhrase='Hasta oryante, ancak koopere değil';
-      else if(t==='Konfüze')bilincPhrase='Hasta konfüze görüldü';
-    }
-    sentences.push(bilincPhrase?`${bilincPhrase}, GKS ${gks} olarak değerlendirildi.`:`GKS ${gks} olarak değerlendirildi.`);
-
+    // 1) Beyan (olayın nasıl olduğu)
     if(mek.beyan)sentences.push(mek.beyan);
     if(mek.ek)sentences.push(mek.ek);
-    if(patoloji)sentences.push(`Yapılan fiziki muayenede ${patoloji} izlendi.`);
-    else sentences.push('Yapılan fiziki muayenede herhangi bir patolojik bulgu izlenmedi.');
 
+    // 2) Başvurudaki genel durum + GKS
+    const bilinc=bilincChip?bilincChip.textContent.trim():'';
+    if(bilinc==='Oryante ve koopere')sentences.push(`Acil servise başvurusunda bilinci açık, oryante ve koopere olup GKS ${gks} olarak değerlendirilmiştir.`);
+    else if(bilinc==='Oryante, koopere değil')sentences.push(`Acil servise başvurusunda bilinci açık ve oryante olup koopere değildir, GKS ${gks} olarak değerlendirilmiştir.`);
+    else if(bilinc==='Konfüze')sentences.push(`Acil servise başvurusunda konfüze olup GKS ${gks} olarak değerlendirilmiştir.`);
+    else sentences.push(`Acil servise başvurusunda GKS ${gks} olarak değerlendirilmiştir.`);
+
+    // 3) Fizik muayene — lezyon kartları her biri ayrı cümle; yoksa serbest metin
+    if(lezyonlar)sentences.push(lezyonlar);
+    else if(serbest){
+      const t=serbest.replace(/[.\s]+$/,'');
+      // Kullanıcı cümleyi kendisi fiille bitirdiyse olduğu gibi al
+      sentences.push(/(izlendi|izlenmiştir|mevcuttur|mevcut|saptandı|saptanmıştır|görüldü|görülmüştür|yoktur|vardır)$/i.test(t)
+        ?`Yapılan fizik muayenesinde ${t}.`:`Yapılan fizik muayenesinde ${t} mevcuttur.`);
+    }else sentences.push('Yapılan fizik muayenesinde travmaya bağlı patolojik bir bulguya rastlanmamıştır.');
+
+    // 4) Radyoloji
     if(radyoActive){
       const detay=val('f_adli_radyo_detay');
-      sentences.push(detay?`Çekilen radyolojik görüntülemelerde ${detay} izlendi.`:'Çekilen radyolojik görüntülemelerde patolojik bulgu izlendi.');
+      sentences.push(detay?`Çekilen radyolojik görüntülemelerinde ${detay} saptanmıştır.`:'Çekilen radyolojik görüntülemelerinde patolojik bulgu saptanmıştır.');
     }else if(akutActive){
-      sentences.push('Çekilen radyolojik görüntülemelerde akut patoloji izlenmedi.');
+      sentences.push('Çekilen radyolojik görüntülemelerinde akut patolojiye rastlanmamıştır.');
     }
 
+    // 5) Nörovasküler
     const nvdIzlendi=chipNvdIzlendi.classList.contains('active');
-    sentences.push(nvdIzlendi?'Nörovasküler defisit izlendi.':'Nörovasküler defisit izlenmedi.');
+    sentences.push(nvdIzlendi?'Nörovasküler muayenesinde defisit saptanmıştır.':'Nörovasküler muayenesi doğal olarak değerlendirilmiştir.');
 
-    // Müdahale şekli + hayati tehlike tek cümlede birleştirilir
-    if(giderChip&&hayatiChip){
-      sentences.push(`Şikayetleri basit tıbbi müdahale ile ${lc(giderChip.textContent.trim())} nitelikte olup, hayati tehlikesi ${lc(hayatiChip.textContent.trim())}.`);
-    }else if(giderChip){
-      sentences.push(`Şikayetleri basit tıbbi müdahale ile ${lc(giderChip.textContent.trim())} nitelikte değerlendirildi.`);
-    }else if(hayatiChip){
-      sentences.push(`Hastanın hayati tehlikesi ${lc(hayatiChip.textContent.trim())}.`);
+    // 6) Sonuç — TCK'daki ifade kalıbı korunur
+    const gider=giderChip?giderChip.textContent.trim():'';
+    const hayati=hayatiChip?hayatiChip.textContent.trim():'';
+    const hayatiCumle=hayati==='İzlendi'?'kişinin hayatını tehlikeye sokan bir durum olduğu':'kişinin hayatını tehlikeye sokan bir durum olmadığı';
+    const btmCumle=gider==='Giderilebilir'?'basit bir tıbbi müdahale ile giderilebilecek nitelikte olduğu':'basit bir tıbbi müdahale ile giderilebilecek nitelikte olmadığı';
+    if(gider&&hayati){
+      const baglac=(hayati!=='İzlendi'&&gider==='Giderilemez')?', ancak ':', ';
+      sentences.push(`Mevcut yaralanmasının ${hayatiCumle}${baglac}${btmCumle} kanaatine varılmıştır.`);
+    }else if(gider){
+      sentences.push(`Mevcut yaralanmasının ${btmCumle} kanaatine varılmıştır.`);
+    }else if(hayati){
+      sentences.push(`Mevcut yaralanmasının ${hayatiCumle} kanaatine varılmıştır.`);
     }
 
     sentences.push('Durum bildirir geçici tek hekim raporudur.');
