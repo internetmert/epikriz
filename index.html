@@ -2479,6 +2479,20 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
         <button class="chip" data-arac="1">Hava yastığı açıldı</button>
       </div>
 
+      <div id="isKazasiBox" style="display:none;">
+        <div class="mek-sublbl">İş kazası türü</div>
+        <div class="chips" data-single="true" id="isKazasiTur">
+          <button class="chip">İş yerinde bayılma</button>
+        </div>
+        <div id="bayilmaEkBox" style="display:none;">
+          <div class="mek-sublbl">Ek bilgi</div>
+          <div class="chips" id="bayilmaEk">
+            <button class="chip">Bayılarak yere düştü</button>
+            <button class="chip">Başını çarptı</button>
+          </div>
+        </div>
+      </div>
+
       <div id="scooterBox" style="display:none;">
         <div class="mek-sublbl">Scooter tipi</div>
         <div class="chips" data-single="true" id="scooterTip">
@@ -14192,6 +14206,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   const scooterBox=document.getElementById('scooterBox');
   const scooterOlayBox=document.getElementById('scooterOlayBox');
   const scooterEk=document.getElementById('scooterEk');
+  // "İş kazası" chip'ine id verilmedi (kayıtlı hasta durumlarının anahtarı değişmesin); metinden bulunur
+  const chipIsKazasi=[...document.querySelectorAll('#mekanizmaTipi .chip')].find(c=>c.textContent.trim()==='İş kazası');
+  const isKazasiBox=document.getElementById('isKazasiBox');
+  const bayilmaEkBox=document.getElementById('bayilmaEkBox');
 
   // Seçili (tek) chip'in metni; yoksa ''
   function chipText(sel){const c=document.querySelector(sel+' .chip.active');return c?c.textContent.trim():'';}
@@ -14212,6 +14230,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     trafikEkSub.style.display=(trafikActive&&!trYaya)?'flex':'none';
     dusmeYukseklikBox.style.display=chipDusme.classList.contains('active')?'flex':'none';
     scooterBox.style.display=chipScooter.classList.contains('active')?'block':'none';
+    isKazasiBox.style.display=chipIsKazasi.classList.contains('active')?'block':'none';
+    bayilmaEkBox.style.display=chipText('#isKazasiTur')==='İş yerinde bayılma'?'block':'none';
     // Yaya iken "olay şekli" (düştü/çarptı) sürücüye ait olduğundan gizlenir
     const scYaya=chipText('#scooterRol').startsWith('Yaya');
     scooterOlayBox.style.display=scYaya?'none':'block';
@@ -14297,6 +14317,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const scYaya=chipText('#scooterRol').startsWith('Yaya');
       ekList=[...scooterEk.querySelectorAll('.chip.active')].filter(c=>!(scYaya&&c.dataset.surucu))
         .map(c=>SCOOTER_EK[c.textContent.trim()]).filter(Boolean);
+    }else if(olayChip===chipIsKazasi&&chipText('#isKazasiTur')==='İş yerinde bayılma'){
+      const ek=[...document.querySelectorAll('#bayilmaEk .chip.active')].map(c=>c.textContent.trim());
+      core=ek.includes('Bayılarak yere düştü')?'iş yerinde çalıştığı sırada bayılarak yere düştüğünü':'iş yerinde çalıştığı sırada bayıldığını';
+      if(ek.includes('Başını çarptı'))ekList=['başını çarptığını'];
     }else if(olayChip===chipDusme){
       const h=val('f_dusme_yukseklik');
       if(h)core=`${h} metre yükseklikten düştüğünü`;
