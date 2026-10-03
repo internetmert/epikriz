@@ -342,6 +342,18 @@
   *::-webkit-scrollbar-thumb{background:var(--face);border:2px solid;
     border-color:var(--light) var(--dark) var(--dark) var(--light);}
 
+  @media(max-width:600px){
+    /* Telefonda üst bar butonları ekrandan taşmasın: ikinci satıra sarar */
+    .topbar{flex-wrap:wrap;gap:6px;padding:6px 8px;}
+    .topbar .spacer{flex-basis:100%;height:0;}
+    .topbar .btn{padding:4px 9px;font-size:13px;}
+    .brand .brand-emoji{display:none;}
+    #btnYazdir{display:none !important;}   /* telefondan yazdırma pratikte kullanılmıyor; bar tek satıra sığsın */
+  }
+  .update-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:300;display:flex;gap:10px;align-items:center;
+    background:var(--navy);color:#fff;padding:8px 12px;border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);
+    font-size:13.5px;text-transform:none;max-width:94vw;box-shadow:0 3px 10px rgba(0,0,0,.4);}
+  .update-bar button{font:inherit;font-weight:700;cursor:pointer;padding:3px 10px;}
   @media(max-width:900px){
     .wrap{grid-template-columns:1fr;}
     .panel.form{border-right:none;border-bottom:2px solid var(--shadow);}
@@ -609,7 +621,7 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
       <div class="sync-section">
         <div class="subhead">Başka cihazdan al</div>
         <div class="sync-row">
-          <input type="text" class="txt" id="syncCodeIn" placeholder="örn. AB3K-9XQ2" maxlength="10">
+          <input type="text" class="txt" id="syncCodeIn" placeholder="örn. AB3K-9XQ2-7MPD" maxlength="14">
           <button type="button" class="btn" id="btnSyncFetch" onclick="syncFetch()">Getir ve Doldur</button>
         </div>
         <button type="button" class="btn" id="btnQrScan" onclick="toggleQrScan()" style="margin-top:8px;">📷 QR Tara</button>
@@ -2567,12 +2579,14 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
         <div class="subhead">GKS</div>
         <div class="grid g3">
           <div class="field"><label>Göz (x/4)</label><select class="txt" id="f_adli_gks_goz">
+            <option value="">—</option>
             <option value="4">4 — Spontan</option>
             <option value="3">3 — Sese</option>
             <option value="2">2 — Ağrıya</option>
             <option value="1">1 — Yok</option>
           </select></div>
           <div class="field"><label>Motor (x/6)</label><select class="txt" id="f_adli_gks_motor">
+            <option value="">—</option>
             <option value="6">6 — Emirlere uyar</option>
             <option value="5">5 — Yerleştirir</option>
             <option value="4">4 — Çeker</option>
@@ -2581,6 +2595,7 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
             <option value="1">1 — Yok</option>
           </select></div>
           <div class="field"><label>Verbal (x/5)</label><select class="txt" id="f_adli_gks_verbal">
+            <option value="">—</option>
             <option value="5">5 — Oryante</option>
             <option value="4">4 — Konfüze</option>
             <option value="3">3 — Uygunsuz</option>
@@ -2598,14 +2613,15 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
 
       <div class="subhead">Radyolojik bulgu</div>
       <div class="chips" data-single="true" id="adliRadyo">
-        <button class="chip active" id="chipRadyoAkut">Akut patoloji izlenmedi</button>
+        <button class="chip" id="chipRadyoAkut">Akut patoloji izlenmedi</button>
         <button class="chip" id="chipRadyoPatoloji">Patolojik bulgu izlendi</button>
+        <button class="chip" id="chipRadyoYok">Görüntüleme yapılmadı</button>
       </div>
       <input class="extra" id="f_adli_radyo_detay" style="display:none;" placeholder="örn. sol radius distal kırığı">
 
       <div class="subhead">Nörovasküler Defisit</div>
       <div class="chips" data-single="true" id="adliNvd">
-        <button class="chip active" id="chipNvdIzlenmedi">NVD izlenmedi</button>
+        <button class="chip" id="chipNvdIzlenmedi">NVD izlenmedi</button>
         <button class="chip" id="chipNvdIzlendi">NVD izlendi</button>
       </div>
 
@@ -12953,6 +12969,15 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   // PWA: offline çalışma için service worker (https gerektirir; file:// üzerinde sessizce atlanır)
   if('serviceWorker' in navigator&&location.protocol==='https:'){
     navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    // SW, önbellekten açılan sayfanın ağda daha yeni sürümü olduğunu görünce haber verir
+    navigator.serviceWorker.addEventListener('message',ev=>{
+      if(!ev.data||ev.data.type!=='update-available'||document.getElementById('updateBar'))return;
+      const bar=document.createElement('div');bar.id='updateBar';bar.className='update-bar';
+      bar.innerHTML='<span>Yeni sürüm hazır. Açık hasta notları yenilemede silinir — gerekirse önce senkronla.</span>';
+      const b=document.createElement('button');b.type='button';b.textContent='Yenile';b.onclick=()=>location.reload();
+      const x=document.createElement('button');x.type='button';x.textContent='Sonra';x.onclick=()=>bar.remove();
+      bar.appendChild(b);bar.appendChild(x);document.body.appendChild(bar);
+    });
   }
   window.testLogout=function(){
     localStorage.removeItem('epikriz_session');
@@ -13607,9 +13632,10 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     document.getElementById('f_gks_goz').value='4';
     document.getElementById('f_gks_motor').value='6';
     document.getElementById('f_gks_verbal').value='5';
-    document.getElementById('f_adli_gks_goz').value='4';
-    document.getElementById('f_adli_gks_motor').value='6';
-    document.getElementById('f_adli_gks_verbal').value='5';
+    // Adli rapordaki GKS bilerek boş başlar: değerlendirilmemiş GKS rapora "15/15" diye girmesin
+    document.getElementById('f_adli_gks_goz').value='';
+    document.getElementById('f_adli_gks_motor').value='';
+    document.getElementById('f_adli_gks_verbal').value='';
     updateGksTotal();
     updateAdliGksTotal();
   }
@@ -14827,7 +14853,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const serbest=val('f_adli_patoloji');
 
     // Bölümle hiç etkileşime girilmediyse çıktı üretme
-    if(!olayChip && !lezyonlar && !serbest && !radyoActive && !giderChip && !hayatiChip && !bilincChip)return '';
+    const nvdSecili=!!adliBox.querySelector('#adliNvd .chip.active');
+    const radyoSecili=!!adliBox.querySelector('#adliRadyo .chip.active');
+    if(!olayChip && !lezyonlar && !serbest && !radyoSecili && !nvdSecili && !giderChip && !hayatiChip && !bilincChip)return '';
 
     const mek=mekanizmaCumlesi();
 
@@ -14842,11 +14870,16 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(mek.ek)sentences.push(mek.ek);
 
     // 2) Başvurudaki genel durum + GKS
+    // GKS girilmemişse ("-/15") cümleye hiç yazılmaz
+    const gksVar=/^\d/.test(gks);
     const bilinc=bilincChip?bilincChip.textContent.trim():'';
-    if(bilinc==='Oryante ve koopere')sentences.push(`Acil servise başvurusunda bilinci açık, oryante ve koopere olup GKS ${gks} olarak değerlendirilmiştir.`);
-    else if(bilinc==='Oryante, koopere değil')sentences.push(`Acil servise başvurusunda bilinci açık ve oryante olup koopere değildir, GKS ${gks} olarak değerlendirilmiştir.`);
-    else if(bilinc==='Konfüze')sentences.push(`Acil servise başvurusunda konfüze olup GKS ${gks} olarak değerlendirilmiştir.`);
-    else sentences.push(`Acil servise başvurusunda GKS ${gks} olarak değerlendirilmiştir.`);
+    const durum=bilinc==='Oryante ve koopere'?'bilinci açık, oryante ve koopere'
+      :bilinc==='Oryante, koopere değil'?'bilinci açık ve oryante olup koopere değildir'
+      :bilinc==='Konfüze'?'konfüze':'';
+    const kd=bilinc==='Oryante, koopere değil';
+    if(durum&&gksVar)sentences.push(`Acil servise başvurusunda ${durum}${kd?',':' olup'} GKS ${gks} olarak değerlendirilmiştir.`);
+    else if(durum)sentences.push(`Acil servise başvurusunda ${durum}${kd?'.':' olarak değerlendirilmiştir.'}`);
+    else if(gksVar)sentences.push(`Acil servise başvurusunda GKS ${gks} olarak değerlendirilmiştir.`);
 
     // 3) Fizik muayene — lezyon kartları her biri ayrı cümle; yoksa serbest metin
     if(lezyonlar)sentences.push(lezyonlar);
@@ -14863,11 +14896,13 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       sentences.push(detay?`Çekilen radyolojik görüntülemelerinde ${detay} saptanmıştır.`:'Çekilen radyolojik görüntülemelerinde patolojik bulgu saptanmıştır.');
     }else if(akutActive){
       sentences.push('Çekilen radyolojik görüntülemelerinde akut patolojiye rastlanmamıştır.');
+    }else if(document.getElementById('chipRadyoYok').classList.contains('active')){
+      sentences.push('Radyolojik görüntüleme yapılmamıştır.');
     }
 
-    // 5) Nörovasküler
-    const nvdIzlendi=chipNvdIzlendi.classList.contains('active');
-    sentences.push(nvdIzlendi?'Nörovasküler muayenesinde defisit saptanmıştır.':'Nörovasküler muayenesi doğal olarak değerlendirilmiştir.');
+    // 5) Nörovasküler — yalnızca hekim işaretlediyse yazılır
+    if(chipNvdIzlendi.classList.contains('active'))sentences.push('Nörovasküler muayenesinde defisit saptanmıştır.');
+    else if(document.getElementById('chipNvdIzlenmedi').classList.contains('active'))sentences.push('Nörovasküler muayenesi doğal olarak değerlendirilmiştir.');
 
     // 6) Sonuç — TCK'daki ifade kalıbı korunur
     const gider=giderChip?giderChip.textContent.trim():'';
@@ -15180,7 +15215,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
 
   /* ===== ICD-10 Tanı önerisi (başvuru şikayeti + fizik muayene bulgusuna göre) ===== */
   const ICD_NAMES={
-    'R52':'Ağrı, başka yerde sınıflandırılmamış','R50.9':'Ateş, tanımlanmamış','R61':'Hiperhidroz (terleme)',
+    'R52.9':'Ağrı, tanımlanmamış','R50.9':'Ateş, tanımlanmamış','R61.9':'Hiperhidroz (terleme), tanımlanmamış',
     'R53':'Halsizlik ve yorgunluk','T50.9':'İlaç/madde zehirlenmesi, tanımlanmamış','R63.0':'Anoreksi (iştahsızlık)',
     'R63.4':'Anormal kilo kaybı','R60.9':'Ödem, tanımlanmamış','R55':'Senkop ve kollaps','R60.0':'Lokalize ödem',
     'I80.2':'Alt ekstremite derin ven trombozu','R00.2':'Palpitasyon (çarpıntı)','R07.4':'Göğüs ağrısı, tanımlanmamış',
@@ -15191,54 +15226,62 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     'R51':'Baş ağrısı','G43.9':'Migren, tanımlanmamış','R42':'Baş dönmesi ve sersemlik','R41.0':'Oryantasyon bozukluğu',
     'R27.0':'Ataksi','R29.8':'Sinir/kas-iskelet sistemine ait diğer belirtiler','G81.9':'Hemipleji, tanımlanmamış',
     'I63.9':'Serebral enfarktüs, tanımlanmamış','H54.7':'Görme kaybı, tanımlanmamış','R47.0':'Disfazi ve afazi',
-    'R47.1':'Dizartri ve anartri','R56.9':'Konvülziyon, tanımlanmamış','G40.9':'Epilepsi, tanımlanmamış','R20.2':'Parestezi (uyuşma)',
+    'R47.1':'Dizartri ve anartri','R56.8':'Konvülziyon, diğer ve tanımlanmamış','G40.9':'Epilepsi, tanımlanmamış','R20.2':'Parestezi (uyuşma)',
     'H57.1':'Göz ağrısı','H10.9':'Konjonktivit, tanımlanmamış','T15.9':'Gözde yabancı cisim','J02.9':'Akut farenjit',
-    'R07.0':'Boğazda ağrı','R04.0':'Epistaksis (burun kanaması)','R13.10':'Disfaji','H91.9':'İşitme kaybı, tanımlanmamış',
-    'H92.0':'Otalji (kulak ağrısı)','R49.0':'Disfoni (ses kısıklığı)','H81.1':'Benign paroksismal vertigo','R11.2':'Bulantı ile kusma',
-    'K92.2':'Gastrointestinal kanama, tanımlanmamış','A09':'İnfeksiyöz gastroenterit/kolit (ishal)','K59.0':'Konstipasyon',
-    'K92.1':'Melena','K62.5':'Anüs/rektum kanaması','R10.4':'Karın ağrısı, tanımlanmamış','K35.80':'Akut apandisit',
-    'K80.20':'Safra kesesi taşı (kolelitiazis)','K85.9':'Akut pankreatit','R10.2':'Pelvik ve perineal ağrı','R17':'Sarılık',
-    'R30.0':'Dizüri','N39.0':'İdrar yolu enfeksiyonu','R36.9':'Üretral akıntı','N89.8':'Vajinal akıntı/noninflamatuar bozukluk',
-    'R31.9':'Hematüri, tanımlanmamış','N20.9':'Üriner sistem taşı','R33.9':'Üriner retansiyon','N44':'Testis torsiyonu',
+    'R07.0':'Boğazda ağrı','R04.0':'Epistaksis (burun kanaması)','R13':'Disfaji','H91.9':'İşitme kaybı, tanımlanmamış',
+    'H92.0':'Otalji (kulak ağrısı)','R49.0':'Disfoni (ses kısıklığı)','H81.1':'Benign paroksismal vertigo','R11':'Bulantı ve kusma',
+    'K92.2':'Gastrointestinal kanama, tanımlanmamış','A09.9':'Gastroenterit ve kolit, köken tanımlanmamış (ishal)','K59.0':'Konstipasyon',
+    'K92.1':'Melena','K62.5':'Anüs/rektum kanaması','R10.4':'Karın ağrısı, tanımlanmamış','K35.8':'Akut apandisit, diğer ve tanımlanmamış',
+    'K80.2':'Safra kesesi taşı, kolesistitsiz (kolelitiazis)','K85.9':'Akut pankreatit','R10.2':'Pelvik ve perineal ağrı','R17':'Sarılık',
+    'R30.0':'Dizüri','N39.0':'İdrar yolu enfeksiyonu','R36':'Üretral akıntı','N89.8':'Vajinal akıntı/noninflamatuar bozukluk',
+    'R31':'Hematüri, tanımlanmamış','N20.9':'Üriner sistem taşı','R33':'Üriner retansiyon','N44':'Testis torsiyonu',
     'N45.9':'Orşit ve epididimit','N93.9':'Anormal uterin/vajinal kanama','O36.8':'Azalmış fetal hareket için bakım',
-    'Z33.1':'Gebe durumu (gebelik şüphesi)','O20.9':'Erken gebelik kanaması','O47.9':'Yalancı doğum eylemi',
-    'M54.5':'Bel ağrısı (lumbago)','M51.2':'İntervertebral disk yer değiştirmesi','M25.50':'Eklem ağrısı','M25.40':'Eklemde efüzyon',
-    'M54.9':'Dorsalji (sırt ağrısı)','M54.6':'Torakal omurga ağrısı','W19':'Tanımlanmamış düşme','S05.9':'Göz/orbita yaralanması',
+    'Z32.0':'Gebelik, henüz doğrulanmamış (gebelik şüphesi)','O20.9':'Erken gebelik kanaması','O47.9':'Yalancı doğum eylemi',
+    'M54.5':'Bel ağrısı (lumbago)','M51.2':'İntervertebral disk yer değiştirmesi','M25.5':'Eklem ağrısı','M25.4':'Eklemde efüzyon',
+    'M54.9':'Dorsalji (sırt ağrısı)','M54.6':'Torakal omurga ağrısı','W19.9':'Tanımlanmamış düşme, yeri tanımlanmamış','S05.9':'Göz/orbita yaralanması',
     'T14.1':'Açık yara, tanımlanmamış bölge','W55.9':'Memeli hayvan ısırığı/teması','Z20.3':'Kuduza maruz kalma/temas',
     'S09.9':'Kafa yaralanması, tanımlanmamış','S06.0':'Konküzyon (beyin sarsıntısı)','V89.2':'Motorlu taşıt (trafik) kazası',
     'T14.9':'Yaralanma, tanımlanmamış','T17.9':'Solunum yolunda yabancı cisim','T18.9':'Sindirim sisteminde yabancı cisim',
-    'T30.0':'Yanık, bölge/derece tanımlanmamış','R45.1':'Huzursuzluk ve ajitasyon','F41.9':'Anksiyete bozukluğu','F22':'Hezeyanlı (delüzyonel) bozukluk',
-    'F29':'Tanımlanmamış nonorganik psikoz','R44.3':'Halüsinasyon, tanımlanmamış','R45.851':'İntihar düşünceleri','F41.0':'Panik bozukluğu',
+    'T30.0':'Yanık, bölge/derece tanımlanmamış','R45.1':'Huzursuzluk ve ajitasyon','F41.9':'Anksiyete bozukluğu','F22.0':'Hezeyanlı (delüzyonel) bozukluk',
+    'F29':'Tanımlanmamış nonorganik psikoz','R44.3':'Halüsinasyon, tanımlanmamış','R45.8':'Duygu durumuyla ilgili diğer belirtiler (intihar düşüncesi)','F41.0':'Panik bozukluğu',
     'F10.0':'Akut alkol intoksikasyonu','T51.0':'Etanolün toksik etkisi','F19.0':'Çoklu madde intoksikasyonu','T58':'Karbonmonoksit toksik etkisi',
     'R73.9':'Hiperglisemi, tanımlanmamış','E14.9':'Diabetes mellitus, tanımlanmamış','E10.1':'Tip 1 DM, ketoasidozla (DKA)',
-    'E16.2':'Hipoglisemi, tanımlanmamış','L02.9':'Kütanöz apse/furonkül','L03.90':'Selülit, tanımlanmamış','L08.9':'Lokal deri enfeksiyonu',
+    'E16.2':'Hipoglisemi, tanımlanmamış','L02.9':'Kütanöz apse/furonkül','L03.9':'Selülit, tanımlanmamış','L08.9':'Lokal deri enfeksiyonu',
     'R21':'Döküntü/nonspesifik deri erüpsiyonu','L50.9':'Ürtiker','T78.4':'Alerji, tanımlanmamış','L29.9':'Kaşıntı (pruritus)',
-    'R23.0':'Siyanoz','T14.2':'Kırık, tanımlanmamış bölge','G51.0':'Bell paralizisi','N10':'Akut pyelonefrit','K65.9':'Peritonit','J20.9':'Akut bronşit'
+    'R23.0':'Siyanoz','T14.2':'Kırık, tanımlanmamış bölge','G51.0':'Bell paralizisi','N10':'Akut pyelonefrit','K65.9':'Peritonit','J20.9':'Akut bronşit',
+    'Y04.9':'Bedensel güçle saldırı, yeri tanımlanmamış','Y05.9':'Bedensel güçle cinsel saldırı, yeri tanımlanmamış',
+    'W20.9':'Fırlatılan/düşen nesnenin çarpması, yeri tanımlanmamış','T71':'Asfiksi','T14.0':'Yüzeyel yaralanma, tanımlanmamış bölge'
+  };
+  // Yaralanma mekanizması (adli/travma) → olası kodlar
+  const ICD_BY_MEKANIZMA={
+    'Darp':['Y04.9','T14.0'],'İş kazası':['T14.9'],'Ateşli silah yaralanması':['T14.1'],'Kesici delici alet yaralanması':['T14.1'],
+    'Trafik kazası':['V89.2','T14.9'],'Düşme':['W19.9','T14.9'],'Üzerine cisim düşmesi':['W20.9','T14.9'],'Cinsel saldırı':['Y05.9'],
+    'Künt travma':['T14.9'],'Asfiksi':['T71'],'Yanık':['T30.0'],'Zehirlenme':['T50.9'],'Scooter kazası':['T14.9']
   };
   const ICD_BY_COMPLAINT={
-    'akut ağrı (lokalize edilemeyen)':['R52'],'ateş':['R50.9'],'gece terlemesi':['R61'],'genel durum bozukluğu':['R53'],'halsizlik':['R53'],
+    'akut ağrı (lokalize edilemeyen)':['R52.9'],'ateş':['R50.9'],'gece terlemesi':['R61.9'],'genel durum bozukluğu':['R53'],'halsizlik':['R53'],
     'ilaç/madde alımı':['T50.9'],'iştahsızlık':['R63.0'],'kilo kaybı':['R63.4'],'ödem':['R60.9'],'presenkop':['R55'],
     'bacakta şişlik':['R60.0','I80.2'],'çarpıntı':['R00.2'],'göğüs ağrısı':['R07.4','I20.0','I20.9','I21.9'],'göğüste sıkışma hissi':['R07.4','I20.9'],
     'senkop':['R55'],'soğuk ekstremite':['I73.9'],'yüksek tansiyon':['I10','R03.0'],'hırıltılı nefes':['R06.2','J45.9'],'kanlı balgam':['R04.2'],
     'nefes darlığı':['R06.0','J44.9','I50.9','J18.9'],'öksürük':['R05'],'baş ağrısı':['R51','G43.9'],'baş dönmesi':['R42'],'bilinç bulanıklığı':['R41.0'],
     'denge kaybı':['R42','R27.0'],'ekstremite güçsüzlüğü':['R29.8','G81.9','I63.9'],'görme kaybı':['H54.7'],'konuşma bozukluğu':['R47.0','R47.1'],
-    'Nöbet':['R56.9','G40.9'],'uyuşma':['R20.2'],'ani görme azalması':['H54.7'],'göz ağrısı':['H57.1'],'kızarıklık':['H10.9','H57.1'],
-    'yabancı cisim hissi':['T15.9'],'boğaz ağrısı':['J02.9','R07.0'],'burun kanaması':['R04.0'],'disfaji':['R13.10'],'işitme kaybı':['H91.9'],
-    'kulak ağrısı':['H92.0'],'ses kısıklığı':['R49.0'],'vertigo':['H81.1','R42'],'bulantı-kusma':['R11.2'],'GİS kanama':['K92.2'],'ishal':['A09'],
-    'kabızlık':['K59.0'],'kanlı dışkılama':['K92.1','K62.5'],'karın ağrısı':['R10.4','K35.80','K80.20','K85.9'],'rektal ağrı':['R10.2','K62.5'],
-    'sarılık':['R17'],'dizüri':['R30.0','N39.0'],'genital akıntı':['R36.9','N89.8'],'hematüri':['R31.9','N20.9'],'idrar yapamama':['R33.9'],
-    'pelvik ağrı':['R10.2'],'testis ağrısı':['N44','N45.9'],'vajinal kanama':['N93.9'],'fetal hareket azalması':['O36.8'],'gebelik şüphesi':['Z33.1'],
-    'gebelikte kanama':['O20.9'],'kasılma':['O47.9'],'bel ağrısı':['M54.5','M51.2'],'eklem ağrısı/şişlik':['M25.50','M25.40'],'sırt ağrısı':['M54.9','M54.6'],
-    'düşme':['W19','T14.9'],'göz travması':['S05.9'],'hayvan ısırığı':['T14.1','W55.9','Z20.3'],'kafa travması':['S09.9','S06.0'],'kesik/laserasyon':['T14.1'],
+    'Nöbet':['R56.8','G40.9'],'uyuşma':['R20.2'],'ani görme azalması':['H54.7'],'göz ağrısı':['H57.1'],'kızarıklık':['H10.9','H57.1'],
+    'yabancı cisim hissi':['T15.9'],'boğaz ağrısı':['J02.9','R07.0'],'burun kanaması':['R04.0'],'disfaji':['R13'],'işitme kaybı':['H91.9'],
+    'kulak ağrısı':['H92.0'],'ses kısıklığı':['R49.0'],'vertigo':['H81.1','R42'],'bulantı-kusma':['R11'],'GİS kanama':['K92.2'],'ishal':['A09.9'],
+    'kabızlık':['K59.0'],'kanlı dışkılama':['K92.1','K62.5'],'karın ağrısı':['R10.4','K35.8','K80.2','K85.9'],'rektal ağrı':['R10.2','K62.5'],
+    'sarılık':['R17'],'dizüri':['R30.0','N39.0'],'genital akıntı':['R36','N89.8'],'hematüri':['R31','N20.9'],'idrar yapamama':['R33'],
+    'pelvik ağrı':['R10.2'],'testis ağrısı':['N44','N45.9'],'vajinal kanama':['N93.9'],'fetal hareket azalması':['O36.8'],'gebelik şüphesi':['Z32.0'],
+    'gebelikte kanama':['O20.9'],'kasılma':['O47.9'],'bel ağrısı':['M54.5','M51.2'],'eklem ağrısı/şişlik':['M25.5','M25.4'],'sırt ağrısı':['M54.9','M54.6'],
+    'düşme':['W19.9','T14.9'],'göz travması':['S05.9'],'hayvan ısırığı':['T14.1','W55.9','Z20.3'],'kafa travması':['S09.9','S06.0'],'kesik/laserasyon':['T14.1'],
     'trafik kazası':['V89.2','T14.9'],'travma':['T14.9'],'yabancı cisim':['T17.9','T18.9','T15.9'],'yanık':['T30.0'],'yanık derecelendirme ihtiyacı':['T30.0'],
-    'ajitasyon':['R45.1'],'anksiyete':['F41.9'],'delüzyon':['F22','F29'],'halüsinasyon':['R44.3','F29'],'intihar düşüncesi':['R45.851'],'panik atak':['F41.0'],
+    'ajitasyon':['R45.1'],'anksiyete':['F41.9'],'delüzyon':['F22.0','F29'],'halüsinasyon':['R44.3','F29'],'intihar düşüncesi':['R45.8'],'panik atak':['F41.0'],
     'Alkol kullanımı':['F10.0','T51.0'],'Madde kullanımı':['F19.0'],'CO maruziyeti şüphesi':['T58'],'ilaç intoksikasyonu':['T50.9'],
-    'hiperglisemi':['R73.9','E14.9','E10.1'],'hipoglisemi':['E16.2'],'apse':['L02.9'],'cilt enfeksiyonu':['L03.90','L08.9'],
+    'hiperglisemi':['R73.9','E14.9','E10.1'],'hipoglisemi':['E16.2'],'apse':['L02.9'],'cilt enfeksiyonu':['L03.9','L08.9'],
     'döküntü/alerji':['R21','L50.9','T78.4'],'kaşıntı':['L29.9']
   };
   const ICD_BY_FINDING={
     'Wheezing':['J45.9','J44.9'],'Ronküs':['J44.9','J20.9'],'İnce raller':['J18.9','I50.9'],'Kaba raller':['J18.9'],
-    'Lokalize hassasiyet':['K35.80','R10.4'],'Defans':['K65.9','K35.80'],'Rebound hassasiyet':['K65.9','K35.80'],'KVA hassasiyeti (+)':['N20.9','N10'],
+    'Lokalize hassasiyet':['K35.8','R10.4'],'Defans':['K65.9','K35.8'],'Rebound hassasiyet':['K65.9','K35.8'],'KVA hassasiyeti (+)':['N20.9','N10'],
     'Laserasyon / abrazyon':['T14.1'],'Deformite / anormal pozisyon':['T14.2'],'Lokalize kemik hassasiyeti':['T14.2'],'Açık yara / kemikte açıklık':['T14.1','T14.2'],
     'Hemiparezi / hemipleji':['I63.9','G81.9'],'Fasiyal asimetri / paralizi':['G51.0','I63.9'],'Siyanoz':['R23.0']
   };
@@ -15257,6 +15300,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const codes=[]; const add=c=>{if(c&&ICD_NAMES[c]&&!codes.includes(c))codes.push(c);};
     icdActiveComplaints().forEach(t=>(ICD_BY_COMPLAINT[t]||[]).forEach(add));
     icdActiveFindings().forEach(t=>(ICD_BY_FINDING[t]||[]).forEach(add));
+    const mek=document.querySelector('#mekanizmaTipi .chip.active');
+    if(mek&&mek.offsetParent!==null)(ICD_BY_MEKANIZMA[mek.textContent.trim()]||[]).forEach(add);
     return codes;
   }
   function icdItem(code){
@@ -15576,7 +15621,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     syncAllScoreAdds(); refreshIcdSuggestions();
   }
 
-  const GKS_DEFAULTS={f_gks_goz:'4',f_gks_motor:'6',f_gks_verbal:'5',f_adli_gks_goz:'4',f_adli_gks_motor:'6',f_adli_gks_verbal:'5'};
+  const GKS_DEFAULTS={f_gks_goz:'4',f_gks_motor:'6',f_gks_verbal:'5'};
   const PRISTINE_CHIPS=new Set(); // markup'ta önceden aktif gelen chip'ler (adli varsayılanları) — init'te doldurulur
   function isStateEmpty(st){
     const chips=st.chips||{}, inputs=st.inputs||{};
@@ -15909,7 +15954,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(score<=1)return 'Düşük risk (14 gün majör olay ~%5)';
       if(score<=3)return 'Orta risk (14 gün majör olay ~%8-13)';
       if(score<=5)return 'Yüksek risk (14 gün majör olay ~%20-26)';
-      return 'Çok yüksek risk (14 gün majör olay ~%41-65)';
+      return 'Çok yüksek risk (14 gün majör olay ~%41)';
     }},
     {id:'heart',name:'HEART',fields:[
       {key:'history',label:'Öykü',type:'select',options:[
@@ -15917,7 +15962,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       {key:'ekg',label:'EKG',type:'select',options:[
         {label:'Normal',value:0},{label:'Nonspesifik repolarizasyon bozukluğu',value:1},{label:'Belirgin ST deviasyonu',value:2}]},
       {key:'age',label:'Yaş',type:'select',options:[
-        {label:'<45',value:0},{label:'45-65',value:1},{label:'>65',value:2}]},
+        {label:'<45',value:0},{label:'45-64',value:1},{label:'≥65',value:2}]},
       {key:'rf',label:'Risk faktörü',type:'select',options:[
         {label:'Yok',value:0},{label:'1-2 risk faktörü',value:1},{label:'≥3 risk faktörü / bilinen ateroskleroz',value:2}]},
       {key:'tropo',label:'Troponin',type:'select',options:[
@@ -15936,10 +15981,14 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       {key:'vasc',label:'Vasküler hastalık (Mİ, PAD, aort plağı)',type:'check',points:1},
       {key:'age65',label:'Yaş 65-74',type:'check',points:1},
       {key:'female',label:'Kadın cinsiyet',type:'check',points:1},
-    ],interpret:(score)=>{
-      if(score===0)return 'Çok düşük risk - antikoagülasyon genellikle önerilmez';
-      if(score===1)return 'Düşük-orta risk - bireysel değerlendirme (tek başına cinsiyet puanıysa düşük risk)';
-      return 'Antikoagülasyon genellikle önerilir (skor ≥2)';
+    ],interpret:(score,v)=>{
+      // Karar cinsiyet puanı hariç skora göre verilir (ESC 2020: erkek ≥2 / kadın ≥3 önerilir;
+      // ESC 2024 CHA2DS2-VA cinsiyeti tamamen çıkardı — iki yaklaşım aynı sonucu verir)
+      const va=score-(v&&v.female?1:0);
+      const vaTxt=` · CHA2DS2-VA (ESC 2024, cinsiyetsiz): ${va}`;
+      if(va<=0)return 'Çok düşük risk - antikoagülasyon genellikle önerilmez'+vaTxt;
+      if(va===1)return 'Antikoagülasyon düşünülmeli - kanama riskiyle birlikte bireysel karar'+vaTxt;
+      return 'Antikoagülasyon önerilir'+vaTxt;
     }},
     {id:'hasbled',name:'HAS-BLED (kanama riski)',fields:[
       {key:'htn',label:'Kontrolsüz hipertansiyon (SKB >160 mmHg)',type:'check',points:1},
@@ -15966,7 +16015,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(score===2)return 'Orta risk - hastane yatışı düşünülmeli';
       return 'Yüksek risk - hastane yatışı (skor 4-5: YBÜ değerlendir)';
     }},
-    {id:'psi',name:'PSI / PORT (Pnömoni)',fields:[
+    {id:'psi',name:'PSI / PORT (Pnömoni)',required:['age'],fields:[
       {key:'age',label:'Yaş (yıl) — erkekte yaş, kadında yaş−10 puan',type:'number',placeholder:'65'},
       {key:'sex',label:'Cinsiyet',type:'select',options:[{label:'Erkek',value:'M'},{label:'Kadın',value:'F'}]},
       {key:'nursing',label:'Bakımevi sakini (+10)',type:'check'},
@@ -16008,7 +16057,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(score>=2)return 'Yüksek risk - kötü prognoz/sepsis için ileri değerlendirme';
       return 'Düşük risk (klinik şüphe sürerse izlem devam etmeli)';
     }},
-    {id:'news2',name:'NEWS2',fields:[
+    {id:'news2',name:'NEWS2',required:['rr','spo2','sbp','hr','temp'],fields:[
       {key:'rr',label:'Solunum sayısı (/dk)',type:'number',placeholder:'18'},
       {key:'spo2',label:'SpO₂ (%) — Ölçek 1',type:'number',placeholder:'97'},
       {key:'o2',label:'Oksijen desteği',type:'select',options:[{label:'Oda havası',value:'hava'},{label:'Oksijen alıyor',value:'oksijen'}]},
@@ -16024,7 +16073,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       if(score>=1)return 'Düşük risk — 4-6 saatte bir izlem';
       return 'Çok düşük risk — rutin izlem';
     }},
-    {id:'gbs',name:'Glasgow-Blatchford',fields:[
+    {id:'gbs',name:'Glasgow-Blatchford',required:['urea','hb','sbp'],fields:[
       {key:'sex',label:'Cinsiyet',type:'select',options:[{label:'Erkek',value:'M'},{label:'Kadın',value:'F'}]},
       {key:'urea',label:'Üre (mmol/L)',type:'number',placeholder:'5'},
       {key:'hb',label:'Hemoglobin (g/dL)',type:'number',placeholder:'13'},
@@ -16050,8 +16099,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       s+=(v.pulse100?1:0)+(v.melena?1:0)+(v.syncope?2:0)+(v.liver?2:0)+(v.hf?2:0);
       return s;
     },interpret:(score)=>{
-      if(score===0)return 'Düşük risk - ayaktan yönetim düşünülebilir';
-      return 'Skor >0 - hospitalizasyon / endoskopi değerlendirmesi gerekebilir';
+      if(score<=1)return 'Düşük risk (skor ≤1) - ayaktan yönetim düşünülebilir (ESGE 2021)';
+      return 'Skor ≥2 - hospitalizasyon / endoskopi değerlendirmesi gerekir';
     }},
     {id:'wellspe',name:'Wells Skoru (PE)',fields:[
       {key:'dvt',label:'Klinik DVT bulguları (bacak şişliği + derin venlerde palpasyonla hassasiyet)',type:'check',points:3},
@@ -16084,7 +16133,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       let tier;
       if(score<=0)tier='Düşük olasılık (DVT prevalansı ~%5)';
       else if(score<=2)tier='Orta olasılık (DVT prevalansı ~%17)';
-      else tier='Yüksek olasılık (DVT prevalansı ~%17-53)';
+      else tier='Yüksek olasılık (DVT prevalansı ~%53)';
       const dichot=score<2?'DVT olası değil — D-dimer ile ekarte edilebilir':'DVT olası — kompresyon USG önerilir';
       return `${tier}. ${dichot} (basitleştirilmiş eşik: 2)`;
     }},
@@ -16253,7 +16302,11 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
           else v[f.key]=el.value;
         });
         const score=def.compute?def.compute(v):defaultScoreCompute(def,v);
-        result.textContent=def.decision?def.interpret(score,v):`Skor: ${score} — ${def.interpret(score,v)}`;
+        // Sayısal zorunlu alanlar boşsa skor eksik hesaplanır — bunu açıkça yaz
+        const eksik=(def.required||[]).filter(k=>String(v[k]??'').trim()==='')
+          .map(k=>{const f=def.fields.find(x=>x.key===k);return f?f.label.split(' (')[0].split(' —')[0]:k;});
+        const temel=def.decision?def.interpret(score,v):`Skor: ${score} — ${def.interpret(score,v)}`;
+        result.textContent=eksik.length?`⚠ Eksik: ${eksik.join(', ')} — skor eksik hesaplandı. ${temel}`:temel;
         if(includedScores.has(def.id))render();
       }
       body.querySelectorAll('[data-key]').forEach(el=>{
@@ -16395,7 +16448,15 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
         if(toksik&&sure<=4)line('İlk 4 sa + toksik doz: Aktif kömür 1 g/kg (maks 50 g) PO düşün (kontrendikasyon: GİS obstrüksiyonu, korunmamış havayolunda bilinç değişikliği).','info');
         if(sure<4)line('Serum düzeyini ≥4. saatte al → Revised Rumack-Matthew nomogramı.','info');
         else if(sure<=24){
-          line('Düzeyi Revised Rumack-Matthew nomogramına işaretle (4–24 sa); tedavi çizgisi üstündeyse NAC.','info');
+          // Revised Rumack-Matthew tedavi çizgisi: 4. saatte 150 mcg/mL, yarılanma 4 saat
+          const cizgi=150*Math.pow(2,-(sure-4)/4);
+          const cz=cizgi.toFixed(cizgi<10?1:0);
+          if(!isNaN(duzey)){
+            const ust=duzey>=cizgi;
+            line(`Nomogram: ${sure}. saatte tedavi çizgisi <b>${cz} mcg/mL</b>; ölçülen <b>${duzey} mcg/mL</b> → çizginin ${ust?'ÜSTÜNDE':'altında'}.`,ust?'nac':'ok');
+            if(ust)line('NAC başla (Revised Rumack-Matthew, 150 çizgisi).','nac');
+            else if(!ast)line('Tek akut alım, zamanı güvenilir ve AST/ALT normalse NAC genelde gerekmez.','ok');
+          }else line(`Düzeyi gir: ${sure}. saatteki tedavi çizgisi ${cz} mcg/mL (Revised Rumack-Matthew, 150 çizgisi); üstündeyse NAC.`,'info');
           if(toksik&&sure>8)line('&gt;8 saat + toksik doz: düzeyi bekleme — NAC\'ı ampirik başla (gecikme karaciğer hasarı riskini artırır).','nac');
         }else line('&gt;24 saat — akut nomogram penceresi dışında; düzey + AST/ALT ve klinik duruma göre, zehir danışma.','warn');
       }else line('Süreyi gir (kömür / nomogram / ampirik NAC zamanlaması için).','info');
@@ -16507,14 +16568,18 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   const SUPABASE_URL='https://tsfrzsybxcxqbvqlpvky.supabase.co';
   const SUPABASE_KEY='sb_publishable_QgelmsIH8KR8lKZx_S66jQ_fJYB9ITg';
 
+  // Kod 12 karakter (32 harfli alfabe → 60 bit). Sunucudaki kimlik ve şifreleme anahtarı
+  // koddan PBKDF2 (150.000 tur) ile türetilir; sunucu verisi ele geçse bile deneme-yanılma pratik değildir.
+  const SYNC_CODE_LEN=12;
   function generateCode(){
-    const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    const rnd=new Uint32Array(8);
+    const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // 32 harf → modulo eğilimi yok
+    const rnd=new Uint32Array(SYNC_CODE_LEN);
     crypto.getRandomValues(rnd);
     let s='';
-    for(let i=0;i<8;i++)s+=chars[rnd[i]%chars.length];
-    return s; // 8 karakter, tire yok
+    for(let i=0;i<SYNC_CODE_LEN;i++)s+=chars[rnd[i]%chars.length];
+    return s;
   }
+  function fmtCode(raw){return (raw.match(/.{1,4}/g)||[]).join('-');}
   function normalizeCode(raw){
     return (raw||'').replace(/[^A-Za-z0-9]/g,'').toUpperCase();
   }
@@ -16543,9 +16608,24 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const bytes=await sha256Bytes(str);
     return [...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
   }
+  const SYNC_KDF_ITER=150000;
+  const _kdfCache=new Map();   // aynı kod için PBKDF2'yi her otomatik senkronda tekrar hesaplama
+  function kdfBits(code,salt){
+    const ck=salt+'|'+code;
+    if(!_kdfCache.has(ck))_kdfCache.set(ck,(async()=>{
+      const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(code),'PBKDF2',false,['deriveBits']);
+      return new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt:new TextEncoder().encode(salt),iterations:SYNC_KDF_ITER,hash:'SHA-256'},base,256));
+    })());
+    return _kdfCache.get(ck);
+  }
+  // Sunucuda aranan kimlik (code_hash sütunu) — anahtardan farklı tuzla türetilir
+  async function codeId(code){
+    const b=await kdfBits(code,'epikr-sync-id-v2');
+    return [...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+  }
   async function deriveKey(code){
-    const hash=await sha256Bytes('epikr-sync-key:'+code);
-    return crypto.subtle.importKey('raw',hash,{name:'AES-GCM'},false,['encrypt','decrypt']);
+    const b=await kdfBits(code,'epikr-sync-key-v2');
+    return crypto.subtle.importKey('raw',b,{name:'AES-GCM'},false,['encrypt','decrypt']);
   }
   async function encryptJSON(key,obj){
     const iv=crypto.getRandomValues(new Uint8Array(12));
@@ -16651,14 +16731,21 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   }
 
   const SYNC_CODE_KEY='epikrSyncCode';
+  const SYNC_CODE_TTL=8*3600*1000;
   function getRememberedCode(){
     try{
-      const v=normalizeCode(localStorage.getItem(SYNC_CODE_KEY)||'');
-      return v.length===8?v:null;
+      // {c:kod,t:son kullanım}. Ortak bilgisayarda bir sonraki kişinin önceki hastaları
+      // çekmemesi için kod 8 saat kullanılmazsa unutulur.
+      const o=JSON.parse(localStorage.getItem(SYNC_CODE_KEY)||'null');
+      if(!o||typeof o!=='object')return null;
+      const v=normalizeCode(o.c||'');
+      if(v.length!==SYNC_CODE_LEN)return null;
+      if(!o.t||Date.now()-o.t>SYNC_CODE_TTL){forgetCode();return null;}
+      return v;
     }catch(e){return null;}
   }
   function rememberCode(raw){
-    try{localStorage.setItem(SYNC_CODE_KEY,raw);}catch(e){}
+    try{localStorage.setItem(SYNC_CODE_KEY,JSON.stringify({c:raw,t:Date.now()}));}catch(e){}
   }
   function forgetCode(){
     try{localStorage.removeItem(SYNC_CODE_KEY);}catch(e){}
@@ -16669,7 +16756,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const remembered=getRememberedCode();
     const forgetLink=document.getElementById('syncForgetLink');
     if(remembered){
-      const formatted=remembered.slice(0,4)+'-'+remembered.slice(4);
+      const formatted=fmtCode(remembered);
       document.getElementById('syncCodeOut').value=formatted;
       document.getElementById('syncCodeBox').hidden=false;
       document.getElementById('syncCodeIn').value=formatted;
@@ -16739,7 +16826,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const key=await deriveKey(raw);
       const state=collectFormState();
       const {iv,ciphertext}=await encryptJSON(key,state);
-      const codeHash=await sha256Hex(raw);
+      const codeHash=await codeId(raw);
       const expiresAt=new Date(Date.now()+48*3600*1000).toISOString();
       const res=await fetch(`${SUPABASE_URL}/rest/v1/sync_blobs`,{
         method:'POST',
@@ -16760,7 +16847,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       everSynced=true;
       updatePrivacyBadge();
       updateAutoSyncStatusLabel();
-      codeOut.value=raw.slice(0,4)+'-'+raw.slice(4);
+      codeOut.value=fmtCode(raw);
       codeBox.hidden=false;
       document.getElementById('syncForgetLink').hidden=false;
       renderSyncQr(raw);
@@ -16780,16 +16867,16 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const statusEl=document.getElementById('syncFetchStatus');
     const btn=document.getElementById('btnSyncFetch');
     const raw=normalizeCode(input.value);
-    if(raw.length!==8){
+    if(raw.length!==SYNC_CODE_LEN){
       statusEl.className='sync-status err';
-      statusEl.textContent='Geçersiz kod (8 karakter olmalı).';
+      statusEl.textContent='Geçersiz kod (12 karakter olmalı).';
       return;
     }
     btn.disabled=true;
     statusEl.className='sync-status';
     statusEl.textContent='Getiriliyor…';
     try{
-      const codeHash=await sha256Hex(raw);
+      const codeHash=await codeId(raw);
       const res=await fetch(`${SUPABASE_URL}/rest/v1/sync_blobs?code_hash=eq.${codeHash}&select=ciphertext,iv,expires_at`,{
         headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}
       });
@@ -16921,7 +17008,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const raw=getRememberedCode()||generateCode();
       const key=await deriveKey(raw);
       const {iv,ciphertext}=await encryptJSON(key,state);
-      const codeHash=await sha256Hex(raw);
+      const codeHash=await codeId(raw);
       const expiresAt=new Date(Date.now()+48*3600*1000).toISOString();
       const res=await fetch(`${SUPABASE_URL}/rest/v1/sync_blobs`,{
         method:'POST',
@@ -16945,9 +17032,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const codeOut=document.getElementById('syncCodeOut');
       const codeBox=document.getElementById('syncCodeBox');
       if(codeOut&&codeBox&&codeBox.hidden){
-        codeOut.value=raw.slice(0,4)+'-'+raw.slice(4);
+        codeOut.value=fmtCode(raw);
         codeBox.hidden=false;
-        document.getElementById('syncCodeIn').value=raw.slice(0,4)+'-'+raw.slice(4);
+        document.getElementById('syncCodeIn').value=fmtCode(raw);
         document.getElementById('syncForgetLink').hidden=false;
         renderSyncQr(raw);
       }
@@ -16962,7 +17049,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const raw=getRememberedCode();
     if(!raw)return; // henüz kod yok - ilk değişiklikte autoSyncSend kod üretecek
     try{
-      const codeHash=await sha256Hex(raw);
+      const codeHash=await codeId(raw);
       const res=await fetch(`${SUPABASE_URL}/rest/v1/sync_blobs?code_hash=eq.${codeHash}&select=ciphertext,iv,expires_at`,{
         headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}
       });
@@ -17050,7 +17137,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
         const code=jsQR(imageData.data,imageData.width,imageData.height);
         if(code&&code.data){
           const raw=normalizeCode(code.data);
-          if(raw.length===8){
+          if(raw.length===SYNC_CODE_LEN){
             handleQrCode(raw);
             return;
           }
@@ -17076,7 +17163,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function handleQrCode(raw){
     const statusEl=document.getElementById('syncQrScanStatus');
     stopQrScan();
-    const formatted=raw.slice(0,4)+'-'+raw.slice(4);
+    const formatted=fmtCode(raw);
     document.getElementById('syncCodeIn').value=formatted;
     statusEl.className='sync-status ok';
     statusEl.textContent='QR okundu, getiriliyor…';

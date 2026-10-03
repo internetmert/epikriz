@@ -48,6 +48,10 @@ const SCORE_TESTS = [
   ['chads', {}, 'Çok düşük'],
   ['chads', { chf: true, htn: true }, 'Skor: 2'],
   ['chads', { age75: true }, 'Skor: 2'],
+  ['chads', { female: true }, 'Çok düşük'],                       // yalnız cinsiyet puanı → AK yok
+  ['chads', { female: true, htn: true }, 'düşünülmeli'],          // kadında 2 puan → düşünülmeli (önerilir değil)
+  ['chads', { htn: true, dm: true }, 'Antikoagülasyon önerilir'],
+  ['gbs', { sex: 'M', urea: 5, hb: 14, sbp: 105 }, 'Düşük risk'],  // GBS 1 → düşük risk (ESGE)
   ['curb65', { confusion: true }, 'Düşük risk'],
   ['curb65', { confusion: true, urea: true }, 'Skor: 2'],
   ['qsofa', { rr: true, mental: true }, 'Yüksek risk'],
@@ -117,6 +121,11 @@ const PARA_TESTS = [
   ['tekrarlı düzey15', { pattern: 'tekrarli', duzey: 15 }, ['gerekmez']],
   ['güvenilmez düzey12', { pattern: 'guvenilmez', duzey: 12 }, ['>10 mcg/mL']],
   ['güvenilmez düzey8', { pattern: 'guvenilmez', duzey: 8 }, ['gerekmez']],
+  // Revised Rumack-Matthew: 4. sa 150, 8. sa 75, 12. sa 37,5 mcg/mL
+  ['nomogram 4sa 160 üstte', { doz: 10, kilo: 60, sure: 4, duzey: 160 }, ['150 mcg/mL', 'ÜSTÜNDE', 'NAC başla']],
+  ['nomogram 8sa 90 üstte', { doz: 10, kilo: 60, sure: 8, duzey: 90 }, ['75 mcg/mL', 'ÜSTÜNDE']],
+  ['nomogram 8sa 60 altta', { doz: 10, kilo: 60, sure: 8, duzey: 60 }, ['çizginin altında', 'genelde gerekmez']],
+  ['nomogram 12sa düzeysiz', { doz: 10, kilo: 60, sure: 6 }, ['Düzeyi gir', 'tedavi çizgisi 106']],
 ];
 const deHtml = s => s.replace(/<[^>]+>/g, ' ').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
 for (const [name, inp, expects] of PARA_TESTS) {
