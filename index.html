@@ -2483,11 +2483,20 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
         <div class="mek-sublbl">İş kazası türü</div>
         <div class="chips" data-single="true" id="isKazasiTur">
           <button class="chip">İş yerinde bayılma</button>
+          <button class="chip">Aynı zeminde düşme</button>
+          <button class="chip">Yüksekten düşme</button>
+          <button class="chip">Makineye el kaptırma</button>
+          <button class="chip">Kesici aletle yaralanma</button>
+          <button class="chip">Üzerine malzeme düşmesi</button>
+          <button class="chip">Göze çapak kaçması</button>
+        </div>
+        <div class="mini-row" id="isYukseklikBox" style="display:none;">
+          Yükseklik (metre): <input class="txt" id="f_is_yukseklik" type="number" min="0" step="0.1" placeholder="örn. 3">
         </div>
         <div id="bayilmaEkBox" style="display:none;">
           <div class="mek-sublbl">Ek bilgi</div>
           <div class="chips" id="bayilmaEk">
-            <button class="chip">Bayılarak yere düştü</button>
+            <button class="chip" data-bayilma="1">Bayılarak yere düştü</button>
             <button class="chip">Başını çarptı</button>
           </div>
         </div>
@@ -14231,7 +14240,14 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     dusmeYukseklikBox.style.display=chipDusme.classList.contains('active')?'flex':'none';
     scooterBox.style.display=chipScooter.classList.contains('active')?'block':'none';
     isKazasiBox.style.display=chipIsKazasi.classList.contains('active')?'block':'none';
-    bayilmaEkBox.style.display=chipText('#isKazasiTur')==='İş yerinde bayılma'?'block':'none';
+    // Ek bilgi (başını çarptı) bayılma ve düşmelerde; "bayılarak düştü" yalnızca bayılmada
+    const isTur=chipText('#isKazasiTur');
+    bayilmaEkBox.style.display=IS_KAZASI_DUSME.has(isTur)?'block':'none';
+    bayilmaEkBox.querySelectorAll('.chip[data-bayilma]').forEach(c=>{
+      const ok=isTur==='İş yerinde bayılma';
+      c.style.display=ok?'':'none'; if(!ok)c.classList.remove('active');
+    });
+    document.getElementById('isYukseklikBox').style.display=isTur==='Yüksekten düşme'?'flex':'none';
     // Yaya iken "olay şekli" (düştü/çarptı) sürücüye ait olduğundan gizlenir
     const scYaya=chipText('#scooterRol').startsWith('Yaya');
     scooterOlayBox.style.display=scYaya?'none':'block';
@@ -14275,6 +14291,17 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     'Emniyet kemeri var':'emniyet kemerinin takılı olduğunu','Emniyet kemeri yok':'emniyet kemerinin takılı olmadığını',
     'Kask var':'kask taktığını','Kask yok':'kask takmadığını','Hava yastığı açıldı':'hava yastığının açıldığını',
   };
+  // İş kazası türü → "iş yerinde çalıştığı sırada …" devamı
+  const IS_KAZASI_TUR={
+    'İş yerinde bayılma':'bayıldığını',
+    'Aynı zeminde düşme':'aynı zemin üzerinde düştüğünü',
+    'Yüksekten düşme':'yüksekten düştüğünü',
+    'Makineye el kaptırma':'elini makineye kaptırdığını',
+    'Kesici aletle yaralanma':'kesici bir aletle yaralandığını',
+    'Üzerine malzeme düşmesi':'üzerine malzeme düştüğünü',
+    'Göze çapak kaçması':'gözüne çapak kaçtığını',
+  };
+  const IS_KAZASI_DUSME=new Set(['İş yerinde bayılma','Aynı zeminde düşme','Yüksekten düşme']);
   const SCOOTER_TIP={'Elektrikli scooter':'elektrikli scooter','Elektriksiz scooter':'elektriksiz scooter'};
   const SCOOTER_OLAY={
     'Dengesini kaybedip düştü':'dengesini kaybederek düştüğünü',
@@ -14317,10 +14344,14 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const scYaya=chipText('#scooterRol').startsWith('Yaya');
       ekList=[...scooterEk.querySelectorAll('.chip.active')].filter(c=>!(scYaya&&c.dataset.surucu))
         .map(c=>SCOOTER_EK[c.textContent.trim()]).filter(Boolean);
-    }else if(olayChip===chipIsKazasi&&chipText('#isKazasiTur')==='İş yerinde bayılma'){
+    }else if(olayChip===chipIsKazasi&&chipText('#isKazasiTur')){
+      const tur=chipText('#isKazasiTur');
       const ek=[...document.querySelectorAll('#bayilmaEk .chip.active')].map(c=>c.textContent.trim());
-      core=ek.includes('Bayılarak yere düştü')?'iş yerinde çalıştığı sırada bayılarak yere düştüğünü':'iş yerinde çalıştığı sırada bayıldığını';
-      if(ek.includes('Başını çarptı'))ekList=['başını çarptığını'];
+      let olay=IS_KAZASI_TUR[tur]||'';
+      if(tur==='İş yerinde bayılma'&&ek.includes('Bayılarak yere düştü'))olay='bayılarak yere düştüğünü';
+      if(tur==='Yüksekten düşme'){const h=val('f_is_yukseklik'); if(h)olay=`yaklaşık ${h} metre yükseklikten düştüğünü`;}
+      core='iş yerinde çalıştığı sırada '+olay;
+      if(IS_KAZASI_DUSME.has(tur)&&ek.includes('Başını çarptı'))ekList=['başını çarptığını'];
     }else if(olayChip===chipDusme){
       const h=val('f_dusme_yukseklik');
       if(h)core=`${h} metre yükseklikten düştüğünü`;
