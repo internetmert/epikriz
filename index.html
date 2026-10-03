@@ -2533,11 +2533,11 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
         <button class="chip">Motosiklet yolcusu</button>
       </div>
       <div class="chips" id="trafikEkSub" style="display:none;margin-top:7px;">
-        <button class="chip">Emniyet kemeri var</button>
-        <button class="chip">Emniyet kemeri yok</button>
-        <button class="chip">Kask var</button>
-        <button class="chip">Kask yok</button>
-        <button class="chip">Hava yastığı açıldı</button>
+        <button class="chip" data-arac="1">Emniyet kemeri var</button>
+        <button class="chip" data-arac="1">Emniyet kemeri yok</button>
+        <button class="chip" data-moto="1">Kask var</button>
+        <button class="chip" data-moto="1">Kask yok</button>
+        <button class="chip" data-arac="1">Hava yastığı açıldı</button>
       </div>
 
       <div id="scooterBox" style="display:none;">
@@ -13993,7 +13993,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   // Buton çift yönlü: hepsi doğal işaretliyse temizler, değilse hepsini işaretler.
   function allNormalActive(){
     const chips=examWrap.querySelectorAll('.chip[data-normal="true"]');
-    return chips.length>0 && [...chips].every(c=>c.classList.contains('active'));
+    return chips.length>0 && [...chips].every(c=>c.classList.contains('active')||zitKarsitlar(c).length>0);
   }
   function syncAllNormalBtn(){
     const on=allNormalActive();
@@ -14005,7 +14005,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(allNormalActive()){
       chips.forEach(c=>c.classList.remove('active'));
     }else{
-      chips.forEach(c=>c.classList.add('active'));
+      chips.forEach(c=>{if(!zitKarsitlar(c).length)c.classList.add('active');});
       examWrap.querySelectorAll('.exam-sys').forEach(s=>{
         s.classList.add('open');
         s.querySelector('.tog').textContent='−';
@@ -14202,10 +14202,100 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     });
   }
 
+  // ---- Karşıt seçenekler ----
+  // Aynı kapsamda birbiriyle çelişen chip'ler birlikte işaretlenemez: biri seçilince karşıtı kalkar.
+  // [kapsam seçici, A, B] → A'daki her öğe B'dekilerle çelişir (ve tersi).
+  // [kapsam seçici, A]    → A'daki öğelerin hepsi birbirini dışlar.
+  const FM=id=>`.exam-sys[data-sys="${id}"]`;
+  const ZIT_KURALLAR=[
+    // Yaralanma mekanizması
+    ['#trafikEkSub',['Emniyet kemeri var','Emniyet kemeri yok']],
+    ['#trafikEkSub',['Kask var','Kask yok']],
+    ['#scooterEk',['Kask var','Kask yok']],
+    // Lezyon kartı
+    ['[data-role="ozellik"]',['Düzgün kenarlı','Düzensiz kenarlı']],
+    // EKG
+    ['[data-field="ekg"]',['Normal sinüs ritmi','Sinüs taşikardisi','Sinüs bradikardisi','Atriyal fibrilasyon']],
+    ['[data-field="ekg"]',['Patolojik özellik yok'],['Sinüs taşikardisi','Sinüs bradikardisi','Atriyal fibrilasyon','ST elevasyonu','ST depresyonu','T negatifliği','Dal bloğu']],
+    // Şikayet detayı
+    ['.detay-panel[data-complaint="göğüs ağrısı"]',['yayılım yok'],['sol kola','çeneye','sırta']],
+    ['.detay-panel[data-complaint="bel ağrısı"]',['yok'],['inkontinans','alt ekstremite güçsüzlüğü','ateş','travma','eyer tarzı uyuşma']],
+    // Fizik muayene: doğal bulgu ↔ karşılığı olan patolojik bulgu
+    [FM('genel'),['Genel durumu iyi, akut distres yok'],['Akut/toksik görünüm','Letarjik / uykuya eğilimli']],
+    [FM('genel'),['Bilinç açık, oryante, koopere'],['Letarjik / uykuya eğilimli','Ajite / huzursuz']],
+    [FM('genel'),['Cilt rengi ve turgoru normal'],['Solukluk','Siyanoz','İkter','Dehidratasyon bulguları']],
+    [FM('genel'),['Beslenme ve hidrasyon normal görünümde'],['Dehidratasyon bulguları','Kaşektik görünüm']],
+    [FM('basboyun'),['Kafa travma bulgusu yok'],['Kafa travma bulgusu']],
+    [FM('basboyun'),['Pupiller izokorik, ışığa reaktif'],['Pupil anizokorisi','Pupil ışık reaksiyonu azalmış/yok']],
+    [FM('basboyun'),['Skleralar ikterik değil, konjonktivalar normal'],['Skleral ikter','Konjonktival hiperemi / subkonjonktival kanama']],
+    [FM('basboyun'),['Kulak zarları normal, dış kulak yolu açık'],['Kulak zarı hiperemik / bombe','Dış kulak yolunda akıntı / yabancı cisim']],
+    [FM('basboyun'),['Burun akıntısı/tıkanıklık yok'],['Burun kanaması / septal hematom']],
+    [FM('basboyun'),['Orofarenks ve dentisyon normal, eksüda yok'],['Farenkste hiperemi / eksüda','Peritonsiller şişlik / asimetri']],
+    [FM('basboyun'),['Boyun yumuşak, kitle/LAP yok, trakea orta hatta'],['Boyunda LAP','Trakea deviasyonu','Ense sertliği']],
+    [FM('basboyun'),['Tiroid palpabl değil, guatr yok'],['Tiroid büyümüş / nodüler / hassas']],
+    [FM('basboyun'),['Ense sertliği yok'],['Ense sertliği']],
+    [FM('kvs'),['S1-S2 normal, ek ses/üfürüm yok'],['Sistolik üfürüm','Diyastolik üfürüm','S3 gallop','S4 gallop','Perikardiyal frotman']],
+    [FM('kvs'),['Ritim düzenli'],['Düzensiz ritim']],
+    [FM('kvs'),['Taşikardi','Bradikardi']],
+    [FM('kvs'),['PMI normal lokalizasyonda, taşma yok'],['PMI deplase / diffüz']],
+    [FM('kvs'),['JVD yok'],['JVD artmış']],
+    [FM('kvs'),['Periferik nabızlar simetrik ve dolgun (2+)'],['Periferik nabız azalmış / alınamıyor']],
+    [FM('kvs'),['Pretibial ödem yok'],['Pretibial ödem']],
+    [FM('kvs'),['Kapiller dolum normal (<2 sn)'],['Kapiller dolum gecikmiş']],
+    [FM('solunum'),['Toraks simetrik, solunum eforu normal'],['Takipne / solunum sıkıntısı','Asimetrik göğüs hareketi / paradoks solunum','Yardımcı solunum kası kullanımı / interkostal çekilme']],
+    [FM('solunum'),['Yardımcı solunum kası kullanımı yok'],['Yardımcı solunum kası kullanımı / interkostal çekilme']],
+    [FM('solunum'),['Bilateral solunum sesleri normal'],['Solunum sesleri azalmış / yok']],
+    [FM('solunum'),['Ral / ronküs / wheezing yok'],['İnce raller','Kaba raller','Ronküs','Wheezing']],
+    [FM('solunum'),['Perküsyonda rezonans normal'],['Hiperrezonans','Matite']],
+    [FM('batin'),['Batın yumuşak, distansiyon yok'],['Distansiyon','Defans','Tahta karın']],
+    [FM('batin'),['Bağırsak sesleri normoaktif','Bağırsak sesleri azalmış / yok','Bağırsak sesleri artmış']],
+    [FM('batin'),['Hassasiyet / defans / rebound yok'],['Yaygın hassasiyet','Lokalize hassasiyet','Defans','Rebound hassasiyet','Tahta karın','Murphy sign (+)','McBurney noktası hassasiyeti (+)','Rovsing sign (+)','Psoas / obturator sign (+)']],
+    [FM('batin'),['Organomegali / palpabl kitle yok'],['Hepatomegali','Splenomegali','Palpabl kitle','Pulsatil kitle']],
+    [FM('batin'),['KVA hassasiyeti yok'],['KVA hassasiyeti (+)']],
+    [FM('batin'),['Herni yok'],['Herni']],
+    [FM('noro'),['Bilinç açık, GKS 15, oryante'],['Bilinç bulanıklığı / konfüzyon']],
+    [FM('noro'),['Kranial sinirler II-XII intakt'],['Kranial sinir defisiti','Fasiyal asimetri / paralizi']],
+    [FM('noro'),['Kas gücü 4 ekstremitede 5/5, tonus normal'],['Ekstremite güçsüzlüğü','Hemiparezi / hemipleji','Tonus artışı','Tonus azalması']],
+    [FM('noro'),['Tonus artışı','Tonus azalması']],
+    [FM('noro'),['DTR 2+ ve simetrik, plantar yanıt downgoing'],['DTR azalmış / artmış / asimetrik','Babinski pozitif']],
+    [FM('noro'),['Duyu intakt'],['Duyu kaybı']],
+    [FM('noro'),['Koordinasyon ve yürüyüş normal'],['Ataksi / dismetri']],
+    [FM('noro'),['Romberg negatif','Romberg pozitif']],
+    [FM('msk'),['Tüm eklemlerde hareket açıklığı tam'],['Hareket kısıtlılığı']],
+    [FM('msk'),['Deformite / şişlik yok'],['Eklem şişliği / efüzyon','Deformite / anormal pozisyon']],
+    [FM('msk'),['Kas gücü normal, nörovasküler muayene normal'],['Distalde nörovasküler defisit','Kompartman sendromu bulguları']],
+    [FM('msk'),['Palpasyonla kemik hassasiyeti yok'],['Lokalize kemik hassasiyeti','Vertebra üzerinde hassasiyet']],
+    [FM('cilt'),['Cilt turgoru normal, sıcak ve kuru'],['Soğuk ve nemli cilt']],
+    [FM('cilt'),['Döküntü, peteşi veya ekimoz yok'],['Döküntü','Peteşi / purpura','Ekimoz / hematom']],
+    [FM('cilt'),['Cilt bütünlüğü korunmuş, basınç yarası yok'],['Basınç ülseri','Laserasyon / abrazyon','Yanık']],
+    [FM('sirt'),['İnspeksiyonda deformite, ekimoz veya açık yara yok'],['Ekimoz','Açık yara','Deformite']],
+    [FM('sirt'),['Vertebralar ve paravertebral kaslar palpasyonla doğal, hassasiyet yok'],['Vertebra hassasiyeti','Kas spazmı']],
+  ];
+  const ZIT_INDEX=new Map();   // chip metni → [{kapsam, karşıtlar}]
+  ZIT_KURALLAR.forEach(([kapsam,A,B])=>{
+    const ekle=(t,digerleri)=>{
+      if(!ZIT_INDEX.has(t))ZIT_INDEX.set(t,[]);
+      ZIT_INDEX.get(t).push({kapsam,karsit:new Set(digerleri.filter(o=>o!==t))});
+    };
+    if(B){A.forEach(t=>ekle(t,B));B.forEach(t=>ekle(t,A));}
+    else A.forEach(t=>ekle(t,A));
+  });
+  // chip'in kapsamındaki işaretli karşıtları (dizi) döndürür
+  function zitKarsitlar(chip){
+    const out=[];
+    (ZIT_INDEX.get(chip.textContent.trim())||[]).forEach(k=>{
+      const kap=chip.closest(k.kapsam); if(!kap)return;
+      kap.querySelectorAll('.chip.active').forEach(c=>{if(c!==chip&&k.karsit.has(c.textContent.trim()))out.push(c);});
+    });
+    return out;
+  }
+
   form.addEventListener('click',e=>{
     const chip=e.target.closest('.chip');
     if(!chip)return;
     const group=chip.closest('.chips');
+    // Seçilmek üzereyse kapsamındaki karşıt seçenekleri kaldır
+    if(!chip.classList.contains('active'))zitKarsitlar(chip).forEach(c=>c.classList.remove('active'));
     if(group.hasAttribute('data-single')){
       group.querySelectorAll('.chip').forEach(c=>{if(c!==chip)c.classList.remove('active');});
       chip.classList.toggle('active');
@@ -14492,14 +14582,25 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   function updateMekanizmaExtras(){
     const trafikActive=chipTrafikKazasi.classList.contains('active');
     trafikSub.style.display=trafikActive?'flex':'none';
-    trafikEkSub.style.display=trafikActive?'flex':'none';
+    // Ek seçenekler role göre: kemer/hava yastığı otomobil için, kask motosiklet için; yayada hiçbiri
+    const trRol=chipText('#trafikSub');
+    const trArac=trRol==='Sürücü'||trRol==='Yolcu', trMoto=trRol.startsWith('Motosiklet'), trYaya=trRol==='Yaya';
+    trafikEkSub.querySelectorAll('.chip').forEach(c=>{
+      const uygun=!trRol||(c.dataset.arac?trArac:c.dataset.moto?trMoto:!trYaya);
+      c.style.display=uygun?'':'none';
+      if(!uygun)c.classList.remove('active');
+    });
+    trafikEkSub.style.display=(trafikActive&&!trYaya)?'flex':'none';
     dusmeYukseklikBox.style.display=chipDusme.classList.contains('active')?'flex':'none';
     scooterBox.style.display=chipScooter.classList.contains('active')?'block':'none';
     // Yaya iken "olay şekli" (düştü/çarptı) sürücüye ait olduğundan gizlenir
     const scYaya=chipText('#scooterRol').startsWith('Yaya');
     scooterOlayBox.style.display=scYaya?'none':'block';
     // Kask / fırlama yalnızca scooter üzerindeki kişi için anlamlı
-    scooterEk.querySelectorAll('.chip[data-surucu]').forEach(c=>{c.style.display=scYaya?'none':'';});
+    scooterEk.querySelectorAll('.chip[data-surucu]').forEach(c=>{
+      c.style.display=scYaya?'none':'';
+      if(scYaya)c.classList.remove('active');
+    });
   }
 
   // Mekanizma olay tipi / niyet → elle yazılmış gibi akan beyan cümlesi.
