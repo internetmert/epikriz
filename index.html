@@ -16608,6 +16608,19 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     const bytes=await sha256Bytes(str);
     return [...bytes].map(b=>b.toString(16).padStart(2,'0')).join('');
   }
+  // Sunucu erişimi yalnızca iki RPC üzerinden: tablo doğrudan listelenemez/silinemez.
+  // get_sync_blob: verilen kimliğin satırını döndürür · put_sync_blob: yazar/günceller.
+  function syncRpc(fn,args){
+    return fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`,{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+      body:JSON.stringify(args)
+    });
+  }
+  function syncGet(codeHash){ return syncRpc('get_sync_blob',{p_code_hash:codeHash}); }
+  function syncPut(codeHash,ciphertext,iv,expiresAt){
+    return syncRpc('put_sync_blob',{p_code_hash:codeHash,p_ciphertext:ciphertext,p_iv:iv,p_expires_at:expiresAt});
+  }
   const SYNC_KDF_ITER=150000;
   const _kdfCache=new Map();   // aynı kod için PBKDF2'yi her otomatik senkronda tekrar hesaplama
   function kdfBits(code,salt){
@@ -16828,16 +16841,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const {iv,ciphertext}=await encryptJSON(key,state);
       const codeHash=await codeId(raw);
       const expiresAt=new Date(Date.now()+48*3600*1000).toISOString();
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/sync_blobs`,{
-        method:'POST',
-        headers:{
-          'apikey':SUPABASE_KEY,
-          'Authorization':`Bearer ${SUPABASE_KEY}`,
-          'Content-Type':'application/json',
-          'Prefer':'resolution=merge-duplicates,return=minimal'
-        },
-        body:JSON.stringify({code_hash:codeHash,ciphertext,iv,expires_at:expiresAt})
-      });
+      const res=await syncPut(codeHash,ciphertext,iv,expiresAt);
       if(!res.ok)throw new Error('HTTP '+res.status);
       rememberCode(raw);
       lastSyncedHash=await stateHash(state);
@@ -16877,9 +16881,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     statusEl.textContent='Getiriliyor…';
     try{
       const codeHash=await codeId(raw);
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/sync_blobs?code_hash=eq.${codeHash}&select=ciphertext,iv,expires_at`,{
-        headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}
-      });
+      const res=await syncGet(codeHash);
       if(!res.ok)throw new Error('HTTP '+res.status);
       const rows=await res.json();
       if(!rows.length)throw new Error('Kod bulunamadı veya süresi dolmuş');
@@ -17010,16 +17012,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
       const {iv,ciphertext}=await encryptJSON(key,state);
       const codeHash=await codeId(raw);
       const expiresAt=new Date(Date.now()+48*3600*1000).toISOString();
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/sync_blobs`,{
-        method:'POST',
-        headers:{
-          'apikey':SUPABASE_KEY,
-          'Authorization':`Bearer ${SUPABASE_KEY}`,
-          'Content-Type':'application/json',
-          'Prefer':'resolution=merge-duplicates,return=minimal'
-        },
-        body:JSON.stringify({code_hash:codeHash,ciphertext,iv,expires_at:expiresAt})
-      });
+      const res=await syncPut(codeHash,ciphertext,iv,expiresAt);
       if(!res.ok)throw new Error('HTTP '+res.status);
       rememberCode(raw);
       lastSyncedHash=hash;
@@ -17050,9 +17043,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     if(!raw)return; // henüz kod yok - ilk değişiklikte autoSyncSend kod üretecek
     try{
       const codeHash=await codeId(raw);
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/sync_blobs?code_hash=eq.${codeHash}&select=ciphertext,iv,expires_at`,{
-        headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}
-      });
+      const res=await syncGet(codeHash);
       if(!res.ok)return;
       const rows=await res.json();
       if(!rows.length)return;
