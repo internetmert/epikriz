@@ -90,26 +90,6 @@
   .admin-tools input{width:15px;height:15px;flex:none;cursor:pointer;}
   .admin-status{font-size:13.5px;min-height:15px;margin-top:7px;}
   .admin-sub{font-size:12.5px;font-weight:700;margin:13px 0 5px;color:var(--muted);}
-  .fgkt-panel{width:560px;max-width:94vw;max-height:88vh;overflow:auto;background:var(--face);border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);box-shadow:inset 1px 1px 0 var(--hl);padding:14px 18px;text-align:left;}
-  .fgkt-panel h2{font-size:17.5px;margin:0 0 8px;text-align:center;}
-  .fgkt-score{position:sticky;top:0;z-index:3;background:var(--active);color:#fff;border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);padding:6px 10px;font-size:15.5px;font-weight:700;text-align:center;margin-bottom:8px;}
-  .fgkt-banner{background:#5a1e1e;color:#ffd7d7;border:2px solid #b00020;padding:7px 10px;font-size:13.5px;font-weight:700;margin-bottom:8px;}
-  .fgkt-sec{margin-bottom:10px;}
-  .fgkt-sec-h{font-size:13.5px;font-weight:700;color:#fff;background:var(--navy2);padding:3px 8px;margin-bottom:6px;}
-  .fgkt-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-  .fgkt-row>label{flex:1;font-size:13.5px;line-height:1.25;}
-  .fgkt-req{color:#e0584f;}
-  .fgkt-row>select,.fgkt-row>input{width:170px;flex:none;box-sizing:border-box;border:2px solid;border-color:var(--shadow) var(--light) var(--light) var(--shadow);padding:3px 5px;font-size:13.5px;font-family:inherit;background:var(--field);color:var(--field-ink);}
-  .fgkt-row>input[type=number]{width:90px;}
-  .fgkt-row>input[readonly]{opacity:.7;cursor:default;}
-  .fgkt-auto{width:172px;flex:none;font-weight:700;color:var(--accent);font-size:13.5px;}
-  .fgkt-multi{flex:none;width:190px;display:flex;flex-wrap:wrap;gap:3px 10px;}
-  .fgkt-multi label{font-size:12.5px;font-weight:400;display:flex;gap:4px;align-items:center;cursor:pointer;}
-  .fgkt-multi input{width:auto;}
-  .fgkt-status{font-size:13.5px;min-height:15px;margin-top:7px;text-align:center;}
-  .fdr-cfs-def{font-size:12.5px;color:var(--muted);margin:1px 2px 4px;line-height:1.35;min-height:14px;}
-  .fgkt-score.fdr-neg{background:#1f6f3a;color:#fff;}
-  .fgkt-score.fdr-poz{background:#9a2b2b;color:#fff;}
   .admin-row{display:flex;align-items:center;gap:7px;font-size:12.5px;padding:5px 0;border-top:1px solid var(--shadow);}
   .admin-row span{flex:1;line-height:1.3;word-break:break-word;}
   .admin-row button{font-size:11.5px;padding:2px 7px;cursor:pointer;border:2px solid;border-color:var(--light) var(--dark) var(--dark) var(--light);background:var(--face);color:var(--ink);}
@@ -724,8 +704,6 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
     <input type="text" id="adminUser" placeholder="kullanıcı adı (ör. nurse1)" autocomplete="off">
     <input type="text" id="adminName" placeholder="Görünen ad (opsiyonel)" autocomplete="off">
     <div class="admin-tools">
-      <label><input type="checkbox" value="fgkt"> FGKT-KKK Olgu Kayıt</label>
-      <label><input type="checkbox" value="fdr"> Falls Decision Rule</label>
       <label><input type="checkbox" value="dahili"> Acil Dahili Hasta</label>
       <label><input type="checkbox" value="adli"> Adli Muayene</label>
       <label><input type="checkbox" value="travma"> Travma</label>
@@ -740,63 +718,6 @@ html[data-theme="light"] .sync-link:hover{color:#0000ff;}
     <div class="login-actions" style="margin-top:10px;">
       <button type="button" onclick="hideAdminPanel()" title="Geri">←</button>
     </div>
-  </div>
-</div>
-
-<div class="landing" id="fgktForm" style="display:none;">
-  <div class="fgkt-panel">
-    <h2>FGKT-KKK Olgu Kayıt</h2>
-    <div class="fgkt-score">FGKT-KKK: <b id="fgktScoreOut">—</b></div>
-    <div id="fgktBanner" class="fgkt-banner" style="display:none;"></div>
-    <div id="fgktBody"></div>
-    <div class="login-actions" style="margin-top:10px;">
-      <button type="button" onclick="hideFgktForm()" title="Geri">←</button>
-      <button type="button" onclick="fgktClear()">Temizle</button>
-      <button type="button" id="fgktSaveBtn" onclick="fgktSave()">Kaydet</button>
-    </div>
-    <div class="fgkt-status" id="fgktStatus"></div>
-  </div>
-</div>
-
-<div class="landing" id="fdrForm" style="display:none;">
-  <div class="fgkt-panel">
-    <h2>Falls Decision Rule</h2>
-    <div class="fgkt-score" id="fdrResult">Falls Decision Rule: —</div>
-    <div class="fgkt-sec">
-      <div class="fgkt-sec-h">Kayıt</div>
-      <div class="fgkt-row"><label for="fdr_hasta_id">Hasta ID <span class="fgkt-req">*</span></label><input type="text" id="fdr_hasta_id"></div>
-      <div class="fgkt-row"><label for="fdr_tarih">Değerlendirme tarih-saati <span class="fgkt-req">*</span></label><input type="datetime-local" id="fdr_tarih"></div>
-      <div class="fgkt-row"><label for="fdr_arastirmaci">Araştırmacı</label><input type="text" id="fdr_arastirmaci" readonly></div>
-    </div>
-    <div class="fgkt-sec">
-      <div class="fgkt-sec-h">Clinical Frailty Scale (CFS)</div>
-      <div class="fgkt-row"><label for="fdr_cfs">CFS skoru (1–9) <span class="fgkt-req">*</span></label><select id="fdr_cfs">
-        <option value="">—</option>
-        <option value="1">1 — Very Fit</option>
-        <option value="2">2 — Well</option>
-        <option value="3">3 — Managing Well</option>
-        <option value="4">4 — Very Mild Frailty</option>
-        <option value="5">5 — Mild Frailty</option>
-        <option value="6">6 — Moderately Frail</option>
-        <option value="7">7 — Severely Frail</option>
-        <option value="8">8 — Very Severely Frail</option>
-        <option value="9">9 — Terminally Ill</option>
-      </select></div>
-      <div class="fdr-cfs-def" id="fdrCfsDef"></div>
-    </div>
-    <div class="fgkt-sec">
-      <div class="fgkt-sec-h">Kriterler — hepsi "Evet" ise kural NEGATİF</div>
-      <div class="fgkt-row"><label for="fdr_bas_carpmasi_yok">Baş çarpması yok</label><select id="fdr_bas_carpmasi_yok"><option value="">—</option><option>Evet</option><option>Hayır</option></select></div>
-      <div class="fgkt-row"><label for="fdr_amnezi_yok">Düşmeyi hatırlıyor (amnezi yok)</label><select id="fdr_amnezi_yok"><option value="">—</option><option>Evet</option><option>Hayır</option></select></div>
-      <div class="fgkt-row"><label for="fdr_noro_yok">Yeni nörolojik muayene anormalliği yok</label><select id="fdr_noro_yok"><option value="">—</option><option>Evet</option><option>Hayır</option></select></div>
-      <div class="fgkt-row"><label>CFS &lt; 5</label><output id="fdr_cfs5" class="fgkt-auto">—</output></div>
-    </div>
-    <div class="login-actions" style="margin-top:10px;">
-      <button type="button" onclick="hideFdrForm()" title="Geri">←</button>
-      <button type="button" onclick="fdrClear()">Temizle</button>
-      <button type="button" id="fdrSaveBtn" onclick="fdrSave()">Kaydet</button>
-    </div>
-    <div class="fgkt-status" id="fdrStatus"></div>
   </div>
 </div>
 
@@ -12890,7 +12811,6 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     document.getElementById('testLanding').style.display='none';
     document.getElementById('testLogin').style.display='none';
     document.getElementById('adminPanel').style.display='none';
-    {const _ff=document.getElementById('fgktForm'); if(_ff)_ff.style.display='none'; const _fd=document.getElementById('fdrForm'); if(_fd)_fd.style.display='none';}
     appBody.style.display='flex';
     document.getElementById('btnYeniHasta').style.display='';
     document.getElementById('btnSil').style.display='';
@@ -12906,7 +12826,6 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     document.getElementById('testLogin').style.display='none';
     document.getElementById('testLanding').style.display='none';
     document.getElementById('adminPanel').style.display='none';
-    {const _ff=document.getElementById('fgktForm'); if(_ff)_ff.style.display='none'; const _fd=document.getElementById('fdrForm'); if(_fd)_fd.style.display='none';}
     document.getElementById('btnYeniHasta').style.display='none';
     document.getElementById('btnSil').style.display='none';
     document.getElementById('btnKopyala').style.display='none';
@@ -13017,14 +12936,11 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     document.getElementById('testLanding').style.display='none';
     document.getElementById('testLogin').style.display='none';
     document.getElementById('adminPanel').style.display='none';
-    {const _ff=document.getElementById('fgktForm'); if(_ff)_ff.style.display='none'; const _fd=document.getElementById('fdrForm'); if(_fd)_fd.style.display='none';}
     landing.style.display='flex';
   };
   // Kullanıcı bazlı "Araçlar": her kullanıcının göreceği araçlar Supabase
   // user_metadata.tools (ya da app_metadata.tools) dizisinden gelir; tanımsızsa varsayılan.
   const TOOL_REGISTRY={
-    fgkt:{label:'FGKT-KKK Olgu Kayıt', fn:()=>window.showFgktForm()},
-    fdr:{label:'Falls Decision Rule', fn:()=>window.showFdrForm()},
     dahili:{label:'🏥 Acil Dahili Hasta', fn:()=>window.selectMode('dahili')},
     adli:{label:'⚖️ Adli Muayene', fn:()=>window.selectMode('adli')},
     travma:{label:'🚑 Travma', fn:()=>window.selectMode('travma')},
@@ -13069,7 +12985,6 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
   };
   window.hideAdminPanel=function(){
     document.getElementById('adminPanel').style.display='none';
-    {const _ff=document.getElementById('fgktForm'); if(_ff)_ff.style.display='none'; const _fd=document.getElementById('fdrForm'); if(_fd)_fd.style.display='none';}
     renderTools();
     document.getElementById('testLanding').style.display='flex';
   };
@@ -13143,320 +13058,6 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
     }catch(e){}
     return false;
   }
-
-  // ---- FGKT-KKK Olgu Kayıt Formu (Florida Geriatrik Kafa Travması BT kuralı, TR dış-validasyon) ----
-  const FGKT_PREFIX={'Seyrantepe Hamidiye Etfal':'SEY','Bağcılar':'BAG','Gaziosmanpaşa':'GOP'};
-  const FGKT_SCHEMA=[
-    {sec:'A — Kayıt / İdari', fields:[
-      {k:'hasta_id',l:'Hasta ID',t:'text',req:true},
-      {k:'merkez',l:'Merkez',t:'sel',req:true,opts:['Seyrantepe Hamidiye Etfal','Bağcılar','Gaziosmanpaşa']},
-      {k:'basvuru_tarihi',l:'Başvuru tarih-saati',t:'dt',req:true},
-      {k:'arastirmaci',l:'Araştırmacı',t:'text',ro:true},
-    ]},
-    {sec:'B — Dahil / Dışlama (kapı)', gate:true, fields:[
-      {k:'yas_65',l:'65 yaş ve üzeri mi?',t:'eh',excl:'Hayır',exr:'65 yaş altı'},
-      {k:'kunt_travma',l:'Künt kafa travması var mı?',t:'eh',excl:'Hayır',exr:'künt kafa travması yok'},
-      {k:'sure_24s',l:'Travmadan başvuruya <24 saat mi?',t:'eh',excl:'Hayır',exr:'travmadan ≥24 saat geçmiş'},
-      {k:'penetran',l:'Penetran (delici) yaralanma?',t:'eh',excl:'Evet',exr:'penetran (delici) yaralanma'},
-      {k:'sevk',l:'Başka merkezden sevk/transfer mi?',t:'eh',excl:'Evet',exr:'dış merkezden sevk/transfer'},
-      {k:'onam',l:'Hasta/temsilci onamı alındı mı?',t:'eh',excl:'Hayır',req:true,exr:'onam alınmadı'},
-    ]},
-    {sec:'C — Demografik ve Travma', fields:[
-      {k:'yas',l:'Yaş',t:'num',min:65,max:120,req:true},
-      {k:'cinsiyet',l:'Cinsiyet',t:'sel',opts:['Kadın','Erkek']},
-      {k:'travma_mekanizmasi',l:'Travma mekanizması',t:'sel',opts:['Zemin seviyesi düşme','Yüksekten düşme','Araç içi trafik','Darbe','Diğer']},
-    ]},
-    {sec:'D — FGKT-KKK Prediktörleri', fields:[
-      {k:'ems',l:'EMS (112) ile başvuru',t:'eh',pts:30},
-      {k:'gks',l:'Glasgow Koma Skalası (3–15)',t:'num',min:3,max:15},
-      {k:'antiplatelet',l:'Antiplatelet (ASA, klopidogrel…)',t:'eh',pts:17},
-      {k:'bilinc_kaybi',l:'Bilinç kaybı öyküsü',t:'eh',pts:16},
-      {k:'baziler_kirik',l:'Baziler kafatası kırığı bulguları',t:'eh',pts:50},
-      {k:'bas_agrisi',l:'Baş ağrısı',t:'eh',pts:20},
-      {k:'fgkt_puan',l:'FGKT-KKK puanı',t:'auto'},
-      {k:'kural_sonuc',l:'Kural sonucu',t:'auto'},
-    ]},
-    {sec:'E — Ek Klinik (opsiyonel)', fields:[
-      {k:'antikoagulan',l:'Antikoagülan kullanımı',t:'eh'},
-      {k:'dapt',l:'İkili antiplatelet (DAPT)',t:'eh'},
-      {k:'demans',l:'Bilişsel bozukluk / demans',t:'eh'},
-      {k:'af',l:'Atriyal fibrilasyon',t:'eh'},
-      {k:'kanser',l:'Aktif kanser',t:'eh'},
-      {k:'skalp_hematom',l:'Skalp hematomu / baş yarası',t:'eh'},
-      {k:'bulanti_kusma',l:'Bulantı / kusma',t:'eh'},
-      {k:'komorbidite',l:'Komorbidite',t:'multi',opts:['HT','DM','KAH','KOAH','KBY','SVO öyküsü','Malignite']},
-    ]},
-    {sec:'F — BT / NIRIS', fields:[
-      {k:'bt_cekildi',l:'Kranial BT çekildi mi?',t:'eh'},
-      {k:'kontuzyon_mm',l:'En büyük kontüzyon çapı (mm)',t:'num',cond:1,min:0},
-      {k:'sak_mm',l:'Fokal SAK derinliği (mm)',t:'num',cond:1,min:0},
-      {k:'sdh_mm',l:'SDH derinliği (mm)',t:'num',cond:1,min:0},
-      {k:'edh',l:'Epidural hematom',t:'eh',cond:1},
-      {k:'ivk',l:'İntraventriküler kanama',t:'eh',cond:1},
-      {k:'kirik',l:'Kafatası kırığı (kubbe/taban)',t:'eh',cond:1},
-      {k:'niris',l:'NIRIS skoru',t:'sel',opts:['0','1','2','3','4'],cond:1},
-      {k:'anlamli_yaralanma',l:'Anlamlı kafa içi yaralanma',t:'auto',cond:1},
-      {k:'norosir_ihtiyac',l:'Nöroşirürjik müdahale ihtiyacı',t:'auto',cond:1},
-    ]},
-    {sec:'G — Sonlanım ve 30 gün takip', fields:[
-      {k:'yatis',l:'Hastaneye yatış',t:'eh'},
-      {k:'norosir_konsult',l:'Nöroşirürji konsültasyonu',t:'eh'},
-      {k:'girisim_yapildi',l:'Nöroşirürjik girişim (kraniyotomi, ICP…)',t:'eh'},
-      {k:'takip_yontemi',l:'30 gün takip yöntemi',t:'sel',opts:['HBYS kaydı','Telefon','İkisi']},
-      {k:'tekrar_basvuru',l:'30 günde tekrar başvuru',t:'eh'},
-      {k:'gecikmis_kanama',l:'Gecikmiş intrakraniyal kanama',t:'eh'},
-      {k:'olum_30g',l:'Kafa travmasına bağlı ölüm (30 gün)',t:'eh'},
-      {k:'takip_tamam',l:'Takip tamamlandı mı?',t:'eh'},
-    ]},
-  ];
-  let fgktState={excluded:false,reasons:[],puan:0};
-  function fgktAllFields(){ return FGKT_SCHEMA.reduce((a,s)=>a.concat(s.fields),[]); }
-  function fgktVal(k){ const el=document.getElementById('fg_'+k); if(!el)return ''; if(el.classList&&el.classList.contains('fgkt-multi'))return [...el.querySelectorAll('input:checked')].map(c=>c.value); return el.value; }
-  function buildFgktForm(){
-    const host=document.getElementById('fgktBody'); if(!host||host.dataset.built)return;
-    let h='';
-    FGKT_SCHEMA.forEach((s,si)=>{
-      h+=`<div class="fgkt-sec" data-i="${si}"><div class="fgkt-sec-h">${s.sec}</div>`;
-      s.fields.forEach(f=>{
-        const id='fg_'+f.k; let inp='';
-        if(f.t==='eh')inp=`<select id="${id}" data-k="${f.k}"><option value="">—</option><option>Evet</option><option>Hayır</option></select>`;
-        else if(f.t==='num')inp=`<input type="number" id="${id}" data-k="${f.k}"${f.min!=null?` min="${f.min}"`:''}${f.max!=null?` max="${f.max}"`:''}${f.ro?' readonly':''} step="any">`;
-        else if(f.t==='sel')inp=`<select id="${id}" data-k="${f.k}"><option value="">—</option>${f.opts.map(o=>`<option>${o}</option>`).join('')}</select>`;
-        else if(f.t==='dt')inp=`<input type="datetime-local" id="${id}" data-k="${f.k}">`;
-        else if(f.t==='text')inp=`<input type="text" id="${id}" data-k="${f.k}"${f.ro?' readonly':''}>`;
-        else if(f.t==='multi')inp=`<div class="fgkt-multi" id="${id}" data-k="${f.k}">${f.opts.map(o=>`<label><input type="checkbox" value="${o}"> ${o}</label>`).join('')}</div>`;
-        else if(f.t==='auto')inp=`<output id="${id}" class="fgkt-auto">—</output>`;
-        h+=`<div class="fgkt-row${f.cond?' fgkt-cond':''}"><label for="${id}">${f.l}${f.req?' <span class="fgkt-req">*</span>':''}</label>${inp}</div>`;
-      });
-      h+='</div>';
-    });
-    host.innerHTML=h; host.dataset.built='1';
-    host.addEventListener('input',fgktRecalc);
-    host.addEventListener('change',e=>{ fgktRecalc(); if(e.target&&e.target.id==='fg_merkez')fgktSuggestId(); });
-  }
-  function fgktRecalc(){
-    const gate=FGKT_SCHEMA.find(s=>s.gate);
-    const reasons=gate.fields.filter(f=>f.excl&&fgktVal(f.k)===f.excl).map(f=>f.exr||f.l);
-    const excluded=reasons.length>0;
-    const banner=document.getElementById('fgktBanner');
-    if(banner){banner.style.display=excluded?'block':'none'; if(excluded)banner.textContent='⚠ Bu hasta çalışmaya DAHİL EDİLEMEZ — '+reasons.join('; ');}
-    document.querySelectorAll('#fgktBody .fgkt-sec').forEach(sec=>{ const i=+sec.dataset.i; if(i>=2){ sec.style.opacity=excluded?'.45':'1'; sec.querySelectorAll('input,select').forEach(el=>el.disabled=excluded); } });
-    let puan=0;
-    fgktAllFields().forEach(f=>{ if(f.pts&&fgktVal(f.k)==='Evet')puan+=f.pts; });
-    const gks=parseInt(fgktVal('gks')); if(!isNaN(gks)){ if(gks<15)puan+=20; if(gks<14)puan+=50; }
-    const setA=(k,v)=>{const el=document.getElementById('fg_'+k); if(el)el.textContent=v;};
-    setA('fgkt_puan', excluded?'—':String(puan));
-    setA('kural_sonuc', excluded?'—':(puan>=25?'BT endike (≥25)':'BT endike değil (<25)'));
-    const bt=fgktVal('bt_cekildi');
-    document.querySelectorAll('#fgktBody .fgkt-row.fgkt-cond').forEach(r=>{ r.style.display=(bt==='Evet')?'':'none'; });
-    const niris=parseInt(fgktVal('niris')), sdh=parseFloat(fgktVal('sdh_mm'));
-    setA('anlamli_yaralanma', (bt==='Evet'&&!isNaN(niris))?(niris>1?'Evet':'Hayır'):'—');
-    setA('norosir_ihtiyac', (bt==='Evet')?(((niris>=3)||(sdh>10))?'Evet':'Hayır'):'—');
-    const so=document.getElementById('fgktScoreOut'); if(so)so.textContent=excluded?'Dışlandı':(puan+' · '+(puan>=25?'BT endike':'BT endike değil'));
-    const sb=document.getElementById('fgktSaveBtn'); if(sb)sb.textContent=excluded?'Dışlanan olarak kaydet':'Kaydet';
-    fgktState={excluded,reasons,puan};
-  }
-  async function fgktSuggestId(){
-    const merkez=fgktVal('merkez'), idEl=document.getElementById('fg_hasta_id');
-    if(!merkez||!idEl||idEl.value.trim())return;
-    const px=FGKT_PREFIX[merkez]||'MRK';
-    try{
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/fgkt_records?merkez=eq.${encodeURIComponent(merkez)}&select=hasta_id`,{headers:apiHeaders()});
-      let next=1;
-      if(res.ok){ (await res.json()).forEach(r=>{const m=/(\d+)\s*$/.exec(r.hasta_id||''); if(m)next=Math.max(next,parseInt(m[1])+1);}); }
-      idEl.value=px+'-'+String(next).padStart(4,'0');
-    }catch(e){ idEl.value=px+'-0001'; }
-  }
-  function fgktSetResearcher(){ const el=document.getElementById('fg_arastirmaci'); if(el){ el.value=curUsername(); el.readOnly=true; } }
-  function nowLocalDT(){ const d=new Date(),p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); }
-  function setNowDT(id,force){ const el=document.getElementById(id); if(el&&(force||!el.value))el.value=nowLocalDT(); }
-  window.showFgktForm=function(){
-    document.getElementById('testLanding').style.display='none';
-    buildFgktForm();
-    fgktSetResearcher();
-    setNowDT('fg_basvuru_tarihi');
-    document.getElementById('fgktForm').style.display='flex';
-    fgktRecalc();
-    fgktSheetSync(true); // açılışta sessiz tam senkron (eski/kaçan kayıtları toparlar)
-  };
-  window.hideFgktForm=function(){
-    document.getElementById('fgktForm').style.display='none';
-    renderTools();
-    document.getElementById('testLanding').style.display='flex';
-  };
-  window.fgktClear=function(){
-    document.querySelectorAll('#fgktBody input').forEach(i=>{ if(i.type==='checkbox')i.checked=false; else i.value=''; });
-    document.querySelectorAll('#fgktBody select').forEach(s=>s.value='');
-    document.getElementById('fgktStatus').textContent='';
-    fgktSetResearcher();
-    setNowDT('fg_basvuru_tarihi',true);
-    fgktRecalc();
-  };
-  window.fgktSave=async function(){
-    const st=document.getElementById('fgktStatus');
-    const hasta_id=(fgktVal('hasta_id')||'').trim(), merkez=fgktVal('merkez'), arastirmaci=fgktVal('arastirmaci');
-    if(!hasta_id){st.style.color='#b00020';st.textContent='Hasta ID gerekli.';return;}
-    if(!merkez){st.style.color='#b00020';st.textContent='Merkez gerekli.';return;}
-    const data={}; fgktAllFields().forEach(f=>{ if(f.t!=='auto')data[f.k]=fgktVal(f.k); });
-    let rec;
-    if(fgktState.excluded){
-      rec={hasta_id,merkez,arastirmaci,excluded:true,exclusion_reason:fgktState.reasons.join('; '),data:{yas_65:data.yas_65,kunt_travma:data.kunt_travma,sure_24s:data.sure_24s,penetran:data.penetran,sevk:data.sevk,onam:data.onam,basvuru_tarihi:data.basvuru_tarihi}};
-    }else{
-      if(!data.basvuru_tarihi){st.style.color='#b00020';st.textContent='Başvuru tarih-saati gerekli.';return;}
-      if(data.onam!=='Evet'){st.style.color='#b00020';st.textContent='Onam gerekli (Evet).';return;}
-      if(!data.yas){st.style.color='#b00020';st.textContent='Yaş gerekli.';return;}
-      if(data.gks!==''&&data.gks!=null&&(parseInt(data.gks)<3||parseInt(data.gks)>15)){st.style.color='#b00020';st.textContent='GKS 3–15 arasında olmalı.';return;}
-      if(data.bt_cekildi==='Hayır'&&(!data.takip_yontemi||!data.takip_tamam)){st.style.color='#b00020';st.textContent='BT çekilmediyse 30 gün takip (yöntem + tamamlandı) zorunlu.';return;}
-      for(const nk of ['kontuzyon_mm','sak_mm','sdh_mm']){ const v=data[nk]; if(v!==''&&v!=null&&parseFloat(v)<0){st.style.color='#b00020';st.textContent='Ölçüm değeri negatif olamaz: '+({kontuzyon_mm:'kontüzyon çapı',sak_mm:'SAK derinliği',sdh_mm:'SDH derinliği'})[nk]+'.';return;} }
-      data.fgkt_puan=fgktState.puan; data.kural_sonuc=fgktState.puan>=25?'BT endike':'BT endike değil';
-      data.anlamli_yaralanma=document.getElementById('fg_anlamli_yaralanma').textContent;
-      data.norosir_ihtiyac=document.getElementById('fg_norosir_ihtiyac').textContent;
-      rec={hasta_id,merkez,arastirmaci,excluded:false,exclusion_reason:null,fgkt_puan:fgktState.puan,kural_sonuc:data.kural_sonuc,data};
-    }
-    st.style.color='#888';st.textContent='Kaydediliyor…';
-    try{
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/fgkt_records`,{method:'POST',headers:{...apiHeaders(),'Prefer':'return=representation'},body:JSON.stringify(rec)});
-      if(res.ok){st.style.color='#1a7a1a';st.textContent=(fgktState.excluded?'Dışlanan kayıt eklendi: ':'Kaydedildi: ')+hasta_id; const saved=await res.json().catch(()=>null); gsheetAppendOne((saved&&saved[0])||rec);}
-      else if(res.status===401){st.style.color='#b00020';st.textContent='Oturum süresi doldu — sayfayı yenileyip tekrar giriş yapın.';}
-      else{const d=await res.json().catch(()=>({}));st.style.color='#b00020';st.textContent='Kaydedilemedi: '+(d.code==='23505'?'Hasta ID zaten var':(d.message||d.hint||('HTTP '+res.status)));}
-    }catch(e){st.style.color='#b00020';st.textContent='Bağlantı hatası.';}
-  };
-  // ---- Ortak tablo / Google Sheet senkronu ----
-  const GSHEET_SYNC_URL='https://script.google.com/macros/s/AKfycby9g7byKzeq3K4tp6boFtq_LY_8aWK4z-NMZ1fm91M4ihSezJFuIoRUtMEV2EdUxua2FA/exec'; // Google Apps Script web app /exec URL (JWT-doğrulamalı + biçimlendirmeli; boşken Sheet senkronu kapalı)
-  function fgktTable(recs){
-    const cols=[['created_at','Tarih'],['hasta_id','Hasta ID'],['merkez','Merkez'],['arastirmaci','Araştırmacı'],['excluded','Dışlandı'],['exclusion_reason','Dışlama nedeni'],...fgktAllFields().filter(f=>!['hasta_id','merkez','arastirmaci'].includes(f.k)).map(f=>[f.k,f.l])];
-    const top=['created_at','hasta_id','merkez','arastirmaci','excluded','exclusion_reason'];
-    const cell=v=>v==null?'':(Array.isArray(v)?v.join(', '):(typeof v==='boolean'?(v?'Evet':'Hayır'):v));
-    const header=cols.map(c=>c[1]);
-    const rows=recs.map(r=>{const d=r.data||{}; return cols.map(c=>cell(top.includes(c[0])?r[c[0]]:d[c[0]]));});
-    return {header,rows};
-  }
-  function gsheetPost(payload){
-    if(!GSHEET_SYNC_URL)return Promise.resolve({ok:false,err:'URL yok'});
-    let jwt=''; try{const s=JSON.parse(localStorage.getItem('epikriz_session')); jwt=(s&&s.access_token)||'';}catch(e){}
-    return fetch(GSHEET_SYNC_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...payload,jwt})})
-      .then(r=>r.text()).then(t=>{t=(t||'').trim();return {ok:t.indexOf('ok')===0,body:t};}).catch(e=>({ok:false,err:String(e)}));
-  }
-  function gsheetAppendOne(rec){
-    if(!GSHEET_SYNC_URL||!rec)return;
-    const t=fgktTable([rec]); gsheetPost({sheet:'FGKT',mode:'append',header:t.header,row:t.rows[0]});
-  }
-  window.fgktSheetSync=async function(silent){
-    const st=document.getElementById('fgktStatus');
-    const say=(c,t)=>{ if(!silent&&st){st.style.color=c;st.textContent=t;} };
-    if(!GSHEET_SYNC_URL){say('#b00020','Google Sheet bağlantısı (URL) henüz ayarlanmadı.');return;}
-    say('#888','Google Sheet’e aktarılıyor…');
-    try{
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/fgkt_records?select=*&order=created_at.asc`,{headers:apiHeaders()});
-      if(!res.ok){say('#b00020','Kayıtlar alınamadı (HTTP '+res.status+').');return;}
-      const recs=await res.json();
-      if(!recs.length){ say('#b00020','Supabase’den 0 kayıt geldi — aktarım atlandı (giriş/oturum kontrol et).'); return; }
-      const t=fgktTable(recs);
-      const r=await gsheetPost({sheet:'FGKT',mode:'replace',header:t.header,rows:t.rows});
-      if(r.ok) say('#1a7a1a',`${recs.length} kayıt Google Sheet’e aktarıldı.`);
-      else say('#b00020','Sheet hatası: '+(r.body||r.err||'bilinmiyor'));
-    }catch(e){say('#b00020','Bağlantı hatası.');}
-  };
-
-  // ---- Falls Decision Rule (FDR) — düşmede BT karar kuralı + Clinical Frailty Scale ----
-  const CFS_DEFS=[null,
-    ['Very Fit','Düzenli egzersiz yapan, yaşıtlarından daha fit, tamamen bağımsız birey.'],
-    ['Well','Aktif ve bağımsız, ancak düzenli yoğun egzersiz yapmayan birey.'],
-    ['Managing Well','Kronik hastalıkları olabilir ancak günlük yaşamını tamamen bağımsız sürdürür.'],
-    ['Very Mild Frailty','Karmaşık aktivitelerde (alışveriş, finans) zorlanır; öz bakımı tamdır.'],
-    ['Mild Frailty','Alışveriş, ulaşım ve ev işleri gibi dış aktivitelerde düzenli yardıma ihtiyaç duyar.'],
-    ['Moderately Frail','Ev içinde de yardıma ihtiyaç duyar; banyo ve merdiven gibi işlerde destek gerekir.'],
-    ['Severely Frail','Tam bağımlıdır, kişisel bakımının çoğunda yardıma ihtiyaç duyar.'],
-    ['Very Severely Frail','Tam bağımlıdır, küçük hastalıkları bile zor tolere eder.'],
-    ['Terminally Ill','Yaşam beklentisi ~6 aydan kısa terminal hastalık mevcuttur.']
-  ];
-  let fdrState={sonuc:'',cfs5:'—'};
-  function fdrV(id){ const el=document.getElementById('fdr_'+id); return el?el.value:''; }
-  function fdrRecalc(){
-    const cfs=parseInt(fdrV('cfs'));
-    const def=document.getElementById('fdrCfsDef');
-    if(def) def.textContent=(!isNaN(cfs)&&CFS_DEFS[cfs])?(CFS_DEFS[cfs][0]+' — '+CFS_DEFS[cfs][1]+(cfs<=4?' · düşük risk':' · risk faktörü')):'';
-    const cfs5=isNaN(cfs)?'—':(cfs<5?'Evet':'Hayır');
-    const c5=document.getElementById('fdr_cfs5'); if(c5)c5.textContent=cfs5;
-    const crit=[fdrV('bas_carpmasi_yok'),fdrV('amnezi_yok'),fdrV('noro_yok'),cfs5];
-    let sonuc='',cls='';
-    if(crit.every(c=>c==='Evet')){ sonuc='NEGATİF — BT gerekmeyebilir'; cls='neg'; }
-    else if(crit.some(c=>c==='Hayır')){ sonuc='POZİTİF — BT düşünülmeli'; cls='poz'; }
-    const r=document.getElementById('fdrResult'); if(r){ r.textContent='Falls Decision Rule: '+(sonuc||'—'); r.className='fgkt-score'+(cls?' fdr-'+cls:''); }
-    fdrState={sonuc,cfs5};
-  }
-  function fdrSetResearcher(){ const el=document.getElementById('fdr_arastirmaci'); if(el){ el.value=curUsername(); el.readOnly=true; } }
-  async function fdrSuggestId(){
-    const el=document.getElementById('fdr_hasta_id'); if(!el||el.value.trim())return;
-    try{
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/fdr_records?select=hasta_id`,{headers:apiHeaders()});
-      let next=1; if(res.ok){ (await res.json()).forEach(r=>{const m=/(\d+)\s*$/.exec(r.hasta_id||''); if(m)next=Math.max(next,parseInt(m[1])+1);}); }
-      el.value='FDR-'+String(next).padStart(4,'0');
-    }catch(e){ el.value='FDR-0001'; }
-  }
-  function fdrTable(recs){
-    const cols=[['created_at','Kayıt zamanı'],['hasta_id','Hasta ID'],['arastirmaci','Araştırmacı'],['tarih','Değerlendirme tarihi'],['cfs','CFS'],['cfs_tanim','CFS tanımı'],['cfs5','CFS<5'],['bas_carpmasi_yok','Baş çarpması yok'],['amnezi_yok','Amnezi yok (hatırlıyor)'],['noro_yok','Nörolojik anormallik yok'],['sonuc','Sonuç']];
-    const top=['created_at','hasta_id','arastirmaci','cfs','sonuc'];
-    const cell=v=>v==null?'':(typeof v==='boolean'?(v?'Evet':'Hayır'):v);
-    const header=cols.map(c=>c[1]);
-    const rows=recs.map(r=>{const d=r.data||{}; return cols.map(c=>cell(top.includes(c[0])?r[c[0]]:d[c[0]]));});
-    return {header,rows};
-  }
-  function fdrAppendOne(rec){ if(!GSHEET_SYNC_URL||!rec)return; const t=fdrTable([rec]); gsheetPost({sheet:'FALLS',mode:'append',header:t.header,row:t.rows[0]}); }
-  window.showFdrForm=function(){
-    document.getElementById('testLanding').style.display='none';
-    const f=document.getElementById('fdrForm');
-    if(!f.dataset.wired){ f.addEventListener('change',fdrRecalc); f.dataset.wired='1'; }
-    f.style.display='flex';
-    fdrSetResearcher(); fdrSuggestId(); setNowDT('fdr_tarih'); fdrRecalc();
-    fdrSheetSync(true);
-  };
-  window.hideFdrForm=function(){
-    document.getElementById('fdrForm').style.display='none';
-    renderTools();
-    document.getElementById('testLanding').style.display='flex';
-  };
-  window.fdrClear=function(){
-    ['hasta_id','tarih','cfs','bas_carpmasi_yok','amnezi_yok','noro_yok'].forEach(id=>{const el=document.getElementById('fdr_'+id); if(el)el.value='';});
-    document.getElementById('fdrStatus').textContent='';
-    fdrSetResearcher(); fdrSuggestId(); setNowDT('fdr_tarih',true); fdrRecalc();
-  };
-  window.fdrSave=async function(){
-    const st=document.getElementById('fdrStatus');
-    const hasta_id=(fdrV('hasta_id')||'').trim();
-    if(!hasta_id){st.style.color='#b00020';st.textContent='Hasta ID gerekli.';return;}
-    if(!fdrV('tarih')){st.style.color='#b00020';st.textContent='Değerlendirme tarih-saati gerekli.';return;}
-    const cfs=parseInt(fdrV('cfs'));
-    if(isNaN(cfs)){st.style.color='#b00020';st.textContent='CFS skoru gerekli.';return;}
-    for(const k of ['bas_carpmasi_yok','amnezi_yok','noro_yok']){ if(!fdrV(k)){st.style.color='#b00020';st.textContent='Üç kriteri de (baş çarpması, amnezi, nörolojik) yanıtlayın.';return;} }
-    if(!fdrState.sonuc){st.style.color='#b00020';st.textContent='Tüm kriterleri (baş çarpması, amnezi, nörolojik) yanıtlayın.';return;}
-    const cfs5=cfs<5?'Evet':'Hayır';
-    const data={tarih:fdrV('tarih'),cfs_tanim:CFS_DEFS[cfs]?CFS_DEFS[cfs][0]:'',cfs5,bas_carpmasi_yok:fdrV('bas_carpmasi_yok'),amnezi_yok:fdrV('amnezi_yok'),noro_yok:fdrV('noro_yok')};
-    const rec={hasta_id,arastirmaci:fdrV('arastirmaci'),cfs,sonuc:fdrState.sonuc,data};
-    st.style.color='#888';st.textContent='Kaydediliyor…';
-    try{
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/fdr_records`,{method:'POST',headers:{...apiHeaders(),'Prefer':'return=representation'},body:JSON.stringify(rec)});
-      if(res.ok){ st.style.color='#1a7a1a';st.textContent='Kaydedildi: '+hasta_id; const saved=await res.json().catch(()=>null); fdrAppendOne((saved&&saved[0])||rec); }
-      else if(res.status===401){ st.style.color='#b00020';st.textContent='Oturum süresi doldu — sayfayı yenileyip tekrar giriş yapın.'; }
-      else{ const d=await res.json().catch(()=>({})); st.style.color='#b00020';st.textContent='Kaydedilemedi: '+(d.code==='23505'?'Hasta ID zaten var':(d.message||('HTTP '+res.status))); }
-    }catch(e){st.style.color='#b00020';st.textContent='Bağlantı hatası.';}
-  };
-  window.fdrSheetSync=async function(silent){
-    const st=document.getElementById('fdrStatus');
-    const say=(c,t)=>{ if(!silent&&st){st.style.color=c;st.textContent=t;} };
-    if(!GSHEET_SYNC_URL){say('#b00020','Google Sheet bağlantısı (URL) henüz ayarlanmadı.');return;}
-    say('#888','Google Sheet’e aktarılıyor…');
-    try{
-      const res=await fetch(`${SUPABASE_URL}/rest/v1/fdr_records?select=*&order=created_at.asc`,{headers:apiHeaders()});
-      if(!res.ok){say('#b00020','Kayıtlar alınamadı (HTTP '+res.status+').');return;}
-      const recs=await res.json();
-      if(!recs.length){ say('#b00020','Supabase’den 0 kayıt geldi — aktarım atlandı (giriş/oturum kontrol et).'); return; }
-      const t=fdrTable(recs);
-      const r=await gsheetPost({sheet:'FALLS',mode:'replace',header:t.header,rows:t.rows});
-      if(r.ok) say('#1a7a1a',`${recs.length} kayıt Google Sheet’e aktarıldı.`);
-      else say('#b00020','Sheet hatası: '+(r.body||r.err||'bilinmiyor'));
-    }catch(e){say('#b00020','Bağlantı hatası.');}
-  };
 
   const followups={
     "göğüs ağrısı":[
